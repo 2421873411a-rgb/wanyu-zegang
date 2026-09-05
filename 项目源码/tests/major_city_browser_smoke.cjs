@@ -38,6 +38,7 @@ async function waitForServer(url) {
     page.on('console', (message) => message.type() === 'error' && errors.push(`console: ${message.text()}`));
     page.on('pageerror', (error) => errors.push(`pageerror: ${error.stack || error.message}`));
     page.on('request', (request) => requests.push(request.url()));
+    const requestPathOf = (url) => { try { return new URL(url).pathname; } catch { return url; } };
     await page.goto(base, { waitUntil: 'networkidle', timeout: 120000 });
     await page.waitForFunction(
       () => window.WanyuMaintainableSite?.state?.view === 'jobs_map' && document.querySelectorAll('[data-maint-map-region]').length === 16,
@@ -46,9 +47,9 @@ async function waitForServer(url) {
     );
     const fastText = await page.locator('#maintain-main').innerText();
     assert(fastText.includes('专业「法学类」'));
-    assert(fastText.includes('1,136'));
-    assert(requests.some((url) => url.endsWith('/data/cycles/2026/major_city.json')), 'major_city fast path was not requested');
-    assert(!requests.some((url) => url.endsWith('/data/cycles/2026/jobs_lite.json')), 'jobs_lite should not load for exact major fast path');
+    assert(fastText.includes('1,132'));
+    assert(requests.some((url) => requestPathOf(url).endsWith('/data/cycles/2026/major_city.json')), 'major_city fast path was not requested');
+    assert(!requests.some((url) => requestPathOf(url).endsWith('/data/cycles/2026/jobs_lite.json')), 'jobs_lite should not load for exact major fast path');
 
     await page.locator('[data-maint-map-clear-major]').click();
     await page.waitForFunction(
@@ -56,7 +57,7 @@ async function waitForServer(url) {
       null,
       { timeout: 120000 },
     );
-    assert(requests.some((url) => url.endsWith('/data/cycles/2026/jobs_lite.json')), 'jobs_lite fallback was not requested after clearing major');
+    assert(requests.some((url) => requestPathOf(url).endsWith('/data/cycles/2026/jobs_lite.json')), 'jobs_lite fallback was not requested after clearing major');
 
     await page.setViewportSize({ width: 390, height: 844 });
     assert((await page.evaluate(() => document.documentElement.scrollWidth)) <= 391, 'mobile horizontal overflow');

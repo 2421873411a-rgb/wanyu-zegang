@@ -62,7 +62,8 @@ async function waitForServer(url) {
 
     await page.locator('[data-maint-mobile-more-toggle]').click();
     assert.equal(await page.locator('[data-maint-mobile-more]').evaluate((node) => node.hidden), false, 'more drawer should open');
-    assert.equal(await page.locator('.maint-mobile-more__grid a').count(), 6, 'more drawer should expose secondary views');
+    // v17.8.4 用户视角导航把报考日历等加入更多面板，次级链接 6→7。
+    assert.equal(await page.locator('.maint-mobile-more__grid a').count(), 7, 'more drawer should expose secondary views');
     await page.locator('[data-maint-mobile-more-close]').click();
     assert.equal(await page.locator('[data-maint-mobile-more]').evaluate((node) => node.hidden), true, 'more drawer should close');
 
@@ -81,7 +82,8 @@ async function waitForServer(url) {
     assert(detailText.includes('岗位原始字段') && detailText.includes('证据与来源'), 'detail drawer should remain source-backed');
     assert(!(await page.locator('.maintain-status').innerText()).includes('加载中'), 'detail open should settle the status indicator');
     await page.locator('[data-maint-detail-close]').click();
-    assert((await page.locator('.maintain-status').innerText()).includes('外置模块已加载'), 'closing detail should restore the module status');
+    // v17.8.4 状态条考生化：'外置模块已加载·N行' → '数据已就绪 · 共N个岗位'。
+    assert((await page.locator('.maintain-status').innerText()).includes('数据已就绪'), 'closing detail should restore the module status');
 
     await page.goto(`${base.split('#')[0]}#jobs_map`, { waitUntil: 'networkidle', timeout: 120000 });
     await page.waitForFunction(
@@ -103,7 +105,8 @@ async function waitForServer(url) {
       null,
       { timeout: 30000 },
     );
-    assert.equal(await page.locator('[data-maint-map-inspector] .maint-map-facts dd').first().innerText(), '3,521', '上半年岗位数据应被筛出');
+        // 110 幽灵行全在上半年事业编：active 口径 3,411（原 raw 3,521）。
+    assert.equal(await page.locator('[data-maint-map-inspector] .maint-map-facts dd').first().innerText(), '3,411', '上半年岗位数据应被筛出');
     await page.locator('[data-maint-exam-sub="下半年"]').click();
     await page.waitForFunction(
       () => window.WanyuMaintainableSite?.state?.examSub === '下半年'
