@@ -1,0 +1,10 @@
+Q4 D3a 2024 city 归一进源头 + 干跑对账（续作机：D:\AI\zcode\皖域择岗）
+[新增] tools/anhui_web/city_norm.py：17 城规范集 + 规则归一
+  ①「X市」去后缀 ②市县/市直拼接取首市 ③省直管县广德→宣城、宿松→安庆 ④未登记值原样返回不推断
+[接入] build_pages.py（_city_ranges 消费点，省考路径）+ unified_cycle_bundle.py
+  _normalise_payload.normalize_rows（全考试类别统一边界），均带 try/except 导入
+[干跑] dryrun_city_norm.py（只读，RESULT: PASS）：
+  2024: 10,017 行守恒 | 归一变更 3,989 行（=审计定论） | 65 种脏值 → 14 规范城 | 未落入规范集 0
+  2025: 10,150 行，0 变更（干净周期零误伤）
+  2026: 8,511 行，0 变更
+[纪律] 已发布数据未改写；重建时自动生效

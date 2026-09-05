@@ -1,0 +1,11 @@
+FAIL | manifest size audit (4265 files) | 4272 entries, 1 bad e.g. [('项目源码/tests/test_supplement_integrity.py', 'size 4653 != 4691')]
+
+----------------------------------------------------------------------
+Ran 4 tests in 2.445s
+
+OK
+
+PASS | unittest tests.test_supplement_integrity | rc=0
+PASS | req-fields-2026.json in site data 
+PASS | site-manifest.json present 
+== 3/4 checks passed ==

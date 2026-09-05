@@ -1,0 +1,6 @@
+PASS | harvester derives lo from positive scores only 
+PASS | harvester reports n_zero / all_zero fields 
+PASS | all-zero frames yield lo=None (no 0 landing) 
+PASS | report classes sum to sentinel total | (629, 5, 144) vs total 778
+PASS | recoverable count ~629 (audit figure) | 629
+== 5/5 checks passed ==

@@ -1,0 +1,2 @@
+PASS | check_secrets.sh clean on: E:/zcode/择岗/网站 E:/zcode/择岗/项目源码/tools E:/zcode/择岗/项目源码/wan-api
+PASS | check_secrets.sh clean on 网站/ + tools/ + wan-api/

@@ -1,0 +1,142 @@
+/* ===== v9.2 岗位性质标签 / 详情浮层 / 模拟↔收藏联动 / 首访引导 / 对比高亮 / 手册内容 ===== */
+
+/* 岗位性质 chips（检索行内 + 详情浮层） */
+.nature-chip { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: 999px; font: 600 10.5px var(--mono, monospace); background: #eef3fb; color: #3b5a8a; border: 1px solid #d8e2f2; vertical-align: 1px; white-space: nowrap; }
+
+/* 详情按钮（检索行） */
+.detail-open { border: 1px solid #d8e2f2; background: #fff; color: #44618f; border-radius: 6px; padding: 2px 8px; font-size: 12px; cursor: pointer; }
+.detail-open:hover { background: #eef3fb; color: #2f5fca; border-color: #8fb5ea; }
+
+/* 竞争比热力色阶（heat 0 缓 → 4 紧），随修正分母实时更新 */
+.row-ratio[data-heat="0"] { background: #e2f3e8; color: #1e7a3d; }
+.row-ratio[data-heat="1"] { background: #ecf4df; color: #57802a; }
+.row-ratio[data-heat="2"] { background: #fdf3dd; color: #9b7220; }
+.row-ratio[data-heat="3"] { background: #fcebdd; color: #a15c22; }
+.row-ratio[data-heat="4"] { background: #f9e2e2; color: #a83a3a; }
+.row-ratio.is-edited[data-heat] { border-style: solid; border-color: currentColor; }
+
+/* 对比卡：每列相对更优标绿 */
+.compare-position-card dd.is-best { background: #e2f3e8; color: #1e7a3d; border-radius: 5px; padding: 0 5px; }
+
+/* 收藏卡稳档徽章（h3 右侧） */
+.saved-position-card h3 + .sim-band { margin-left: 8px; vertical-align: 1px; }
+
+/* 模拟清单快捷收藏星 */
+.sim-row__save { flex: none; width: 30px; height: 30px; border-radius: 8px; border: 1px solid #e3e9f4; background: #fff; color: #9aa5b5; font-size: 15px; cursor: pointer; }
+.sim-row__save:hover { border-color: #d9912c; color: #d9912c; }
+.sim-row__save.is-saved { background: #fdf3dd; border-color: #d9912c; color: #b57b17; }
+.sim-jobbox__actions { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+.sim-jobbox__actions .text-button.is-saved { color: #b57b17; font-weight: 700; }
+
+/* 岗位详情浮层 */
+.detail-head { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; align-items: flex-start; margin-bottom: 12px; }
+.detail-head__meta { margin: 0 0 2px; font-size: 12px; color: #6b7890; }
+.detail-head__code { font: 700 20px var(--mono, monospace); color: #24406e; display: block; }
+.detail-head__title { margin: 4px 0 0; font-size: 14px; font-weight: 600; color: #33415c; }
+.detail-head__nums { display: grid; grid-template-columns: repeat(4, minmax(84px, 1fr)); gap: 8px; }
+.detail-head__nums > div { background: #f4f7fc; border: 1px solid #e3e9f4; border-radius: 8px; padding: 7px 9px; }
+.detail-head__nums span { display: block; font-size: 11px; color: #6b7890; margin-bottom: 2px; }
+.detail-head__nums b { font-size: 15px; color: #24406e; }
+.detail-head__nums small { display: block; font-size: 10px; color: #8b97ab; }
+.detail-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px 16px; margin: 6px 0 16px; }
+.detail-grid > div { display: flex; gap: 6px; align-items: baseline; border-bottom: 1px dashed #e3e9f4; padding: 3px 0; }
+.detail-grid dt { flex: none; font-size: 12px; color: #6b7890; }
+.detail-grid dd { margin: 0; font-size: 13px; font-weight: 600; color: #33415c; word-break: break-all; }
+.detail-grid--raw dd { font-weight: 500; }
+.detail-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.detail-tag { font-size: 12px; border-radius: 999px; padding: 3px 10px; background: #f4f7fc; color: #54637d; border: 1px solid #e3e9f4; }
+.detail-tag b { font-weight: 700; margin-right: 4px; }
+.detail-tag.is-ok { background: #e2f3e8; border-color: #bfe3cc; color: #1e7a3d; }
+.detail-tag.is-blocked { background: #f9e2e2; border-color: #efc4c4; color: #a83a3a; }
+.detail-excluded { background: #f9e2e2; color: #a83a3a; border: 1px solid #efc4c4; border-radius: 8px; padding: 8px 12px; font-size: 13px; }
+
+/* 手册：考试日历 */
+.calendar-countdown { display: flex; gap: 14px; flex-wrap: wrap; align-items: stretch; margin: 4px 0 14px; }
+.calendar-countdown__item { display: flex; flex-direction: column; gap: 2px; background: #f4f7fc; border: 1px solid #e3e9f4; border-radius: 10px; padding: 10px 16px; min-width: 200px; }
+.calendar-countdown__item span { font-size: 13px; color: #33415c; font-weight: 600; }
+.calendar-countdown__item small { color: #8b97ab; font-size: 11px; }
+.calendar-countdown__item strong { font-size: 22px; color: #2f5fca; font-variant-numeric: tabular-nums; }
+.calendar-countdown__note { flex-basis: 100%; color: #8b97ab; font-size: 11px; }
+
+/* 手册：16 市考情卡 */
+.city-note-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+.city-note-card { background: #fff; border: 1px solid #e3e9f4; border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; }
+.city-note-card header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.city-note-card h3 { margin: 0; font-size: 15px; color: #24406e; }
+.city-note-card p { margin: 0; font-size: 12.5px; line-height: 1.65; color: #54637d; }
+.city-note-card dl { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin: 0; border-top: 1px dashed #e3e9f4; padding-top: 8px; }
+.city-note-card dl div { text-align: center; }
+.city-note-card dt { font-size: 10.5px; color: #8b97ab; }
+.city-note-card dd { margin: 0; font-size: 13px; font-weight: 700; color: #33415c; font-variant-numeric: tabular-nums; }
+
+/* 手册：FAQ */
+.manual-faq { display: flex; flex-direction: column; gap: 8px; }
+.manual-faq__item { background: #fff; border: 1px solid #e3e9f4; border-radius: 10px; padding: 0; overflow: hidden; }
+.manual-faq__item summary { cursor: pointer; padding: 11px 14px; font-weight: 600; font-size: 13.5px; color: #24406e; list-style: none; position: relative; padding-right: 36px; }
+.manual-faq__item summary::-webkit-details-marker { display: none; }
+.manual-faq__item summary::after { content: '+'; position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: #8b97ab; font-size: 16px; }
+.manual-faq__item[open] summary::after { content: '−'; }
+.manual-faq__item[open] summary { border-bottom: 1px dashed #e3e9f4; }
+.manual-faq__item p { margin: 0; padding: 10px 14px; font-size: 13px; line-height: 1.7; color: #54637d; }
+
+/* 首访引导 */
+.onboard__step h3 { margin: 6px 0 4px; font-size: 16px; color: #24406e; }
+.onboard__dots { display: flex; gap: 6px; justify-content: center; margin-top: 14px; }
+.onboard__dots i { width: 7px; height: 7px; border-radius: 999px; background: #d8e2f2; }
+.onboard__dots i.is-active { background: #2f5fca; width: 18px; }
+
+/* 决策单 2.0 */
+.decision-conclusion { margin: 6px 0 0; padding-left: 18px; display: flex; flex-direction: column; gap: 5px; }
+.decision-conclusion li { font-size: 13px; line-height: 1.6; }
+.decision-checklist { list-style: none; margin: 6px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.decision-checklist li { display: flex; gap: 9px; align-items: baseline; font-size: 13px; }
+.decision-checklist__box { flex: none; width: 13px; height: 13px; border: 1.5px solid #8b97ab; border-radius: 3px; transform: translateY(2px); }
+.decision-sheet__foot { display: flex; justify-content: space-between; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 10px; }
+.decision-sheet__actions { display: flex; gap: 10px; }
+
+/* ===== v9.2 暗色覆盖 ===== */
+body[data-theme="dark"] .nature-chip { background: #1a2534; color: #93a3b8; border-color: #273449; }
+body[data-theme="dark"] .detail-open { background: #131c29; border-color: #273449; color: #8fb5ea; }
+body[data-theme="dark"] .detail-open:hover { background: #1a2534; }
+body[data-theme="dark"] .row-ratio[data-heat="0"] { background: #14301f; color: #63c284; }
+body[data-theme="dark"] .row-ratio[data-heat="1"] { background: #23301a; color: #a4c465; }
+body[data-theme="dark"] .row-ratio[data-heat="2"] { background: #332a14; color: #d9b25c; }
+body[data-theme="dark"] .row-ratio[data-heat="3"] { background: #362616; color: #d98f52; }
+body[data-theme="dark"] .row-ratio[data-heat="4"] { background: #361a1a; color: #d97a7a; }
+body[data-theme="dark"] .compare-position-card dd.is-best { background: #14301f; color: #63c284; }
+body[data-theme="dark"] .sim-row__save { background: #131c29; border-color: #273449; color: #63718a; }
+body[data-theme="dark"] .sim-row__save.is-saved { background: #332a14; border-color: #d9b25c; color: #d9b25c; }
+body[data-theme="dark"] .sim-jobbox__actions .text-button.is-saved { color: #d9b25c; }
+body[data-theme="dark"] .detail-head__meta { color: #7d8ca3; }
+body[data-theme="dark"] .detail-head__code { color: #d7e6ff; }
+body[data-theme="dark"] .detail-head__title { color: #c3cfdf; }
+body[data-theme="dark"] .detail-head__nums > div { background: #131c29; border-color: #273449; }
+body[data-theme="dark"] .detail-head__nums span { color: #7d8ca3; }
+body[data-theme="dark"] .detail-head__nums b { color: #d7e6ff; }
+body[data-theme="dark"] .detail-head__nums small { color: #63718a; }
+body[data-theme="dark"] .detail-grid > div { border-color: #273449; }
+body[data-theme="dark"] .detail-grid dt { color: #7d8ca3; }
+body[data-theme="dark"] .detail-grid dd { color: #c3cfdf; }
+body[data-theme="dark"] .detail-tag { background: #131c29; border-color: #273449; color: #93a3b8; }
+body[data-theme="dark"] .detail-tag.is-ok { background: #14301f; border-color: #1f4d33; color: #63c284; }
+body[data-theme="dark"] .detail-tag.is-blocked { background: #361a1a; border-color: #5a2c2c; color: #d97a7a; }
+body[data-theme="dark"] .detail-excluded { background: #361a1a; border-color: #5a2c2c; color: #d97a7a; }
+body[data-theme="dark"] .calendar-countdown__item { background: #131c29; border-color: #273449; }
+body[data-theme="dark"] .calendar-countdown__item span { color: #c3cfdf; }
+body[data-theme="dark"] .calendar-countdown__item strong { color: #8fb5ea; }
+body[data-theme="dark"] .calendar-countdown__note { color: #63718a; }
+body[data-theme="dark"] .city-note-card { background: #131c29; border-color: #273449; }
+body[data-theme="dark"] .city-note-card h3 { color: #d7e6ff; }
+body[data-theme="dark"] .city-note-card p { color: #93a3b8; }
+body[data-theme="dark"] .city-note-card dl { border-color: #273449; }
+body[data-theme="dark"] .city-note-card dt { color: #63718a; }
+body[data-theme="dark"] .city-note-card dd { color: #c3cfdf; }
+body[data-theme="dark"] .manual-faq__item { background: #131c29; border-color: #273449; }
+body[data-theme="dark"] .manual-faq__item summary { color: #d7e6ff; }
+body[data-theme="dark"] .manual-faq__item summary::after { color: #63718a; }
+body[data-theme="dark"] .manual-faq__item[open] summary { border-color: #273449; }
+body[data-theme="dark"] .manual-faq__item p { color: #93a3b8; }
+body[data-theme="dark"] .onboard__dots i { background: #273449; }
+body[data-theme="dark"] .onboard__dots i.is-active { background: #8fb5ea; }
+body[data-theme="dark"] .onboard__step h3 { color: #d7e6ff; }
+body[data-theme="dark"] .decision-checklist__box { border-color: #63718a; }

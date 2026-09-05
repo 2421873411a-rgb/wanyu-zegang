@@ -1,0 +1,12 @@
+PASS | ghost asset deleted: search-history.js 
+PASS | ghost asset deleted: search-history.css 
+PASS | ghost asset deleted: share-link.js 
+PASS | ghost asset deleted: share-link.css 
+PASS | ghost asset deleted: toast.js 
+PASS | ghost asset deleted: toast.css 
+PASS | ghost asset deleted: v17-enhancements.js 
+PASS | ghost assets zero-referenced site-wide | {}
+PASS | no Legacy functions remain 
+PASS | all live render functions intact (no collateral excision) | missing: []
+PASS | node --check passes 
+== 11/11 checks passed ==

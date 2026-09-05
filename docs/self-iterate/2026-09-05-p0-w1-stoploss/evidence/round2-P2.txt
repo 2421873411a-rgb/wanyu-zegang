@@ -1,0 +1,8 @@
+PASS | no inline hex/rgb colors in badge rendering | 19 badge mentions, 0 inline-color hits
+PASS | dark override rules for .maintain-cycle-picker | 4 rules
+PASS | dark override rules for .maintain-header | 2 rules
+PASS | dark picker override not white background 
+PASS | badge color pairs resolvable & >=4.5 (light) | 5/5 pairs tested
+PASS | badge color pairs resolvable & >=4.5 (dark) | 5/5 pairs tested
+PASS | no literal 6-hex stroke palettes in js (charts tokenized) | 0 hits e.g. []
+== 7/7 checks passed ==

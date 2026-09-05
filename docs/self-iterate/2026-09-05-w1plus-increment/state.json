@@ -1,0 +1,99 @@
+{
+ "goal": "批次2（W1+ 增量）：v2 计划 A5 死代码清理 / U1a 抽屉层级与滚动锁 / D3a 2024 city 归一（源头）/ D6a floor 哨兵（源头）/ U10a 浅色对比度残留，迭代至 09:00",
+ "created": "2026-09-05T04:15:00+08:00",
+ "deadline": "09:00",
+ "max_rounds": 20,
+ "criteria": [
+  "Q1: 网站/assets 七个幽灵文件删除且全站零引用；maintainable-site.js 内 4 个 Legacy 函数摘除；node --check 过；UI 回归不新增失败",
+  "Q2: 岗位详情抽屉 z-index 高于底部导航(38)；打开抽屉锁 body 滚动、关闭恢复；静态断言",
+  "Q3: 构建器源头 floor==0 一律输出 null（不改已部署数据，不破坏哈希链）；静态断言 + 干跑验证",
+  "Q4: 2024 city 归一映射进源头构建器（65 脏值→17 城规范集，市县拼接取首市、广德→宣城、宿松→安庆等）；干跑对账 3,989 行全部落入规范集且总行数守恒",
+  "Q5: 浅色主题残留对比度修复（状态条/眉题编号/easy 档等≥4.5），复用 WCAG 计算脚本对具体色对出证据"
+ ],
+ "assumptions": [
+  "确认门未应答，按推导继续（unattended）",
+  "承接批次1假设：不部署、不连生产、pem 不入 git、FastAPI 不动",
+  "Q3/Q4 只修源头构建器+干跑，不重写已部署 jobs.json（哈希链纪律，重收割上线同 P11 留晨会）",
+  "网站-lite 的删除属站长决策（v2 计划 §九.2），本批不动"
+ ],
+ "points": [
+  {
+   "id": "Q1",
+   "desc": "A5: 幽灵资产文件删除 + 4 Legacy 函数摘除",
+   "status": "passed",
+   "deps": [],
+   "priority": "high",
+   "evidence": "evidence/round1-Q1.txt | q1_cleanup.py 11/11：7 幽灵文件(+.gz)三处清除、4 Legacy 摘除、16 个现役渲染函数完整、node --check 过",
+   "note": "事故与修复：行级摘除误吞 renderChangelog（单行 Legacy 与现役定义相邻），已从 HEAD 恢复并把\"现役函数完整\"固化为验收断言；lite 站 UI 层同步；verify_maintainable_site palette 转可选模块（P0-9③ 口径同步，行数校验保留）；test_ui_upgrade 版本断言改单调",
+   "fail_streak": 0
+  },
+  {
+   "id": "Q2",
+   "desc": "U1a: 详情抽屉 z-index 高于底部导航 + body 滚动锁",
+   "status": "passed",
+   "deps": [],
+   "priority": "high",
+   "evidence": "evidence/round2-Q2.txt",
+   "note": "z-index 30→60（>nav38/面板39/调色板50）+ body 滚动锁；首版真值守卫在双开竞态下存 'hidden' 的bug 已实测复现并修复（in 守卫 + || '' 恢复）；node --check 过；浏览器实测 z=60>38、开锁置位",
+   "fail_streak": 0
+  },
+  {
+   "id": "Q3",
+   "desc": "D6a: floor==0 源头改 null",
+   "status": "passed",
+   "deps": [],
+   "priority": "medium",
+   "evidence": "evidence/round2-Q3.txt",
+   "note": "build_pages 4 输出位 + 1 初始化位改 None；min(rank)==1、未解析→None 断言过；已部署数据未动",
+   "fail_streak": 0
+  },
+  {
+   "id": "Q4",
+   "desc": "D3a: 2024 city 归一进构建器 + 干跑对账",
+   "status": "passed",
+   "deps": [],
+   "priority": "high",
+   "evidence": "evidence/round2-Q4.txt",
+   "note": "city_norm.py 规则归一接入 build_pages + unified_cycle_bundle 统一边界；干跑 PASS：2024 变更 3,989 行（=定论）65 脏值→14 城全落入规范集、行数守恒、2025/2026 零误伤",
+   "fail_streak": 0
+  },
+  {
+   "id": "Q5",
+   "desc": "U10a: 浅色残留对比度修复",
+   "status": "passed",
+   "deps": [],
+   "priority": "medium",
+   "evidence": "evidence/round2-Q5.txt",
+   "note": "18 处浅色残留换 token/压深色，全部 ≥4.5:1（最坏背景实算）；深色统计三色补齐；CRLF 事故被 test_ui_upgrade 抓出已修复并同步 templates；9/9 OK",
+   "fail_streak": 0
+  }
+ ],
+ "rounds": [
+  {
+   "n": 1,
+   "focus": "Q1",
+   "change": "A5 清理：幽灵资产/Legacy/模板/镜像/lite UI 同步；校验器 palette 可选化",
+   "evidence_file": "evidence/round1-Q1.txt",
+   "evidence_summary": "11/11；回归 17/21（4 ERROR=已知工具链缺输入）",
+   "fail_type": "none",
+   "event": null
+  },
+  {
+   "n": 2,
+   "focus": "Q2-Q5",
+   "change": "续作机（D:\\AI\\zcode\\皖域择岗）完成抽屉层级+滚动锁（含双开bug修复）/floor null/2024城市归一/浅色对比度18处；版本 v17.7.2 / SW v42；门禁 check_release 全绿；lite+templates 同步",
+   "evidence_file": "evidence/round2-Q2.txt..round2-Q5.txt",
+   "evidence_summary": "verify_maintainable_site 226/226；test_ui_upgrade 9/9；dryrun_city_norm PASS；check_release 全绿",
+   "fail_type": "CRLF 写入事故（已修复并固化为测试锚点）",
+   "event": null
+  }
+ ],
+ "dead_ends": [],
+ "baseline_commit": "WORKTREE (batch1 r2+ 改动未入库，git 基线仍 7a9564b)",
+ "rev": 2,
+ "baton": {
+  "focus": "A2",
+  "next": "下一批：?sha= 内容寻址缓存（v2 计划 A2），随后 A4 详情瘦身/ P3 收藏变更提醒"
+ },
+ "done": true
+}

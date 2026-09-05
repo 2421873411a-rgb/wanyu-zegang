@@ -1,0 +1,6 @@
+PASS | educationAllows helper defined (tier map + <= comparison) 
+PASS | old includes() education filter removed (0 occurrences) 
+PASS | both filter sites use educationAllows | 2 sites
+PASS | sim: 研究生 user sees >7000 rows (old bug: 858) | visible=8511/8511
+PASS | sim: 大专 user strictly narrower than 研究生 | college=631
+== 5/5 checks passed ==

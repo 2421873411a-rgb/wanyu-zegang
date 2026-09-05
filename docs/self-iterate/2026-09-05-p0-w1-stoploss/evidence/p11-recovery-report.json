@@ -1,0 +1,136 @@
+{
+ "sentinel_total": 778,
+ "recoverable": 629,
+ "all_zero": 5,
+ "no_code": 144,
+ "samples_recoverable": [
+  {
+   "code": "1601001",
+   "recovered_line": 58.0,
+   "n_zero": 12,
+   "n_total": 63
+  },
+  {
+   "code": "1601002",
+   "recovered_line": 42.0,
+   "n_zero": 25,
+   "n_total": 68
+  },
+  {
+   "code": "1601003",
+   "recovered_line": 29.0,
+   "n_zero": 33,
+   "n_total": 98
+  },
+  {
+   "code": "1601004",
+   "recovered_line": 47.0,
+   "n_zero": 29,
+   "n_total": 83
+  },
+  {
+   "code": "1601005",
+   "recovered_line": 44.0,
+   "n_zero": 33,
+   "n_total": 101
+  },
+  {
+   "code": "1601006",
+   "recovered_line": 65.5,
+   "n_zero": 24,
+   "n_total": 65
+  },
+  {
+   "code": "1601007",
+   "recovered_line": 49.0,
+   "n_zero": 35,
+   "n_total": 140
+  },
+  {
+   "code": "1601008",
+   "recovered_line": 52.0,
+   "n_zero": 46,
+   "n_total": 116
+  },
+  {
+   "code": "1601009",
+   "recovered_line": 23.0,
+   "n_zero": 29,
+   "n_total": 102
+  },
+  {
+   "code": "1601011",
+   "recovered_line": 40.0,
+   "n_zero": 101,
+   "n_total": 263
+  },
+  {
+   "code": "1601012",
+   "recovered_line": 66.0,
+   "n_zero": 18,
+   "n_total": 63
+  },
+  {
+   "code": "1601013",
+   "recovered_line": 48.0,
+   "n_zero": 15,
+   "n_total": 57
+  },
+  {
+   "code": "1601014",
+   "recovered_line": 35.0,
+   "n_zero": 40,
+   "n_total": 116
+  },
+  {
+   "code": "1601015",
+   "recovered_line": 20.0,
+   "n_zero": 48,
+   "n_total": 148
+  },
+  {
+   "code": "1601017",
+   "recovered_line": 49.0,
+   "n_zero": 39,
+   "n_total": 155
+  },
+  {
+   "code": "1601018",
+   "recovered_line": 58.5,
+   "n_zero": 27,
+   "n_total": 99
+  },
+  {
+   "code": "1601019",
+   "recovered_line": 50.5,
+   "n_zero": 13,
+   "n_total": 28
+  },
+  {
+   "code": "1601020",
+   "recovered_line": 60.0,
+   "n_zero": 3,
+   "n_total": 21
+  },
+  {
+   "code": "1601021",
+   "recovered_line": 48.0,
+   "n_zero": 20,
+   "n_total": 76
+  },
+  {
+   "code": "1601022",
+   "recovered_line": 71.0,
+   "n_zero": 16,
+   "n_total": 57
+  }
+ ],
+ "samples_all_zero": [
+  "1501018",
+  "0509034",
+  "0908018",
+  "1705036",
+  "1401066"
+ ],
+ "method": "jobs.json line==0 哨兵行 join score_lists.json bs 名单；0+正分混合→最小正分；全 0→保持空；无名单→待原始附件重收割"
+}

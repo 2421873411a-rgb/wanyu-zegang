@@ -1,0 +1,6 @@
+PASS | .gz sibling coverage >= 99% | 21/21 (100.0%), e.g. missing []
+PASS | no unconditional 3-cycle jobs.json preload 
+PASS | cycle-compare 3-cycle jobs load wrapped by hasExamScope guard 
+PASS | no live palette.json load 
+PASS | palette entries derived from jobs_lite 
+== 5/5 checks passed ==

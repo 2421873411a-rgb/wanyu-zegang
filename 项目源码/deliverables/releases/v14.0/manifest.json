@@ -1,0 +1,222 @@
+{
+  "release": "v14.0",
+  "created_on": "2026-09-01T10:20:41.145194+00:00",
+  "maintainable_manifest": {
+    "audit": {
+      "bytes": 15470,
+      "data": "data/audit/three-year.json",
+      "sha256": "75ee0d763cd52d6d1db5f001956c0926a68a868c03c256daf38c7ccded668815"
+    },
+    "cycles": [
+      {
+        "bytes": 12083969,
+        "cycle": "2024",
+        "data": "data/cycles/2024/jobs.json",
+        "gaps": 3,
+        "label": "2024年度",
+        "modules": {
+          "audit": {
+            "bytes": 6343,
+            "data": "data/cycles/2024/audit.json",
+            "schema": "wanyu-maintainable-audit/v1",
+            "sha256": "65ffa02bbd64dee062de5fe5c587255472edacede3bd4be982a2a39b6202458d"
+          },
+          "catalog": {
+            "bytes": 1918771,
+            "data": "data/cycles/2024/catalog.json",
+            "schema": "wanyu-maintainable-catalog/v1",
+            "sha256": "271820a45a8c6969d3bbbbae8a582ff313c2c7512f8a9d1f569a533ebf808f7d"
+          },
+          "changes": {
+            "bytes": 282,
+            "data": "data/cycles/2024/changes.json",
+            "schema": "wanyu-maintainable-changes/v1",
+            "sha256": "0cb55cc1f3d00ae53ce2b14cd73b9472d69f568ef7b9e3033c6d72793d67d8fa"
+          },
+          "jobs": {
+            "bytes": 12083969,
+            "data": "data/cycles/2024/jobs.json",
+            "schema": "wanyu-maintainable-jobs/v1",
+            "sha256": "4d9186a7f2d20b9fd20b95f846e9b0d59b7d362acb087cc82fcf4c3634f4f8bb"
+          },
+          "overview": {
+            "bytes": 4460,
+            "data": "data/cycles/2024/overview.json",
+            "schema": "wanyu-maintainable-overview/v1",
+            "sha256": "1a79e388e58cc778c5f09e10a88f2d75d14f55e1ffe4fe4d27b5b285bc02dddd"
+          },
+          "positions": {
+            "bytes": 6187425,
+            "data": "data/cycles/2024/positions.json",
+            "schema": "wanyu-maintainable-position-index/v1",
+            "sha256": "cb50bdddc4eb1939b818049e68c609f1f81ecdde814a3449d24d79e4e150811a"
+          },
+          "scores": {
+            "bytes": 10134612,
+            "data": "data/cycles/2024/scores.json",
+            "schema": "wanyu-maintainable-scores/v1",
+            "sha256": "66d1d55544ce9b4ef5379e37323eb118b9d33adc241001627b9a9e82ea10aeb0"
+          }
+        },
+        "posts": 10017,
+        "recruits": 15331,
+        "score_unresolved": 0,
+        "sha256": "4d9186a7f2d20b9fd20b95f846e9b0d59b7d362acb087cc82fcf4c3634f4f8bb",
+        "status": "verified"
+      },
+      {
+        "bytes": 12984489,
+        "cycle": "2025",
+        "data": "data/cycles/2025/jobs.json",
+        "gaps": 3,
+        "label": "2025年度",
+        "modules": {
+          "audit": {
+            "bytes": 7917,
+            "data": "data/cycles/2025/audit.json",
+            "schema": "wanyu-maintainable-audit/v1",
+            "sha256": "2633613721471735552f55a652138541c2a96d5f6272310fc5c3f87d7fed01bd"
+          },
+          "catalog": {
+            "bytes": 2109564,
+            "data": "data/cycles/2025/catalog.json",
+            "schema": "wanyu-maintainable-catalog/v1",
+            "sha256": "859746ed04d55519dc240c9a11c0543195c77222a63f294bc28683bcc7f95f6b"
+          },
+          "changes": {
+            "bytes": 2756864,
+            "data": "data/cycles/2025/changes.json",
+            "schema": "wanyu-maintainable-changes/v1",
+            "sha256": "25a2fe990bb7c4913ca32c0cc5b6ffe56f9d784cd1009afee11323532e955a81"
+          },
+          "jobs": {
+            "bytes": 12984489,
+            "data": "data/cycles/2025/jobs.json",
+            "schema": "wanyu-maintainable-jobs/v1",
+            "sha256": "63a98ed2bcc8253e8bfde46277c8841b9ae8429a81d55e7276fdb576e25f32ce"
+          },
+          "overview": {
+            "bytes": 4424,
+            "data": "data/cycles/2025/overview.json",
+            "schema": "wanyu-maintainable-overview/v1",
+            "sha256": "f7ca355b0c96c55ce484691708f3ad75f91d162dbd41469c779a27defba431ce"
+          },
+          "positions": {
+            "bytes": 6307628,
+            "data": "data/cycles/2025/positions.json",
+            "schema": "wanyu-maintainable-position-index/v1",
+            "sha256": "25be1606f169c0c15a2e210a3dc78a4f72edc8f23bc750aab2780112c8753d42"
+          },
+          "scores": {
+            "bytes": 15967787,
+            "data": "data/cycles/2025/scores.json",
+            "schema": "wanyu-maintainable-scores/v1",
+            "sha256": "ac4ae8645c03258cf197399212645596461123adce5a87603183b72f602ad96a"
+          }
+        },
+        "posts": 10150,
+        "recruits": 14721,
+        "score_unresolved": 0,
+        "sha256": "63a98ed2bcc8253e8bfde46277c8841b9ae8429a81d55e7276fdb576e25f32ce",
+        "status": "verified"
+      },
+      {
+        "bytes": 11018859,
+        "cycle": "2026",
+        "data": "data/cycles/2026/jobs.json",
+        "gaps": 2,
+        "label": "2026 · 快照 2026-08-28",
+        "modules": {
+          "audit": {
+            "bytes": 4486,
+            "data": "data/cycles/2026/audit.json",
+            "schema": "wanyu-maintainable-audit/v1",
+            "sha256": "4188ace37dc5b9bb621cf6ecda8c438db80878daea45ab44ed9b171eea7c9431"
+          },
+          "catalog": {
+            "bytes": 1840774,
+            "data": "data/cycles/2026/catalog.json",
+            "schema": "wanyu-maintainable-catalog/v1",
+            "sha256": "b7d565a7b8b9e86c677d606003b4ddc6225777968b65c2d8520233e25c6acdea"
+          },
+          "changes": {
+            "bytes": 2316621,
+            "data": "data/cycles/2026/changes.json",
+            "schema": "wanyu-maintainable-changes/v1",
+            "sha256": "daed0af0e9da768bf59a0bf72d35f862c3cacf0952ab31ed37775e2dc9333f01"
+          },
+          "jobs": {
+            "bytes": 11018859,
+            "data": "data/cycles/2026/jobs.json",
+            "schema": "wanyu-maintainable-jobs/v1",
+            "sha256": "8792675493c70a7efe26de017eb24ccc53c85c20963c5a799612c7c412d9721e"
+          },
+          "overview": {
+            "bytes": 1480,
+            "data": "data/cycles/2026/overview.json",
+            "schema": "wanyu-maintainable-overview/v1",
+            "sha256": "f3bef0aab391ac896551dfeab2b31a3bcfd2508f6ce9e307164e68e9827038fb"
+          },
+          "positions": {
+            "bytes": 5287859,
+            "data": "data/cycles/2026/positions.json",
+            "schema": "wanyu-maintainable-position-index/v1",
+            "sha256": "11945eb90b11c7c05e6e31a63904d4ffecd8827014e6da28eced4f58f22913cd"
+          },
+          "scores": {
+            "bytes": 19584996,
+            "data": "data/cycles/2026/scores.json",
+            "schema": "wanyu-maintainable-scores/v1",
+            "sha256": "6d412a34e92c77a319fa0aa347b808118d565a323ab81f34658fd769aa3d7542"
+          }
+        },
+        "posts": 8511,
+        "recruits": 12006,
+        "score_unresolved": 116,
+        "sha256": "8792675493c70a7efe26de017eb24ccc53c85c20963c5a799612c7c412d9721e",
+        "status": "verified"
+      }
+    ],
+    "default_cycle": "2026",
+    "maintenance": {
+      "data_is_external": true,
+      "load_policy": "按周期懒加载并缓存",
+      "module_policy": "overview / jobs / catalog / positions / scores / changes / audit 分层；岗位原文只在 jobs 模块；地图几何单独外置",
+      "unknown_policy": "未发布或无法唯一匹配的值保持空值，不推断为零"
+    },
+    "map": {
+      "bytes": 65678,
+      "data": "data/map/anhui.json",
+      "schema": "wanyu-maintainable-map/v1",
+      "sha256": "d98fb053398facec707a3c842c138b82118990bf3b173ce8ecb9348caa9fbc77",
+      "source": "tools/anhui_web/data/anhui_340000_full.json"
+    },
+    "release": "v14.0",
+    "review_queue": {
+      "bytes": 4225,
+      "data": "data/audit/review-queue.json",
+      "sha256": "49f509d5b03e575b2f11f33d81e21d266758521c03bae2d3b197a782703aa7e1"
+    },
+    "schema": "wanyu-maintainable-site/v3",
+    "snapshot_date": "2026-08-31",
+    "source_chain": {
+      "audit": "tools/anhui_web/data/three_year_audit.json",
+      "cycle_bundles": "tools/anhui_web/unified_cycle_bundle.py",
+      "map_geometry": "tools/anhui_web/data/anhui_340000_full.json",
+      "single_file_fallback": "../皖域择岗总览.html"
+    }
+  },
+  "rollback": {
+    "unit": "cycle/module",
+    "required": [
+      "same cycle",
+      "previous SHA-256",
+      "disk verifier"
+    ],
+    "rule": "只允许同周期同模块恢复；恢复后必须重建 manifest 并重新校验。"
+  },
+  "artifacts": {
+    "offline_html": "../../皖域择岗总览.html",
+    "maintainable_site": "../../maintainable"
+  }
+}

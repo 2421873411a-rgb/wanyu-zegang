@@ -1,0 +1,13 @@
+Q2 U1a 抽屉层级 + body 滚动锁（续作机：D:\AI\zcode\皖域择岗，v17.7.2/SW v42）
+[补丁] q2_q5_patch.py 锚点断言全过：
+  - .maint-detail-backdrop z-index 30 -> 60（高于底部导航 38 / 更多面板 39 / 调色板 50）
+  - lockBodyScroll 助手注入 openDetail/closeDetail
+[事故与修复] 首版助手用真值判断做幂等守卫，双开竞态下把 saved 值存成 'hidden'，
+  关闭后 body 永久 hidden（实测复现）。已改为 'scrollLock' in dataset 守卫 + || '' 恢复，
+  三份副本（网站/templates/网站-lite）同步。
+[实测] 内置浏览器 390px 视口：
+  - 抽屉打开：backdrop z=60 > .maint-mobile-nav z=38（两次实测一致）
+  - 开启时 body overflow=hidden 且 data-scroll-lock 置位（首轮实测）
+  - 微测（与现役代码逐字一致）：双锁后 saved=''、解锁恢复 ''、标志清除 全过
+  - 修复后整页重载：body 无残留锁
+[语法] node --check 通过

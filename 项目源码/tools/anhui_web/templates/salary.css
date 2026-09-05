@@ -1,0 +1,1476 @@
+.salary-page {
+  --atlas-bg: #f3f6f7;
+  --atlas-paper: #fbfcfc;
+  --atlas-panel: #ffffff;
+  --atlas-mist: #e8f0f3;
+  --atlas-ink: #102536;
+  --atlas-ink-soft: #536675;
+  --atlas-muted: #83929d;
+  --atlas-line: #d7e0e4;
+  --atlas-line-strong: #bfcdd3;
+  --atlas-blue: #2d64d8;
+  --atlas-teal: #168b88;
+  --atlas-coral: #e76650;
+  --atlas-gold: #d9a94b;
+  --atlas-navy: #163349;
+  color: var(--atlas-ink);
+  background: var(--atlas-bg);
+}
+
+.salary-page::before { display: none; }
+
+.salary-page .shell {
+  width: min(1400px, calc(100% - 64px));
+}
+
+.salary-page .site-header {
+  overflow: visible;
+  color: var(--atlas-ink);
+  background: var(--atlas-paper);
+  border-bottom: 1px solid var(--atlas-line);
+}
+
+.salary-page .site-header::after { display: none; }
+
+.salary-page .site-brand {
+  min-height: 72px;
+  padding-block: 0;
+  border-bottom: 1px solid var(--atlas-line);
+}
+
+.salary-page .brand-mark {
+  color: var(--atlas-ink);
+  font-size: 14px;
+  letter-spacing: 0.13em;
+}
+
+.salary-page .brand-mark::before { display: none; }
+
+.salary-page .cross-link {
+  min-height: 38px;
+  padding: 7px 13px;
+  color: var(--atlas-ink-soft);
+  border: 1px solid var(--atlas-line);
+  border-radius: 999px;
+  background: var(--atlas-panel);
+  transition: color 180ms ease, border-color 180ms ease, transform 180ms ease;
+}
+
+.salary-page .cross-link:hover {
+  color: var(--atlas-blue);
+  border-color: rgba(45, 100, 216, 0.42);
+  transform: translateY(-1px);
+}
+
+.salary-hero {
+  padding-block: clamp(60px, 7vw, 104px) clamp(72px, 8vw, 118px);
+}
+
+.salary-intro {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(430px, 0.9fr);
+  gap: clamp(52px, 8vw, 126px);
+  align-items: end;
+  margin-bottom: clamp(52px, 6vw, 84px);
+}
+
+.hero-kicker {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 0 0 23px;
+  color: var(--atlas-muted);
+  font: 650 11px/1 var(--data);
+  letter-spacing: 0.14em;
+}
+
+.hero-kicker span { color: var(--atlas-blue); }
+
+.salary-intro h1 {
+  margin: 0;
+  color: var(--atlas-ink);
+  font-family: var(--sans);
+  font-size: clamp(58px, 7vw, 104px);
+  font-weight: 640;
+  letter-spacing: -0.07em;
+  line-height: 0.98;
+}
+
+.salary-intro h1 em {
+  color: var(--atlas-blue);
+  font-style: normal;
+  font-weight: 560;
+}
+
+.salary-hero__lead {
+  max-width: 690px;
+  margin: 32px 0 0;
+  color: var(--atlas-ink-soft);
+  font-size: clamp(15px, 1.35vw, 18px);
+  line-height: 1.85;
+}
+
+.salary-page .hero-actions { margin: 31px 0 0; }
+
+.salary-page .hero-action {
+  min-height: 47px;
+  padding: 10px 19px;
+  color: #fff;
+  border-color: var(--atlas-ink);
+  border-radius: 999px;
+  background: var(--atlas-ink);
+  box-shadow: 0 14px 30px rgba(16, 37, 54, 0.13);
+}
+
+.salary-page .hero-action:hover {
+  color: #fff;
+  border-color: var(--atlas-blue);
+  background: var(--atlas-blue);
+}
+
+.salary-page .hero-action--quiet {
+  color: var(--atlas-ink);
+  border-color: var(--atlas-line-strong);
+  background: transparent;
+  box-shadow: none;
+}
+
+.salary-page .hero-action--quiet:hover {
+  color: var(--atlas-blue);
+  border-color: var(--atlas-blue);
+  background: transparent;
+}
+
+.salary-intro__facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 28px 36px;
+  margin: 0;
+}
+
+.salary-intro__facts div {
+  min-width: 0;
+  padding: 2px 0 5px 18px;
+  border-left: 1px solid var(--atlas-line-strong);
+}
+
+.salary-intro__facts dt {
+  margin-bottom: 11px;
+  color: var(--atlas-muted);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+}
+
+.salary-intro__facts dd {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin: 0;
+}
+
+.salary-intro__facts strong {
+  color: var(--atlas-ink);
+  font: 680 clamp(27px, 3vw, 42px)/1 var(--data);
+  letter-spacing: -0.05em;
+}
+
+.salary-intro__facts small {
+  color: var(--atlas-muted);
+  font-size: 11px;
+}
+
+.salary-workbench {
+  overflow: hidden;
+  border: 1px solid var(--atlas-line-strong);
+  border-radius: 26px;
+  background: var(--atlas-panel);
+  box-shadow: 0 34px 90px rgba(31, 69, 88, 0.14);
+}
+
+.salary-workbench__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 28px;
+  min-height: 76px;
+  padding: 15px 22px 15px 26px;
+  border-bottom: 1px solid var(--atlas-line);
+  background: rgba(255, 255, 255, 0.94);
+}
+
+.salary-workbench__header > div:first-child {
+  display: grid;
+  gap: 4px;
+}
+
+.salary-workbench__header span {
+  color: var(--atlas-muted);
+  font: 650 9px/1 var(--data);
+  letter-spacing: 0.16em;
+}
+
+.salary-workbench__header strong {
+  color: var(--atlas-ink);
+  font-size: 16px;
+}
+
+.salary-current {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding-left: 20px;
+  border-left: 1px solid var(--atlas-line);
+}
+
+.salary-current strong {
+  color: var(--atlas-blue);
+  font: 680 13px/1 var(--data);
+}
+
+.salary-workbench__body {
+  display: grid;
+  grid-template-columns: 224px minmax(560px, 1fr) 286px;
+  min-height: 620px;
+}
+
+.salary-console,
+.salary-inspector {
+  position: relative;
+  z-index: 3;
+  background: rgba(255, 255, 255, 0.84);
+}
+
+.salary-console {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  padding: 28px 22px;
+  border-right: 1px solid var(--atlas-line);
+}
+
+.console-section {
+  display: grid;
+  gap: 13px;
+}
+
+.console-label {
+  color: var(--atlas-muted);
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+}
+
+.employment-switch {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 3px;
+  border: 1px solid var(--atlas-line);
+  border-radius: 10px;
+  background: var(--atlas-bg);
+}
+
+.employment-switch button {
+  min-height: 36px;
+  padding: 7px 8px;
+  color: var(--atlas-ink-soft);
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  font-size: 12px;
+  cursor: pointer;
+  transition: color 180ms ease, background 180ms ease, box-shadow 180ms ease;
+}
+
+.employment-switch button[aria-pressed="true"] {
+  color: #fff;
+  background: var(--atlas-blue);
+  box-shadow: 0 7px 17px rgba(45, 100, 216, 0.22);
+}
+
+.stage-rail {
+  display: grid;
+  gap: 2px;
+}
+
+.stage-rail button {
+  position: relative;
+  display: grid;
+  grid-template-columns: 30px 1fr;
+  align-items: center;
+  min-height: 43px;
+  padding: 5px 10px;
+  color: var(--atlas-ink-soft);
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+  transition: color 180ms ease, background 180ms ease, transform 180ms ease;
+}
+
+.stage-rail button span {
+  color: var(--atlas-muted);
+  font: 600 9px var(--data);
+}
+
+.stage-rail button:hover {
+  color: var(--atlas-blue);
+  transform: translateX(2px);
+}
+
+.stage-rail button[aria-pressed="true"] {
+  color: var(--atlas-blue);
+  background: rgba(45, 100, 216, 0.09);
+  font-weight: 700;
+}
+
+.stage-rail button[aria-pressed="true"]::after {
+  content: "";
+  position: absolute;
+  top: 9px;
+  right: 7px;
+  bottom: 9px;
+  width: 3px;
+  border-radius: 99px;
+  background: var(--atlas-blue);
+}
+
+.stage-select-wrap { display: none; }
+
+.salary-map-legend {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 8px;
+  align-items: center;
+  color: var(--atlas-muted);
+  font: 600 9px var(--data);
+}
+
+.salary-map-legend i {
+  height: 7px;
+  border-radius: 99px;
+  background: linear-gradient(90deg, #dce9f2, #9ed2da, #43aaa7, #f0b95c, #ea6b57);
+}
+
+.salary-map-range {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 7px;
+  align-items: end;
+}
+
+.salary-map-range b {
+  color: var(--atlas-ink);
+  font: 680 12px var(--data);
+}
+
+.salary-map-range small {
+  color: var(--atlas-muted);
+  font-size: 8px;
+  text-align: center;
+}
+
+.console-note {
+  margin: auto 0 0;
+  color: var(--atlas-muted);
+  font-size: 10px;
+  line-height: 1.8;
+}
+
+.salary-map-stage {
+  position: relative;
+  min-height: 620px;
+  margin: 0;
+  overflow: hidden;
+  background: var(--atlas-mist);
+}
+
+.salary-map-stage__topline {
+  position: absolute;
+  top: 18px;
+  right: 22px;
+  left: 22px;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  color: #6c818e;
+  font: 650 9px var(--data);
+  letter-spacing: 0.14em;
+}
+
+.map-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  letter-spacing: 0.04em;
+}
+
+.map-live i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--atlas-teal);
+  box-shadow: 0 0 0 5px rgba(22, 139, 136, 0.12);
+}
+
+.salary-map {
+  position: absolute;
+  inset: 48px 18px 54px;
+  width: calc(100% - 36px);
+  height: calc(100% - 102px);
+  overflow: visible;
+}
+
+.salary-map__region {
+  fill: var(--heat, #bdd7dc);
+  fill-opacity: 0;
+  stroke: rgba(255, 255, 255, 0.92);
+  stroke-width: 1.4;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  filter: drop-shadow(0 8px 14px rgba(36, 76, 89, 0.08));
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: fill 480ms cubic-bezier(0.2, 0.8, 0.2, 1), fill-opacity 260ms ease, stroke 220ms ease, filter 220ms ease;
+  animation: mapRegionEnter 960ms cubic-bezier(0.2, 0.72, 0.2, 1) var(--region-delay) forwards;
+}
+
+.salary-map__region.is-active {
+  stroke: var(--atlas-coral);
+  stroke-width: 2.6;
+  filter: drop-shadow(0 10px 16px rgba(231, 102, 80, 0.22));
+}
+
+.salary-map__region.is-preview {
+  fill-opacity: 0.78;
+  stroke: var(--atlas-blue);
+  stroke-width: 2;
+}
+
+.salary-node {
+  opacity: 0;
+  cursor: pointer;
+  outline: none;
+  animation: mapNodeEnter 560ms cubic-bezier(0.2, 0.85, 0.2, 1) var(--node-delay) forwards;
+}
+
+.salary-node__hit {
+  fill: transparent;
+  stroke: transparent;
+  pointer-events: all;
+}
+
+.salary-node__leader {
+  stroke: rgba(45, 81, 99, 0.34);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+  transition: stroke 180ms ease;
+}
+
+.salary-node__pulse {
+  fill: none;
+  stroke: var(--atlas-coral);
+  stroke-width: 2;
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+  vector-effect: non-scaling-stroke;
+}
+
+.salary-node__heat {
+  fill: var(--atlas-navy);
+  stroke: #fff;
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+  transition: fill 220ms ease, transform 220ms ease;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.salary-node__label {
+  fill: var(--atlas-ink);
+  font: 700 14px var(--sans);
+  letter-spacing: 0.03em;
+  paint-order: stroke;
+  stroke: rgba(232, 240, 243, 0.95);
+  stroke-width: 4px;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+.salary-node__value {
+  fill: #536b78;
+  font: 680 11px var(--data);
+  paint-order: stroke;
+  stroke: rgba(232, 240, 243, 0.95);
+  stroke-width: 4px;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+.salary-node:hover .salary-node__heat,
+.salary-node:focus-visible .salary-node__heat,
+.salary-node.is-active .salary-node__heat {
+  fill: var(--atlas-coral);
+  transform: scale(1.42);
+}
+
+.salary-node:hover .salary-node__leader,
+.salary-node:focus-visible .salary-node__leader,
+.salary-node.is-active .salary-node__leader { stroke: var(--atlas-coral); }
+
+.salary-node.is-active .salary-node__pulse {
+  opacity: 0.68;
+  animation: selectedNodePulse 1800ms ease-out infinite;
+}
+
+.salary-map.is-refreshing .salary-map__regions { animation: mapRefresh 420ms ease; }
+
+.salary-map-stage figcaption {
+  position: absolute;
+  right: 20px;
+  bottom: 15px;
+  left: 20px;
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  color: #718691;
+  font-size: 9px;
+}
+
+.salary-map-stage figcaption span {
+  color: var(--atlas-ink-soft);
+  font-weight: 650;
+}
+
+.salary-inspector {
+  display: flex;
+  flex-direction: column;
+  padding: 29px 24px 24px;
+  border-left: 1px solid var(--atlas-line);
+}
+
+.salary-map-readout__tag {
+  color: var(--atlas-teal);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.salary-inspector__city {
+  display: grid;
+  gap: 5px;
+  margin-top: 42px;
+}
+
+.salary-inspector__city small {
+  color: var(--atlas-muted);
+  font-size: 10px;
+}
+
+.salary-inspector__city strong {
+  color: var(--atlas-ink);
+  font-family: var(--sans);
+  font-size: 34px;
+  line-height: 1;
+}
+
+.salary-inspector__amount {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  margin: 18px 0 0;
+}
+
+.salary-inspector__amount strong {
+  color: var(--atlas-coral);
+  font: 700 54px/0.95 var(--data);
+  letter-spacing: -0.06em;
+}
+
+.salary-inspector__amount span {
+  color: var(--atlas-ink-soft);
+  font-size: 11px;
+}
+
+.salary-inspector__context {
+  margin: 13px 0 32px;
+  color: var(--atlas-teal);
+  font: 650 13px var(--data);
+}
+
+.salary-inspector__metrics {
+  margin: 0;
+  border-top: 1px solid var(--atlas-line);
+}
+
+.salary-inspector__metrics div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--atlas-line);
+}
+
+.salary-inspector__metrics dt {
+  color: var(--atlas-muted);
+  font-size: 10px;
+}
+
+.salary-inspector__metrics dd {
+  margin: 0;
+  color: var(--atlas-ink);
+  font: 680 13px var(--data);
+}
+
+.inspector-action {
+  min-height: 42px;
+  margin-top: auto;
+  padding: 9px 13px;
+  color: #fff;
+  border: 1px solid var(--atlas-ink);
+  border-radius: 10px;
+  background: var(--atlas-ink);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 180ms ease, border-color 180ms ease, transform 180ms ease;
+}
+
+.inspector-action:hover {
+  border-color: var(--atlas-blue);
+  background: var(--atlas-blue);
+  transform: translateY(-1px);
+}
+
+.salary-inspector__note {
+  margin: 14px 0 0;
+  color: var(--atlas-muted);
+  font-size: 8.5px;
+  line-height: 1.65;
+}
+
+.salary-inspector.is-changing .salary-inspector__city,
+.salary-inspector.is-changing .salary-inspector__amount,
+.salary-inspector.is-changing .salary-inspector__context,
+.salary-inspector.is-changing .salary-inspector__metrics {
+  animation: inspectorChange 340ms cubic-bezier(0.2, 0.72, 0.2, 1);
+}
+
+.salary-workbench__footer {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 20px;
+  align-items: center;
+  min-height: 62px;
+  padding: 10px 20px;
+  border-top: 1px solid var(--atlas-line);
+  background: var(--atlas-panel);
+}
+
+.salary-workbench__footer > span {
+  color: var(--atlas-muted);
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+}
+
+.map-city-strip {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.map-city-strip::-webkit-scrollbar { display: none; }
+
+.map-city-chip {
+  flex: 0 0 auto;
+  padding: 7px 9px;
+  color: var(--atlas-ink-soft);
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  font-size: 10px;
+  cursor: pointer;
+  transition: color 180ms ease, background 180ms ease;
+}
+
+.map-city-chip:hover,
+.map-city-chip.is-active {
+  color: var(--atlas-blue);
+  background: rgba(45, 100, 216, 0.08);
+}
+
+.salary-page .section-nav {
+  border-bottom-color: rgba(191, 205, 211, 0.76);
+  background: rgba(251, 252, 252, 0.88);
+}
+
+.salary-page .section-nav__inner { min-height: 60px; }
+
+.salary-page .section-nav a {
+  padding: 8px 13px;
+  color: var(--atlas-muted);
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+.salary-page .section-nav a:hover,
+.salary-page .section-nav a[aria-current="true"] {
+  color: var(--atlas-blue);
+  background: rgba(45, 100, 216, 0.08);
+}
+
+.salary-comparison,
+.report-basis,
+.dossier-stage,
+.post-report {
+  padding-block: clamp(100px, 11vw, 164px);
+}
+
+.comparison-layout {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.68fr) minmax(620px, 1.32fr);
+  gap: clamp(52px, 7vw, 108px);
+  align-items: start;
+}
+
+.section-intro,
+.chapter-intro { margin: 0; }
+
+.section-intro--sticky {
+  position: sticky;
+  top: 102px;
+}
+
+.section-intro > p,
+.chapter-intro > p {
+  margin: 0 0 20px;
+  color: var(--atlas-blue);
+  font: 680 10px var(--data);
+  letter-spacing: 0.16em;
+}
+
+.section-intro h2,
+.chapter-intro h2 {
+  margin: 0;
+  color: var(--atlas-ink);
+  font-family: var(--sans);
+  font-size: clamp(38px, 4.4vw, 62px);
+  font-weight: 610;
+  letter-spacing: -0.055em;
+  line-height: 1.12;
+}
+
+.section-intro > span,
+.chapter-intro > span {
+  display: block;
+  max-width: 560px;
+  margin-top: 26px;
+  color: var(--atlas-ink-soft);
+  font-size: 13px;
+  line-height: 1.9;
+}
+
+.comparison-overview {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  margin: 40px 0 0;
+  border-block: 1px solid var(--atlas-line-strong);
+}
+
+.comparison-overview div {
+  min-width: 0;
+  padding: 15px 10px 15px 0;
+}
+
+.comparison-overview dt {
+  color: var(--atlas-muted);
+  font-size: 9px;
+}
+
+.comparison-overview dd {
+  margin: 5px 0 0;
+  overflow: hidden;
+  color: var(--atlas-ink);
+  font: 680 14px var(--data);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.city-search-label {
+  display: grid;
+  gap: 8px;
+  margin-top: 28px;
+  color: var(--atlas-muted);
+  font-size: 10px;
+}
+
+.city-search-label select,
+.stage-select-wrap select {
+  min-height: 43px;
+  padding: 8px 34px 8px 12px;
+  color: var(--atlas-ink);
+  border: 1px solid var(--atlas-line-strong);
+  border-radius: 10px;
+  background: var(--atlas-panel);
+}
+
+.ranking-panel {
+  overflow: hidden;
+  border: 1px solid var(--atlas-line);
+  border-radius: 24px;
+  background: var(--atlas-panel);
+  box-shadow: 0 26px 70px rgba(31, 69, 88, 0.09);
+}
+
+.ranking-panel__head {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 28px;
+  min-height: 88px;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--atlas-line);
+}
+
+.ranking-panel__head > div:first-child {
+  display: grid;
+  gap: 5px;
+}
+
+.ranking-panel__head span {
+  color: var(--atlas-muted);
+  font-size: 9px;
+}
+
+.ranking-panel__head strong {
+  color: var(--atlas-ink);
+  font-size: 15px;
+}
+
+.stage-legend {
+  display: flex;
+  gap: 12px;
+  color: var(--atlas-muted);
+  font: 600 9px var(--data);
+}
+
+.stage-legend span {
+  padding-bottom: 5px;
+  border-bottom: 2px solid transparent;
+  transition: color 180ms ease, border-color 180ms ease;
+}
+
+.stage-legend span.is-selected {
+  color: var(--atlas-blue);
+  border-bottom-color: var(--atlas-blue);
+}
+
+.ridge-board {
+  display: flex;
+  flex-direction: column;
+  background: var(--atlas-panel);
+}
+
+.ridge-row {
+  display: grid;
+  grid-template-columns: 42px minmax(104px, 0.34fr) minmax(230px, 1fr) 92px;
+  gap: 16px;
+  align-items: center;
+  min-height: 66px;
+  padding: 8px 22px;
+  border-bottom: 1px solid var(--atlas-line);
+  background: var(--atlas-panel);
+  will-change: transform;
+  transition: background 180ms ease, box-shadow 180ms ease;
+}
+
+.ridge-row:last-child { border-bottom: 0; }
+
+.ridge-row:hover,
+.ridge-row.is-active {
+  position: relative;
+  z-index: 2;
+  background: #f5f8ff;
+  box-shadow: inset 3px 0 0 var(--atlas-blue);
+}
+
+.ridge-rank {
+  color: var(--atlas-muted);
+  font: 650 11px var(--data);
+}
+
+.ridge-row > button {
+  display: grid;
+  gap: 2px;
+  padding: 0;
+  color: var(--atlas-ink);
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ridge-row > button strong { font-size: 14px; }
+
+.ridge-row > button small {
+  color: var(--atlas-muted);
+  font: 600 9px var(--data);
+}
+
+.ridge-row svg {
+  width: 100%;
+  height: 30px;
+  overflow: visible;
+}
+
+.ridge-line {
+  fill: none;
+  stroke: var(--atlas-blue);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+
+.ridge-area { fill: rgba(45, 100, 216, 0.08); }
+
+.ridge-point {
+  fill: var(--atlas-panel);
+  stroke: var(--atlas-blue);
+  stroke-width: 1.2;
+  vector-effect: non-scaling-stroke;
+  transition: cx 320ms ease, cy 320ms ease, r 220ms ease;
+}
+
+.ridge-point.is-selected {
+  fill: var(--atlas-coral);
+  stroke: var(--atlas-coral);
+}
+
+.ridge-value {
+  display: grid;
+  justify-items: end;
+  line-height: 1.2;
+}
+
+.ridge-value strong {
+  color: var(--atlas-coral);
+  font: 700 16px var(--data);
+}
+
+.ridge-value small {
+  margin-top: 3px;
+  color: var(--atlas-muted);
+  font-size: 8px;
+}
+
+.chapter-intro {
+  display: grid;
+  grid-template-columns: 160px minmax(360px, 0.9fr) minmax(280px, 0.72fr);
+  gap: clamp(30px, 5vw, 78px);
+  align-items: start;
+  margin-bottom: clamp(48px, 6vw, 86px);
+}
+
+.chapter-intro > p { padding-top: 12px; }
+
+.chapter-intro > span {
+  margin-top: 9px;
+  padding-top: 22px;
+  border-top: 1px solid var(--atlas-line-strong);
+}
+
+.research-sheet {
+  position: relative;
+  padding: clamp(34px, 5vw, 74px);
+  overflow: hidden;
+  border: 1px solid var(--atlas-line);
+  border-radius: 28px;
+  background: var(--atlas-panel);
+  box-shadow: 0 28px 80px rgba(31, 69, 88, 0.08);
+}
+
+.research-sheet > .doc-paragraph:first-child {
+  margin-top: 0;
+  color: var(--atlas-blue);
+  font: 700 10px var(--data);
+  letter-spacing: 0.12em;
+}
+
+.research-sheet > .doc-paragraph:nth-child(2) {
+  max-width: 900px;
+  margin: 10px 0 6px;
+  color: var(--atlas-ink);
+  font-family: var(--sans);
+  font-size: clamp(27px, 3.5vw, 48px);
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  line-height: 1.2;
+}
+
+.salary-page .doc-heading {
+  color: var(--atlas-ink);
+  font-family: var(--sans);
+  font-weight: 650;
+}
+
+.salary-page h2.doc-heading {
+  margin-top: 3.2em;
+  padding-top: 0.8em;
+  border-top: 1px solid var(--atlas-line-strong);
+  font-size: clamp(26px, 3vw, 40px);
+}
+
+.salary-page h3.doc-heading,
+.dossier-subheading {
+  color: var(--atlas-teal);
+  font-family: var(--sans);
+}
+
+.salary-page .doc-paragraph,
+.dossier-copy,
+.dossier-point { color: var(--atlas-ink-soft); }
+
+.salary-page .table-shell {
+  margin: 24px 0 36px;
+  border-color: var(--atlas-line);
+  border-radius: 14px;
+  background: var(--atlas-panel);
+  box-shadow: none;
+}
+
+.salary-page .data-table {
+  color: var(--atlas-ink-soft);
+  font-size: 12px;
+}
+
+.salary-page .data-table th,
+.salary-page .data-table td {
+  padding: 12px 13px;
+  border-color: rgba(215, 224, 228, 0.82);
+}
+
+.salary-page .data-table th {
+  color: var(--atlas-ink);
+  background: #edf3f5;
+}
+
+.salary-page .data-table tbody tr:nth-child(even) td { background: #fafcfc; }
+.salary-page .data-table tbody tr:hover td { background: #f2f7ff; }
+
+.chapter-intro--wide { margin-bottom: 54px; }
+.dossier-stage { border-top: 1px solid var(--atlas-line); }
+
+.dossier-layout {
+  display: grid;
+  grid-template-columns: 170px minmax(0, 1fr);
+  gap: clamp(36px, 6vw, 86px);
+  align-items: start;
+}
+
+.dossier-index {
+  position: sticky;
+  top: 100px;
+  display: grid;
+  max-height: calc(100vh - 126px);
+  overflow-y: auto;
+  border-block: 1px solid var(--atlas-line-strong);
+  scrollbar-width: thin;
+}
+
+.dossier-index a {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 4px;
+  color: var(--atlas-ink-soft);
+  border-bottom: 1px solid var(--atlas-line);
+  font-size: 11px;
+  text-decoration: none;
+  transition: color 180ms ease, padding-left 180ms ease;
+}
+
+.dossier-index a:last-child { border-bottom: 0; }
+
+.dossier-index a span {
+  color: var(--atlas-muted);
+  font: 600 9px var(--data);
+}
+
+.dossier-index a:hover,
+.dossier-index a[aria-current="true"] {
+  padding-left: 8px;
+  color: var(--atlas-blue);
+}
+
+.dossier-list {
+  display: grid;
+  gap: 34px;
+  min-width: 0;
+}
+
+.city-dossier {
+  scroll-margin-top: 92px;
+  padding: clamp(30px, 4.4vw, 62px);
+  overflow: hidden;
+  border: 1px solid var(--atlas-line);
+  border-radius: 26px;
+  background: var(--atlas-panel);
+  box-shadow: 0 24px 70px rgba(31, 69, 88, 0.07);
+}
+
+.city-dossier__header {
+  display: grid;
+  grid-template-columns: 64px minmax(190px, 1fr) auto auto;
+  gap: 24px;
+  align-items: center;
+  margin-bottom: 44px;
+  padding-bottom: 34px;
+  border-bottom: 1px solid var(--atlas-line);
+}
+
+.city-dossier__sequence {
+  color: transparent;
+  font: 700 48px/1 var(--data);
+  -webkit-text-stroke: 1px rgba(45, 100, 216, 0.36);
+}
+
+.city-dossier__header p {
+  max-width: 560px;
+  margin: 0 0 5px;
+  overflow: hidden;
+  color: var(--atlas-muted);
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.city-dossier__header h2 {
+  margin: 0;
+  color: var(--atlas-ink);
+  font-family: var(--sans);
+  font-size: clamp(34px, 4vw, 54px);
+  font-weight: 610;
+  letter-spacing: -0.05em;
+  line-height: 1;
+}
+
+.city-dossier__header h2 small {
+  margin-left: 3px;
+  color: var(--atlas-muted);
+  font: 500 12px var(--sans);
+}
+
+.dossier-benchmark {
+  display: flex;
+  gap: 24px;
+  margin: 0;
+}
+
+.dossier-benchmark div {
+  min-width: 112px;
+  padding-left: 14px;
+  border-left: 1px solid var(--atlas-line-strong);
+}
+
+.dossier-benchmark dt {
+  color: var(--atlas-muted);
+  font-size: 9px;
+}
+
+.dossier-benchmark dd {
+  margin: 5px 0 0;
+  color: var(--atlas-ink);
+  font: 700 26px/1 var(--data);
+}
+
+.dossier-benchmark small {
+  display: block;
+  margin-top: 5px;
+  color: var(--atlas-muted);
+  font: 8px var(--sans);
+}
+
+.city-dossier__back {
+  align-self: start;
+  padding: 7px 10px;
+  color: var(--atlas-muted);
+  border: 1px solid var(--atlas-line);
+  border-radius: 999px;
+  font-size: 9px;
+  text-decoration: none;
+}
+
+.city-dossier__back:hover {
+  color: var(--atlas-blue);
+  border-color: rgba(45, 100, 216, 0.38);
+}
+
+.city-dossier__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  align-self: start;
+}
+
+.city-dossier__jobs-link {
+  padding: 7px 10px;
+  color: #fff;
+  border: 1px solid var(--atlas-blue);
+  border-radius: 999px;
+  background: var(--atlas-blue);
+  font-size: 9px;
+  text-decoration: none;
+}
+
+.city-dossier__jobs-link:hover { background: #1f57bc; }
+
+.city-dossier__content { min-width: 0; }
+
+.dossier-copy {
+  max-width: 960px;
+  margin: 12px 0;
+}
+
+.dossier-subheading {
+  margin: 38px 0 14px;
+  font-size: 20px;
+}
+
+.dossier-point {
+  position: relative;
+  margin: 8px 0;
+  padding-left: 18px;
+}
+
+.dossier-point::before {
+  content: "";
+  position: absolute;
+  top: 0.78em;
+  left: 1px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--atlas-teal);
+}
+
+.post-report { border-top: 1px solid var(--atlas-line); }
+
+.salary-page .site-footer {
+  margin-top: 0;
+  color: rgba(255, 255, 255, 0.68);
+  background: var(--atlas-navy);
+}
+
+.salary-page .site-footer .cross-link {
+  color: rgba(255, 255, 255, 0.76);
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.salary-page .tool-button {
+  color: var(--atlas-ink);
+  border-color: var(--atlas-line-strong);
+  background: rgba(255, 255, 255, 0.92);
+}
+
+html.motion-ready [data-reveal] {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 720ms cubic-bezier(0.2, 0.72, 0.2, 1), transform 720ms cubic-bezier(0.2, 0.72, 0.2, 1);
+}
+
+html.motion-ready [data-reveal].is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+@keyframes mapRegionEnter {
+  0% { fill-opacity: 0; stroke-dashoffset: 1; }
+  55% { fill-opacity: 0.16; }
+  100% { fill-opacity: 0.9; stroke-dashoffset: 0; }
+}
+
+@keyframes mapNodeEnter {
+  from { opacity: 0; transform: translateY(7px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes selectedNodePulse {
+  0% { opacity: 0.68; transform: scale(0.7); }
+  100% { opacity: 0; transform: scale(2.2); }
+}
+
+@keyframes mapRefresh {
+  0% { opacity: 0.72; transform: scale(0.993); }
+  100% { opacity: 1; transform: none; }
+}
+
+@keyframes inspectorChange {
+  0% { opacity: 0.45; transform: translateY(6px); }
+  100% { opacity: 1; transform: none; }
+}
+
+@media (max-width: 1180px) {
+  .salary-workbench__body { grid-template-columns: 204px minmax(500px, 1fr) 250px; }
+  .salary-inspector { padding-inline: 20px; }
+  .salary-inspector__amount strong { font-size: 46px; }
+  .comparison-layout { grid-template-columns: minmax(260px, 0.58fr) minmax(570px, 1.42fr); gap: 46px; }
+  .city-dossier__header { grid-template-columns: 58px minmax(150px, 1fr) auto; }
+  .city-dossier__back { grid-column: 2; width: max-content; }
+}
+
+@media (max-width: 980px) {
+  .salary-page .shell { width: min(100% - 32px, 1400px); }
+  .salary-intro { grid-template-columns: 1fr; gap: 52px; }
+  .salary-intro__facts { max-width: 720px; }
+  .salary-workbench__body { grid-template-columns: 1fr; }
+  .salary-console {
+    display: grid;
+    grid-template-columns: 0.7fr 1.5fr 1fr;
+    gap: 24px;
+    padding: 20px;
+    border-right: 0;
+    border-bottom: 1px solid var(--atlas-line);
+  }
+  .stage-rail { grid-template-columns: repeat(5, 1fr); }
+  .stage-rail button { grid-template-columns: 1fr; justify-items: center; text-align: center; }
+  .stage-rail button[aria-pressed="true"]::after { inset: auto 14px 3px; width: auto; height: 3px; }
+  .console-note { display: none; }
+  .salary-map-stage { min-height: 590px; }
+  .salary-inspector {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px 28px;
+    border-top: 1px solid var(--atlas-line);
+    border-left: 0;
+  }
+  .salary-inspector__city { margin-top: 12px; }
+  .salary-inspector__context { margin-bottom: 12px; }
+  .salary-inspector__metrics { grid-column: 2; grid-row: 2 / span 3; }
+  .inspector-action { margin-top: 10px; }
+  .salary-inspector__note { grid-column: 1 / -1; }
+  .comparison-layout { grid-template-columns: 1fr; }
+  .section-intro--sticky { position: static; }
+  .chapter-intro { grid-template-columns: 120px 1fr; }
+  .chapter-intro > span { grid-column: 2; }
+  .dossier-layout { grid-template-columns: 1fr; }
+  .dossier-index {
+    position: sticky;
+    top: 60px;
+    z-index: 20;
+    display: flex;
+    max-height: none;
+    overflow-x: auto;
+    border: 1px solid var(--atlas-line);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(14px);
+  }
+  .dossier-index a { flex: 0 0 auto; min-width: 88px; border-right: 1px solid var(--atlas-line); border-bottom: 0; }
+}
+
+@media (max-width: 720px) {
+  .salary-page .shell { width: min(100% - 24px, 1400px); }
+  .salary-page .site-brand { min-height: 62px; }
+  .salary-page .cross-link { max-width: 58%; font-size: 10px; }
+  .salary-hero { padding-block: 42px 70px; }
+  .salary-intro { gap: 40px; margin-bottom: 42px; }
+  .salary-intro h1 { font-size: clamp(48px, 15vw, 66px); }
+  .salary-hero__lead { margin-top: 24px; font-size: 14px; }
+  .salary-intro__facts { gap: 22px 18px; }
+  .salary-intro__facts div { padding-left: 12px; }
+  .salary-intro__facts strong { font-size: 25px; }
+  .salary-intro__facts dt { margin-bottom: 7px; }
+  .salary-page .hero-action { flex: 1 1 auto; justify-content: center; }
+  .salary-workbench { border-radius: 18px; }
+  .salary-workbench__header { align-items: flex-start; flex-direction: column; gap: 12px; padding: 15px 16px; }
+  .salary-current { padding-left: 0; border-left: 0; }
+  .salary-console { display: grid; grid-template-columns: 1fr; gap: 20px; padding: 17px 15px; }
+  .stage-rail { display: none; }
+  .stage-select-wrap { display: grid; gap: 6px; }
+  .stage-select-wrap > span { color: var(--atlas-muted); font-size: 8px; }
+  .salary-map-stage { min-height: 440px; }
+  .salary-map {
+    inset: 42px 3px 48px;
+    width: calc(100% - 6px);
+    height: calc(100% - 90px);
+    transform: scale(1.24);
+    transform-origin: center;
+  }
+  .salary-node__leader,
+  .salary-node__label,
+  .salary-node__value { opacity: 0; }
+  .salary-node.is-active .salary-node__leader,
+  .salary-node.is-active .salary-node__label,
+  .salary-node.is-active .salary-node__value { opacity: 1; }
+  .salary-node.is-active .salary-node__label { font-size: 25px; }
+  .salary-node.is-active .salary-node__value { font-size: 20px; }
+  .salary-map-stage figcaption { font-size: 8px; }
+  .salary-map-stage figcaption small { display: none; }
+  .salary-inspector { grid-template-columns: 1fr; padding: 22px 18px; }
+  .salary-inspector__metrics { grid-column: auto; grid-row: auto; }
+  .salary-inspector__amount strong { font-size: 48px; }
+  .salary-workbench__footer { grid-template-columns: 1fr; gap: 5px; padding-inline: 14px; }
+  .salary-page .section-nav__inner { min-height: 52px; }
+  .salary-comparison,
+  .report-basis,
+  .dossier-stage,
+  .post-report { padding-block: 88px; }
+  .section-intro h2,
+  .chapter-intro h2 { font-size: 39px; }
+  .comparison-overview { grid-template-columns: 1fr; }
+  .comparison-overview div { display: flex; align-items: center; justify-content: space-between; padding: 11px 0; border-bottom: 1px solid var(--atlas-line); }
+  .comparison-overview div:last-child { border-bottom: 0; }
+  .ranking-panel { border-radius: 16px; }
+  .ranking-panel__head { align-items: flex-start; flex-direction: column; }
+  .stage-legend { width: 100%; justify-content: space-between; }
+  .ridge-row { grid-template-columns: 28px 76px minmax(112px, 1fr) 66px; gap: 8px; min-height: 60px; padding: 7px 10px; }
+  .ridge-row > button strong { font-size: 12px; }
+  .ridge-row svg { height: 24px; }
+  .ridge-value strong { font-size: 13px; }
+  .chapter-intro { grid-template-columns: 1fr; gap: 12px; }
+  .chapter-intro > p { padding-top: 0; }
+  .chapter-intro > span { grid-column: auto; }
+  .research-sheet { padding: 28px 16px; border-radius: 18px; }
+  .salary-page .table-shell { margin-inline: -2px; }
+  .city-dossier { padding: 26px 16px; border-radius: 18px; }
+  .city-dossier__header { grid-template-columns: 46px 1fr; gap: 16px; }
+  .city-dossier__sequence { font-size: 35px; }
+  .dossier-benchmark { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .dossier-benchmark div { min-width: 0; }
+  .city-dossier__back { grid-column: 1 / -1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.motion-ready [data-reveal] { opacity: 1; transform: none; }
+  .salary-map__region,
+  .salary-node,
+  .salary-node.is-active .salary-node__pulse { animation: none !important; opacity: 1; fill-opacity: 0.9; stroke-dashoffset: 0; }
+}
+
+@media print {
+  .salary-page .site-header { color: #000; background: #fff; }
+  .salary-intro { grid-template-columns: 1fr; }
+  .salary-workbench,
+  .salary-comparison,
+  .salary-page .section-nav,
+  .dossier-index,
+  .city-dossier__back { display: none !important; }
+  .report-basis,
+  .dossier-stage,
+  .post-report { padding-block: 24px; }
+  .chapter-intro { display: block; }
+  .research-sheet,
+  .city-dossier { padding: 0; border: 0; box-shadow: none; }
+  .dossier-layout { display: block; }
+  .city-dossier { break-before: page; }
+}

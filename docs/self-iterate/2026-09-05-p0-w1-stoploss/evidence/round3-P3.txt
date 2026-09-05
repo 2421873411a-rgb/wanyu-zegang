@@ -1,0 +1,7 @@
+PASS | VIEW_META single naming source exists 
+PASS | mobile more-panel includes changes entry 
+PASS | paletteActions derived from VIEW_META (changes reachable) 
+PASS | old inline palette label map removed 
+PASS | viewTitles derived from VIEW_META 
+PASS | mobile bottom bar references VIEW_META.short 
+== 6/6 checks passed ==

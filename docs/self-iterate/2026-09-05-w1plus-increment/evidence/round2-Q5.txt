@@ -1,0 +1,12 @@
+Q5 U10a 浅色对比度残留（续作机：D:\AI\zcode\皖域择岗）
+[计算] WCAG 相对亮度脚本（最坏背景 #f3f7ff）：
+  旧值: 状态条#8299b8=2.72 | 眉题琥珀#d99a4b=2.25 | easy#27ae60=2.68 | comp-easy#1e8449=4.39 | 珊瑚#e26f5b=2.94
+  新值: muted#5b7391=4.54 | 琥珀#9a620b=4.74 | easy#1e7145=5.58 | comp-easy#186f3d=5.66 | fierce#b03227=5.87  全部≥4.5
+[补丁] q2_q5_patch.py 18 处（含 site.css 旧 v14 残留与 ui-upgrade 覆盖层同值双写）：
+  灰系全部换 var(--text-muted,#5b7391)（深色自动接管 #7e8fa9=5.40:1）
+  眉题编号 #9a620b + 深色回退 var(--ui-amber)
+  竞争统计浅色三色压深；深色原先无覆盖，补 [data-theme=dark] 三色（#ff9a8c/#e8b15d/#43d17c）
+[实测] 浏览器 CSSOM 实景：stats__fierce=rgb(176,50,39)/medium=rgb(154,98,11)/easy=rgb(30,113,69) +
+  深色三条覆盖规则均在档；状态条实景 rgb(91,115,145)
+[事故与修复] python write_text 在 Windows 把 LF 写成 CRLF，test_ui_upgrade 字节一致断言抓出；
+  已 LF 归一并同步 templates（维持"重建≈现役"契约），test_ui_upgrade 9/9 OK

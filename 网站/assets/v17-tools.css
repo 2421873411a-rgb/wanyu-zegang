@@ -1,0 +1,141 @@
+/**
+ * v17-tools.css - 竞争热力图和城市对比样式
+ */
+
+/* 浅色主题兜底变量（此前未定义，fallback #999/#666 长期生效） */
+:root {
+  --maintain-text-muted: #5b7391;
+  --maintain-text: #27384a;
+  --maintain-border: #d8e5e8;
+  --maintain-bg-secondary: #eef3f7;
+}
+
+/* 竞争热力图 */
+.heatmap {
+  padding: 16px 0;
+}
+
+.heatmap-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--maintain-border, #eee);
+}
+
+.heatmap-row:last-child {
+  border-bottom: none;
+}
+
+.heatmap-rank {
+  width: 24px;
+  font-size: 13px;
+  color: var(--maintain-text-muted, #999);
+}
+
+.heatmap-city {
+  width: 80px;
+  font-weight: 500;
+  color: var(--maintain-text, #333);
+}
+
+.heatmap-bar {
+  flex: 1;
+  height: 20px;
+  background: var(--maintain-bg-secondary, #f5f5f5);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.heatmap-bar__fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.heatmap-bar__fill--fierce { background: linear-gradient(90deg, #e74c3c, #c0392b); }
+.heatmap-bar__fill--high { background: linear-gradient(90deg, #f39c12, #e67e22); }
+.heatmap-bar__fill--medium { background: linear-gradient(90deg, #f1c40f, #f39c12); }
+.heatmap-bar__fill--easy { background: linear-gradient(90deg, #27ae60, #2ecc71); }
+
+.heatmap-ratio {
+  width: 60px;
+  text-align: right;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.heatmap-jobs {
+  width: 60px;
+  text-align: right;
+  font-size: 13px;
+  color: var(--maintain-text-muted, #666);
+}
+
+.heatmap-emoji {
+  width: 24px;
+  text-align: center;
+}
+
+.heatmap-hint {
+  margin-top: 12px;
+  font-size: 12px;
+  color: var(--maintain-text-muted, #999);
+  text-align: center;
+}
+
+/* 分数线参考 */
+.score-ref {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  padding: 16px 0;
+}
+
+.score-ref__item {
+  text-align: center;
+  padding: 16px;
+  background: var(--maintain-bg-secondary, #f9f9f9);
+  border-radius: 8px;
+}
+
+.score-ref__item span {
+  display: block;
+  font-size: 13px;
+  color: var(--maintain-text-muted, #666);
+  margin-bottom: 8px;
+}
+
+.score-ref__item strong {
+  font-size: 24px;
+  color: var(--maintain-primary, #3a83f7);
+}
+
+.score-ref__hint {
+  margin-top: 12px;
+  font-size: 12px;
+  color: var(--maintain-text-muted, #999);
+  text-align: center;
+}
+
+/* 响应式 */
+@media (max-width: 768px) {
+  .heatmap-row {
+    flex-wrap: wrap;
+  }
+  
+  .heatmap-bar {
+    order: 5;
+    width: 100%;
+  }
+  
+  .score-ref {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* 深色主题 */
+[data-theme="dark"] .heatmap-bar__fill--fierce { background: linear-gradient(90deg, #ff6b6b, #ee5a5a); }
+[data-theme="dark"] .heatmap-bar__fill--high { background: linear-gradient(90deg, #feca57, #ff9f43); }
+[data-theme="dark"] .heatmap-bar__fill--medium { background: linear-gradient(90deg, #feca57, #f39c12); }
+[data-theme="dark"] .heatmap-bar__fill--easy { background: linear-gradient(90deg, #6bcb77, #2ecc71); }

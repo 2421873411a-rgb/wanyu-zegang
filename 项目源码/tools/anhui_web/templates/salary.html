@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>安徽全省 16 市本科普通岗全包分析｜皖域择岗档案</title>
+  <style>{{COMMON_CSS}}
+{{PAGE_CSS}}</style>
+</head>
+<body class="salary-page">
+  <a class="skip-link" href="#main-content">跳到正文</a>
+  <div id="read-progress" aria-hidden="true"></div>
+  <header class="site-header">
+    <div class="site-brand shell">
+      <span class="brand-mark">皖域择岗档案</span>
+      <a class="cross-link" href="安徽十六市2026软件工程可报岗位.html">查看软件工程可报岗位 →</a>
+    </div>
+    {{PAGE_HERO}}
+  </header>
+  {{PAGE_NAV}}
+  <main id="main-content">{{PAGE_CONTENT}}</main>
+  <noscript><p class="noscript-note shell">当前浏览器已关闭 JavaScript；全部原始内容仍可阅读，身份、工龄切换和动态图形不可用。</p></noscript>
+  <footer class="site-footer">
+    <div class="site-footer__inner shell">
+      <div><strong>皖域择岗档案</strong><p>金额为源报告中的统一口径估算，不是政策规定工资或个人收入承诺。</p></div>
+      <a class="cross-link" href="安徽十六市2026软件工程可报岗位.html">转到软件工程岗位数据 →</a>
+    </div>
+  </footer>
+  <div class="floating-tools" aria-label="页面工具">
+    <button class="tool-button" id="print-page" type="button" aria-label="打印页面">印</button>
+    <button class="tool-button" id="back-top" type="button" aria-label="返回顶部" hidden>↑</button>
+  </div>
+  <script type="application/json" id="page-data">{{PAGE_DATA}}</script>
+  <script>{{PAGE_JS}}
+  (() => {
+    const progress = document.querySelector('#read-progress');
+    const backTop = document.querySelector('#back-top');
+    const update = () => {
+      const max = document.documentElement.scrollHeight - innerHeight;
+      progress.style.width = `${max > 0 ? (scrollY / max) * 100 : 0}%`;
+      backTop.hidden = scrollY < 480;
+    };
+    addEventListener('scroll', update, { passive: true }); update();
+    document.querySelector('#back-top').addEventListener('click', () => scrollTo({ top: 0, behavior: 'smooth' }));
+    document.querySelector('#print-page').addEventListener('click', () => print());
+  })();</script>
+</body>
+</html>

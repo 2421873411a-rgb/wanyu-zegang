@@ -1,0 +1,6 @@
+PASS | live renderSearch located by unique h1 
+PASS | keyword <input> present in LIVE toolbar (first position) | live segment 5679 chars
+PASS | keyword input exists in BOTH legacy and live templates | 3 occurrences (template x2 + handler)
+PASS | state.keyword wired to an input value 
+PASS | keyword in saved filter object 
+== 5/5 checks passed ==

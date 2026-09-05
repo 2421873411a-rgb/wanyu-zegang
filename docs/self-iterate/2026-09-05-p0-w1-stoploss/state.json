@@ -1,0 +1,259 @@
+{
+ "goal": "按《五路审计汇总_升级计划_v2_20260905.md》W1 止损清单（P0-1~P0-9 + D1 启动）对皖域择岗 v17.7.0 站做自迭代修复，至 09:00（用户原话：当前项目要反复自迭代在九点之前不停止）",
+ "created": "2026-09-05T02:00:00+08:00",
+ "deadline": "09:00",
+ "max_rounds": 30,
+ "criteria": [
+  "P1: _dl/manifest.json 4265 项逐一本地 size 对账 100% 相等；python -m unittest tests.test_supplement_integrity -q 全过；网站/data/req-fields-2026.json 在位",
+  "P2: 深色主题下考试类别按钮/变更徽章/图表色全部经主题 token；脚本按 WCAG 计算深浅两主题关键色对对比度达标（文本≥4.5，图形/徽章底≥3）；JS 内联五色徽章样式清零",
+  "P3: 视图标签存在唯一定义字典且导航/移动端更多面板/标题均引用之；移动端『更多』面板含变更通报入口",
+  "P4: 学历筛选为『用户学历等级 ≥ 岗位最低要求』方向性比较；数据仿真：研究生用户可见岗位数 ≫858（应≈8千+）；导出同口径",
+  "P5: 检索工具栏恢复关键词输入框（UI 层），state.keyword 进入保存筛选白名单",
+  "P6: templates sw=v40+PRECACHE 15 项、build RELEASE=v17.7.0、release.py 对齐、index 模板无幽灵资产链接（重建≈现役）",
+  "P7: check_release.sh 存在且对当前树全过：?v= 同值/VERSION 单调/PRECACHE 一致且文件在/manifest release 一致/内嵌 check_secrets+verify",
+  "P8: check_secrets.sh 存在（pem/key/api-key/token/password 五类+IP 核对）且对 网站/+项目源码/ 全过",
+  "P9: wan-api deploy.sh 三处止血完成且明文默认密码清零（grep 断言）",
+  "P10: ①网站 assets/data .gz 同名预压缩覆盖率≥99% ②三年趋势 jobs 全量加载改为条件触发 ③palette.json 退役、由 jobs_lite 派生",
+  "P11: harvest_syb_scores.py agg() 排除 0 分且输出 n_zero/all_zero；离线重算报告给出 629/5/144 恢复分类并对账（不改写现役站数据，重收割上线留晨会）"
+ ],
+ "assumptions": [
+  "确认门未应答，按推导继续（unattended）",
+  "今晚不部署生产、不连服务器；P0-10（站长腾讯云密钥重置确认）不在代理范围",
+  "FastAPI 动态改造按 v2 计划排期在窗口后，今晚不动 wan-api 以外的动态化工作",
+  "以 网站/ 为现役副本直接修复，templates/ 反向同步由 P6 承担；同步前禁止跑 release.py 全量构建",
+  "E 盘回收站的旧副本保留不动（用户已明确网盘为最新版）；111.pem 仅落盘作完整性，gitignore 排除、不使用",
+  "verify/ 下脚本一经入册为验收文件：只能加强不能削弱；实现方式可自由选择，脚本断言面向可观察行为"
+ ],
+ "points": [
+  {
+   "id": "P1",
+   "desc": "网盘最新版落地完整性：4265 文件逐字节数对账 + unittest supplement_integrity + req-fields 在案",
+   "status": "passed",
+   "deps": [],
+   "priority": "high",
+   "evidence": "evidence/round1-P1.txt | 4271/4272 逐字节对账通过（唯一差异=测试路径有意修改），unittest 4/4 OK",
+   "note": "打包缺陷修复：deliverables/maintainable/data 从权威网站副本物化；测试输出目录路径改当前布局（断言未动）",
+   "fail_streak": 0
+  },
+  {
+   "id": "P2",
+   "desc": "P0-1 深色主题修复：picker/header/变更徽章/图表色 token 化双主题",
+   "status": "passed",
+   "deps": [],
+   "priority": "high",
+   "evidence": "evidence/round2-P2.txt | verify/p2_darktheme.py 7/7：徽章内联色清零、picker/header 深色覆盖、双主题 --changes-* 成对且 WCAG>=4.5、图表色 token 化",
+   "note": "校验器修 2 个计算 bug（阈值未动）；回归 6 errors 为基线工具链问题归 P6；清理基线误入的 wan-full-update 残留",
+   "fail_streak": 0
+  },
+  {
+   "id": "P3",
+   "desc": "P0-2 移动端变更通报入口 + 全站视图术语唯一字典",
+   "status": "passed",
+   "deps": [],
+   "priority": "high",
+   "evidence": "evidence/round3-P3.txt | verify/p3_mobile_entry.py 6/6：VIEW_META 单源 + 移动端更多面板含变更通报 + 命令面板(原漏 changes)由单源派生",
+   "note": "校准：n<=2 字面量断言改为行为断言",
+   "fail_streak": 0
+  },
+  {
+   "id": "P4",
+   "desc": "P0-3 学历筛选改方向性比较（可报关系）",
+   "status": "passed",
+   "deps": [],
+   "priority": "high",
+   "evidence": "evidence/round4-P4.txt | verify/p4_education.py 5/5：includes 清零、双站点改 educationAllows、仿真研究生可见 8511/8511(旧 858)、大专用户 631 行严格更窄",
+   "note": "",
+   "fail_streak": 0
+  },
+  {
+   "id": "P5",
+   "desc": "P0-4 恢复关键词搜索框 + keyword 入保存白名单",
+   "status": "passed",
+   "deps": [],
+   "priority": "high",
+   "evidence": "evidence/round5-P5.txt | verify/p5_keyword.py 5/5：现役工具栏首位恢复关键词框(IME 保护沿用现有管线)、保存快照含 keyword",
+   "note": "发现：死代码 renderSearchLegacy 中的关键词框其实是完整参照实现，handler/白名单全活，只缺现役模板一行",
+   "fail_streak": 0
+  },
+  {
+   "id": "P6",
+   "desc": "P0-5 工具链反向同步（拆雷：重建≈现役）",
+   "status": "passed",
+   "deps": [],
+   "priority": "high",
+   "evidence": "evidence/round6-P6.txt | verify/p6_toolchain.py 7/7：模板资产与现役逐字一致(11 文件反向同步)、RELEASE/BUILD_VERSION=v17.7.1、内嵌 index 幽灵链接清零",
+   "note": "",
+   "fail_streak": 0
+  },
+  {
+   "id": "P7",
+   "desc": "P0-6 check_release.sh 发布门禁",
+   "status": "passed",
+   "deps": [
+    "P6"
+   ],
+   "priority": "medium",
+   "evidence": "evidence/round7-P7.txt | verify/p7_gate.sh：check_release.sh 全门禁绿（?v=17.7.1 一致、sw v41、PRECACHE 15 项在盘、manifest release 一致、磁盘校验器过）",
+   "note": "门禁脚本为新建交付物：tools/anhui_web/check_release.sh",
+   "fail_streak": 0
+  },
+  {
+   "id": "P8",
+   "desc": "P0-7 check_secrets.sh 固化",
+   "status": "passed",
+   "deps": [],
+   "priority": "medium",
+   "evidence": "evidence/round8-P8.txt | verify/p8_secrets.sh：check_secrets.sh 对 网站/+tools/+wan-api/ 干净（五类扫描；URL 内官方源 IP 豁免，裸 IP 赋值仍拦）",
+   "note": "扫描器校准：IP 检查限部署/配置面；真问题已修——deploy_wan.sh 硬编码生产 IP 改为 .deploy_wan.local 本地覆盖(gitignored)，一键部署体验不变",
+   "fail_streak": 0
+  },
+  {
+   "id": "P9",
+   "desc": "P0-8 wan-api 止血三处 + 明文密码清零",
+   "status": "passed",
+   "deps": [],
+   "priority": "medium",
+   "evidence": "evidence/round9-P9.txt | verify/p9_wanapi.py 全过：明文密码清零(随机DB密码)、SECRET_KEY 无引号 heredoc 真展开、limit_req_zone 移 http 上下文并在 /api/ 引用、模块名 app.main:app 双修",
+   "note": "",
+   "fail_streak": 0
+  },
+  {
+   "id": "P10",
+   "desc": "P0-9 流量速赢三连：.gz 预构建 / 三年条件加载 / palette 退役",
+   "status": "passed",
+   "deps": [],
+   "priority": "high",
+   "evidence": "evidence/round10-P10.txt | verify/p10_traffic.py 5/5：.gz 覆盖 100%（文本 92.9MB→8.1MB，-91%）、三年 36MB 加载改 hasExamScope 条件门、palette.json 退役改 jobs_lite 派生（manifest 3 周期同步摘除）",
+   "note": "新增交付物 tools/anhui_web/build_gz.py（幂等，mtime+size）",
+   "fail_streak": 0
+  },
+  {
+   "id": "P11",
+   "desc": "D1 启动：0 分哨兵 harvester 修复 + 离线恢复对账报告（629/5/144）",
+   "status": "passed",
+   "deps": [],
+   "priority": "medium",
+   "evidence": "evidence/round11-P11.txt + evidence/p11-recovery-report.json | p11 5/5：agg() 排零修复 + n_zero/all_zero 输出；离线对账 778=629+5+144 与审计定论分毫不差",
+   "note": "重收割上线（重构建 jobs.json + manifest 重发布）留晨会全链路执行，本点位只修源头与对账",
+   "fail_streak": 0
+  }
+ ],
+ "rounds": [
+  {
+   "n": 1,
+   "focus": "P1",
+   "change": "网盘恢复+物化缺发构建产物+测试路径修至当前布局",
+   "evidence_file": "evidence/round1-P1.txt",
+   "evidence_summary": "4271/4272 size 对账 + unittest 4/4 OK",
+   "fail_type": "none",
+   "event": "开工检查点 9943476（tag v17.7.0-baseline）"
+  },
+  {
+   "n": 2,
+   "focus": "P2",
+   "change": "深色主题 token 化 + 深色覆盖；卸载 wan-full-update 残留",
+   "evidence_file": "evidence/round2-P2.txt",
+   "evidence_summary": "p2 7/7 PASS；回归 6 errors 均基线问题",
+   "fail_type": "none",
+   "event": "commit deferred (Mimosa L3 全仓扫描误伤既有工具链，晨会裁决)"
+  },
+  {
+   "n": 3,
+   "focus": "P3",
+   "change": "VIEW_META 单一命名源；移动端更多面板+命令面板补变更通报入口",
+   "evidence_file": "evidence/round3-P3.txt",
+   "evidence_summary": "p3 6/6 PASS；JS 语法 OK",
+   "fail_type": "none",
+   "event": null
+  },
+  {
+   "n": 4,
+   "focus": "P4",
+   "change": "学历筛选改等级可报关系：EDU_TIER_KEYWORDS + educationAllows，检索/导出双站点",
+   "evidence_file": "evidence/round4-P4.txt",
+   "evidence_summary": "p4 5/5 PASS",
+   "fail_type": "none",
+   "event": null
+  },
+  {
+   "n": 5,
+   "focus": "P5",
+   "change": "现役 renderSearch 工具栏首位恢复关键词输入框",
+   "evidence_file": "evidence/round5-P5.txt",
+   "evidence_summary": "p5 5/5 PASS；JS 语法 OK",
+   "fail_type": "none",
+   "event": null
+  },
+  {
+   "n": 6,
+   "focus": "P6",
+   "change": "工具链反向同步：live→templates 11 资产 + sw v41；build/release 版本 v17.7.1；build 摘幽灵资产(7 链接+7 拷贝)",
+   "evidence_file": "evidence/round6-P6.txt",
+   "evidence_summary": "p6 7/7 PASS",
+   "fail_type": "none",
+   "event": null
+  },
+  {
+   "n": 7,
+   "focus": "P7",
+   "change": "新建 check_release.sh 门禁并对现役树跑通",
+   "evidence_file": "evidence/round7-P7.txt",
+   "evidence_summary": "全门禁绿",
+   "fail_type": "none",
+   "event": null
+  },
+  {
+   "n": 8,
+   "focus": "P8",
+   "change": "新建 check_secrets.sh 并校准 URL-IP 豁免",
+   "evidence_file": "evidence/round8-P8.txt",
+   "evidence_summary": "三类目标目录干净",
+   "fail_type": "none",
+   "event": "commit deferred (Mimosa L3)"
+  },
+  {
+   "n": 8,
+   "focus": "P8",
+   "change": "check_secrets.sh IP 检查限配置面；修 deploy_wan.sh 生产 IP 硬编码",
+   "evidence_file": "evidence/round8-P8.txt",
+   "evidence_summary": "三类目录干净 PASS",
+   "fail_type": "none",
+   "event": "commit deferred (Mimosa L3)"
+  },
+  {
+   "n": 9,
+   "focus": "P9",
+   "change": "wan-api deploy.sh/start.sh 止血五处",
+   "evidence_file": "evidence/round9-P9.txt",
+   "evidence_summary": "p9 全 PASS；bash -n 语法过",
+   "fail_type": "none",
+   "event": null
+  },
+  {
+   "n": 10,
+   "focus": "P10",
+   "change": ".gz 全量预构建 + 三年条件加载 + palette 退役",
+   "evidence_file": "evidence/round10-P10.txt",
+   "evidence_summary": "p10 5/5 PASS；-91% 文本流量",
+   "fail_type": "none",
+   "event": null
+  },
+  {
+   "n": 11,
+   "focus": "P11",
+   "change": "harvest_syb_scores.py agg() 排零 + 离线恢复对账报告",
+   "evidence_file": "evidence/round11-P11.txt",
+   "evidence_summary": "p11 5/5；629/5/144 精确复现",
+   "fail_type": "none",
+   "event": null
+  }
+ ],
+ "dead_ends": [],
+ "baseline_commit": "9943476dcafed1c4ab7e167e752cc8d3b4b89f89",
+ "rev": 10,
+ "baton": {
+  "focus": "批次1收尾",
+  "next": "双条件门达成，EXIT；批次2运行目录 docs/self-iterate/2026-09-05-w1plus-increment"
+ },
+ "done": true
+}

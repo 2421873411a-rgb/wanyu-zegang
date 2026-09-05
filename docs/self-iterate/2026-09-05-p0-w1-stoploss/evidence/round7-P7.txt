@@ -1,0 +1,5 @@
+site version: index ?v=17.7.1, sw wanyu-shell-v41, manifest v17.7.1
+PASS | check_secrets.sh clean on: E:/zcode/择岗/网站
+PASS | disk verifier
+PASS | check_release.sh all gates green
+PASS | check_release.sh exited 0 on current tree

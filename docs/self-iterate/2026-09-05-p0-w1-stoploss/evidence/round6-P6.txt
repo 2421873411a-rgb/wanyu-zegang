@@ -1,0 +1,8 @@
+PASS | template sw VERSION = wanyu-shell-v41 
+PASS | template PRECACHE has 15 entries | 15 entries
+PASS | build_maintainable_site.py RELEASE = v17.7.1 
+PASS | release.py no hardcoded v17.6.4 
+PASS | site index: no ghost asset links | []
+PASS | template index: no ghost asset links | []
+PASS | embedded index uses {RELEASE} (now v17.7.1) and no ghosts 
+== 7/7 checks passed ==

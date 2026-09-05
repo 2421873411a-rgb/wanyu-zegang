@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="description" content="{{PAGE_DESCRIPTION}}">
+  <title>{{PAGE_TITLE}}</title>
+  <style>{{COMMON_CSS}}
+{{PAGE_CSS}}</style>
+</head>
+<body class="product-page unified-site unified-site--{{ACTIVE_ROUTE}}">
+  {{ARCHIVE_NOTICE}}
+  <a class="skip-link" href="#main-content">跳到正文</a>
+  {{PRODUCT_NAV}}
+  <main id="main-content">{{PAGE_CONTENT}}</main>
+  <footer class="product-footer"><div class="shell"><span>皖域择岗档案 · 安徽省公开数据研究</span><span>离线版 · 仅作择岗参考，请以官方发布为准</span></div></footer>
+  <script type="application/json" id="page-data">{{PAGE_DATA}}</script>
+  {{SCORE_LISTS_SCRIPT}}
+  <script>{{PAGE_JS}}
+  (() => {
+    document.body.classList.add('js-motion');
+    document.querySelectorAll('[data-action="print"]').forEach((button) => button.addEventListener('click', () => print()));
+    document.querySelectorAll('[data-action="theme"]').forEach((button) => button.addEventListener('click', () => { const paper = document.body.classList.toggle('paper-mode'); button.setAttribute('aria-pressed', String(paper)); }));
+  })();</script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+Q3 D6a floor==0 源头改 null（续作机：D:\AI\zcode\皖域择岗）
+[补丁] build_pages.py：
+  - 4 处输出位 "_ALL_XUELI_RANK.get(xueli[\"floor\"], 0)" -> .get(xueli["floor"])（未解析=None）
+  - 3305 行初始化 "floor": 0 -> None
+[断言] python -c 全过：
+  - '"floor"], 0)' 残留 = 0
+  - .get(xueli["floor"]) 输出位 = 4
+  - min(_ALL_XUELI_RANK.values()) == 1（0 从来不是合法层级）
+  - _ALL_XUELI_RANK.get('whatever') is None
+[纪律] 已部署 jobs.json 未触碰（哈希链不动）；下次重建生效

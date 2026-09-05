@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="zh-CN" data-site="wanyu-maintainable" data-schema="wanyu-maintainable-site/v3">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="安徽三年公考/事业编岗位数据：按专业、城市、学历找岗位，看竞争比、入围线与各地待遇。数据来自官方公告，来源可核对。">
+  <title>皖域择岗 · 安徽公考岗位查询</title>
+  <script>
+    /* 主题引导:先于样式执行,读取持久化选择,避免首帧闪烁。 */
+    (function () {
+      var theme = 'light';
+      try {
+        var stored = localStorage.getItem('wanyu.v15.theme');
+        var query = new URLSearchParams(location.search).get('theme');
+        if (query === 'dark' || query === 'light') theme = query;
+        else if (stored === 'dark' || stored === 'light') theme = stored;
+        else if (window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches) theme = 'dark';
+        document.documentElement.dataset.theme = theme;
+      } catch (error) { document.documentElement.dataset.theme = 'light'; }
+    })();
+  </script>
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#3a83f7">
+  <link rel="icon" href="assets/wanyu-icon.svg?v=17.7.2" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/maintainable-tokens.css?v=17.7.2">
+  <link rel="stylesheet" href="assets/maintainable-site.css?v=17.7.2">
+  <link rel="stylesheet" href="assets/v17-ui-upgrade.css?v=17.7.2">
+  <link rel="stylesheet" href="assets/v17-search.css?v=17.7.2">
+  <link rel="stylesheet" href="assets/v17-tools.css?v=17.7.2">
+  <link rel="stylesheet" href="assets/v17-exam-picker.css?v=17.7.2">
+</head>
+<body>
+  <div id="maintainable-app" class="maintainable-app">
+    <a class="maintain-skip-link" href="#maintain-main">跳到主内容</a>
+    <header class="maintain-header">
+      <div class="maintain-header__inner">
+        <a class="maintain-brand" href="#overview" aria-label="返回全省总览">
+          <span class="maintain-brand__mark">皖</span>
+          <span><strong>皖域择岗</strong><small>安徽公考岗位查询</small></span>
+        </a>
+        <div class="maintain-cycle-picker" id="maintain-cycle-picker" aria-label="选择数据周期"></div>
+        <div class="maintain-header__tools">
+          <span id="maintain-offline-badge" class="maintain-offline-badge" hidden>离线缓存</span>
+          <button id="maintain-theme-toggle" class="maintain-theme-toggle" type="button" aria-label="切换深浅主题">◐</button>
+        </div>
+      </div>
+      <div class="maintain-header__sub">
+        <nav class="maintain-nav" aria-label="维护站导航">
+          <a href="#overview" data-maintain-view="overview">总览</a>
+          <a href="#jobs_search" data-maintain-view="jobs_search">找岗位</a>
+          <a href="#jobs_map" data-maintain-view="jobs_map">岗位地图</a>
+          <a href="#salary_map" data-maintain-view="salary_map">待遇对比</a>
+          <a href="#jobs_ranking" data-maintain-view="jobs_ranking">城市排行</a>
+          <a href="#cycle_compare" data-maintain-view="cycle_compare">三年趋势</a>
+          <a href="#changes" data-maintain-view="changes">变更通报</a>
+          <a href="#saved" data-maintain-view="saved">我的收藏</a>
+          <a href="#data_boundary" data-maintain-view="data_boundary">数据说明</a>
+          <a href="#help" data-maintain-view="help">使用说明</a>
+          <a href="#changelog" data-maintain-view="changelog">更新日志</a>
+        </nav>
+        <span id="maintain-status" class="maintain-status" role="status" aria-live="polite">正在读取数据清单…</span>
+      </div>
+      <span class="maintain-scroll-progress" aria-hidden="true"></span>
+    </header>
+    <main id="maintain-main" class="maintain-main"></main>
+    <section class="maint-cta" aria-labelledby="maint-cta-title">
+      <span class="maint-cta__glow" aria-hidden="true"></span>
+      <div class="maint-cta__inner">
+        <p class="maint-eyebrow"><span class="maint-eyebrow__index">下一步</span>从这里开始</p>
+        <h2 id="maint-cta-title">拿不准就先看数据说明，<br>想好了就直接查岗位。</h2>
+        <div class="maint-cta__actions">
+          <a class="maint-cta__primary" href="#jobs_search" data-maintain-view="jobs_search">打开岗位检索 <i class="maint-cta__arrow">→</i></a>
+          <a class="maint-cta__ghost" href="#data_boundary" data-maintain-view="data_boundary">看数据说明</a>
+        </div>
+        <p class="maint-cta__stats">2024—2026 · 28,678 岗 · 42,058 人 · 来源均可本地核对</p>
+      </div>
+    </section>
+    <footer class="maintain-footer">
+      <span>数据来自官方公告，来源可核对</span>
+      <span>第一次使用？请看导航里的「使用说明」</span>
+    </footer>
+  </div>
+  <script src="assets/maintainable-data.js?v=17.7.2"></script>
+  <script src="assets/maintainable-major-city.js?v=17.7.2"></script>
+  <script src="assets/maintainable-user-store.js?v=17.7.2"></script>
+  <script src="assets/v17-tools.js?v=17.7.2"></script>
+  <script type="module" src="assets/maintainable-site.js?v=17.7.2"></script>
+  <script>
+  if ('serviceWorker' in navigator) {
+    addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
+  }
+</script>
+</body>
+</html>

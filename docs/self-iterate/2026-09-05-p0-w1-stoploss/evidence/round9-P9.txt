@@ -1,0 +1,6 @@
+PASS | no plaintext default password 
+PASS | gunicorn module app.main:app 
+PASS | no wan-api.main:app module 
+PASS | limit_req_zone declared outside server block 
+PASS | SECRET_KEY not assigned inside quoted heredoc 
+== 5/5 checks passed ==

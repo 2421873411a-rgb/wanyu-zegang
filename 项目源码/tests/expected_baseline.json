@@ -1,0 +1,1798 @@
+{
+  "cycles": {
+    "2024": {
+      "cities": [
+        {
+          "city": "亳州",
+          "exam": {
+            "国考": {
+              "jobs": 14,
+              "recruits": 27
+            },
+            "省考": {
+              "jobs": 197,
+              "recruits": 423
+            }
+          },
+          "jobs": 211,
+          "recruits": 450
+        },
+        {
+          "city": "六安",
+          "exam": {
+            "国考": {
+              "jobs": 35,
+              "recruits": 75
+            },
+            "省考": {
+              "jobs": 265,
+              "recruits": 474
+            }
+          },
+          "jobs": 300,
+          "recruits": 549
+        },
+        {
+          "city": "六安叶集区",
+          "exam": {
+            "事业编": {
+              "jobs": 15,
+              "recruits": 19
+            }
+          },
+          "jobs": 15,
+          "recruits": 19
+        },
+        {
+          "city": "六安市直",
+          "exam": {
+            "事业编": {
+              "jobs": 155,
+              "recruits": 157
+            }
+          },
+          "jobs": 155,
+          "recruits": 157
+        },
+        {
+          "city": "六安舒城县",
+          "exam": {
+            "事业编": {
+              "jobs": 40,
+              "recruits": 41
+            }
+          },
+          "jobs": 40,
+          "recruits": 41
+        },
+        {
+          "city": "六安裕安区",
+          "exam": {
+            "事业编": {
+              "jobs": 33,
+              "recruits": 34
+            }
+          },
+          "jobs": 33,
+          "recruits": 34
+        },
+        {
+          "city": "六安金安区",
+          "exam": {
+            "事业编": {
+              "jobs": 83,
+              "recruits": 183
+            }
+          },
+          "jobs": 83,
+          "recruits": 183
+        },
+        {
+          "city": "六安金寨县",
+          "exam": {
+            "事业编": {
+              "jobs": 87,
+              "recruits": 99
+            }
+          },
+          "jobs": 87,
+          "recruits": 99
+        },
+        {
+          "city": "六安霍山县",
+          "exam": {
+            "事业编": {
+              "jobs": 51,
+              "recruits": 52
+            }
+          },
+          "jobs": 51,
+          "recruits": 52
+        },
+        {
+          "city": "六安霍邱县",
+          "exam": {
+            "事业编": {
+              "jobs": 114,
+              "recruits": 159
+            }
+          },
+          "jobs": 114,
+          "recruits": 159
+        },
+        {
+          "city": "合肥",
+          "exam": {
+            "国考": {
+              "jobs": 79,
+              "recruits": 212
+            },
+            "省考": {
+              "jobs": 377,
+              "recruits": 665
+            }
+          },
+          "jobs": 456,
+          "recruits": 877
+        },
+        {
+          "city": "合肥包河区",
+          "exam": {
+            "事业编": {
+              "jobs": 3,
+              "recruits": 7
+            }
+          },
+          "jobs": 3,
+          "recruits": 7
+        },
+        {
+          "city": "合肥巢湖市",
+          "exam": {
+            "事业编": {
+              "jobs": 36,
+              "recruits": 44
+            }
+          },
+          "jobs": 36,
+          "recruits": 44
+        },
+        {
+          "city": "合肥市直",
+          "exam": {
+            "事业编": {
+              "jobs": 98,
+              "recruits": 151
+            }
+          },
+          "jobs": 98,
+          "recruits": 151
+        },
+        {
+          "city": "合肥庐江县",
+          "exam": {
+            "事业编": {
+              "jobs": 119,
+              "recruits": 167
+            }
+          },
+          "jobs": 119,
+          "recruits": 167
+        },
+        {
+          "city": "合肥庐阳区",
+          "exam": {
+            "事业编": {
+              "jobs": 7,
+              "recruits": 7
+            }
+          },
+          "jobs": 7,
+          "recruits": 7
+        },
+        {
+          "city": "合肥瑶海区",
+          "exam": {
+            "事业编": {
+              "jobs": 19,
+              "recruits": 29
+            }
+          },
+          "jobs": 19,
+          "recruits": 29
+        },
+        {
+          "city": "合肥经开区",
+          "exam": {
+            "事业编": {
+              "jobs": 6,
+              "recruits": 30
+            }
+          },
+          "jobs": 6,
+          "recruits": 30
+        },
+        {
+          "city": "合肥肥东县",
+          "exam": {
+            "事业编": {
+              "jobs": 81,
+              "recruits": 131
+            }
+          },
+          "jobs": 81,
+          "recruits": 131
+        },
+        {
+          "city": "合肥肥西县",
+          "exam": {
+            "事业编": {
+              "jobs": 35,
+              "recruits": 42
+            }
+          },
+          "jobs": 35,
+          "recruits": 42
+        },
+        {
+          "city": "合肥蜀山区",
+          "exam": {
+            "事业编": {
+              "jobs": 7,
+              "recruits": 37
+            }
+          },
+          "jobs": 7,
+          "recruits": 37
+        },
+        {
+          "city": "安庆",
+          "exam": {
+            "国考": {
+              "jobs": 55,
+              "recruits": 114
+            },
+            "省考": {
+              "jobs": 327,
+              "recruits": 561
+            }
+          },
+          "jobs": 382,
+          "recruits": 675
+        },
+        {
+          "city": "安庆市直",
+          "exam": {
+            "事业编": {
+              "jobs": 99,
+              "recruits": 123
+            }
+          },
+          "jobs": 99,
+          "recruits": 123
+        },
+        {
+          "city": "安庆迎江区",
+          "exam": {
+            "事业编": {
+              "jobs": 14,
+              "recruits": 14
+            }
+          },
+          "jobs": 14,
+          "recruits": 14
+        },
+        {
+          "city": "宣城",
+          "exam": {
+            "国考": {
+              "jobs": 32,
+              "recruits": 70
+            },
+            "省考": {
+              "jobs": 265,
+              "recruits": 422
+            }
+          },
+          "jobs": 297,
+          "recruits": 492
+        },
+        {
+          "city": "宣城宁国市",
+          "exam": {
+            "事业编": {
+              "jobs": 102,
+              "recruits": 113
+            }
+          },
+          "jobs": 102,
+          "recruits": 113
+        },
+        {
+          "city": "宣城宣州区",
+          "exam": {
+            "事业编": {
+              "jobs": 110,
+              "recruits": 149
+            }
+          },
+          "jobs": 110,
+          "recruits": 149
+        },
+        {
+          "city": "宣城市直",
+          "exam": {
+            "事业编": {
+              "jobs": 44,
+              "recruits": 66
+            }
+          },
+          "jobs": 44,
+          "recruits": 66
+        },
+        {
+          "city": "宣城广德市",
+          "exam": {
+            "事业编": {
+              "jobs": 48,
+              "recruits": 49
+            }
+          },
+          "jobs": 48,
+          "recruits": 49
+        },
+        {
+          "city": "宣城旌德县",
+          "exam": {
+            "事业编": {
+              "jobs": 40,
+              "recruits": 44
+            }
+          },
+          "jobs": 40,
+          "recruits": 44
+        },
+        {
+          "city": "宣城泾县",
+          "exam": {
+            "事业编": {
+              "jobs": 69,
+              "recruits": 99
+            }
+          },
+          "jobs": 69,
+          "recruits": 99
+        },
+        {
+          "city": "宣城绩溪县",
+          "exam": {
+            "事业编": {
+              "jobs": 38,
+              "recruits": 41
+            }
+          },
+          "jobs": 38,
+          "recruits": 41
+        },
+        {
+          "city": "宣城郎溪县",
+          "exam": {
+            "事业编": {
+              "jobs": 100,
+              "recruits": 111
+            }
+          },
+          "jobs": 100,
+          "recruits": 111
+        },
+        {
+          "city": "宿州",
+          "exam": {
+            "国考": {
+              "jobs": 29,
+              "recruits": 54
+            },
+            "省考": {
+              "jobs": 248,
+              "recruits": 490
+            }
+          },
+          "jobs": 277,
+          "recruits": 544
+        },
+        {
+          "city": "宿州市直",
+          "exam": {
+            "事业编": {
+              "jobs": 99,
+              "recruits": 123
+            }
+          },
+          "jobs": 99,
+          "recruits": 123
+        },
+        {
+          "city": "宿松",
+          "exam": {
+            "省考": {
+              "jobs": 39,
+              "recruits": 67
+            }
+          },
+          "jobs": 39,
+          "recruits": 67
+        },
+        {
+          "city": "广德",
+          "exam": {
+            "省考": {
+              "jobs": 43,
+              "recruits": 51
+            }
+          },
+          "jobs": 43,
+          "recruits": 51
+        },
+        {
+          "city": "池州",
+          "exam": {
+            "国考": {
+              "jobs": 27,
+              "recruits": 44
+            },
+            "省考": {
+              "jobs": 232,
+              "recruits": 361
+            }
+          },
+          "jobs": 259,
+          "recruits": 405
+        },
+        {
+          "city": "淮北",
+          "exam": {
+            "国考": {
+              "jobs": 19,
+              "recruits": 44
+            },
+            "省考": {
+              "jobs": 113,
+              "recruits": 182
+            }
+          },
+          "jobs": 132,
+          "recruits": 226
+        },
+        {
+          "city": "淮北市",
+          "exam": {
+            "事业编": {
+              "jobs": 95,
+              "recruits": 122
+            }
+          },
+          "jobs": 95,
+          "recruits": 122
+        },
+        {
+          "city": "淮南",
+          "exam": {
+            "国考": {
+              "jobs": 29,
+              "recruits": 48
+            },
+            "省考": {
+              "jobs": 244,
+              "recruits": 333
+            }
+          },
+          "jobs": 273,
+          "recruits": 381
+        },
+        {
+          "city": "淮南市",
+          "exam": {
+            "事业编": {
+              "jobs": 426,
+              "recruits": 544
+            }
+          },
+          "jobs": 426,
+          "recruits": 544
+        },
+        {
+          "city": "滁州",
+          "exam": {
+            "国考": {
+              "jobs": 28,
+              "recruits": 53
+            },
+            "省考": {
+              "jobs": 258,
+              "recruits": 488
+            }
+          },
+          "jobs": 286,
+          "recruits": 541
+        },
+        {
+          "city": "滁州南谯区",
+          "exam": {
+            "事业编": {
+              "jobs": 33,
+              "recruits": 41
+            }
+          },
+          "jobs": 33,
+          "recruits": 41
+        },
+        {
+          "city": "滁州市直",
+          "exam": {
+            "事业编": {
+              "jobs": 80,
+              "recruits": 103
+            }
+          },
+          "jobs": 80,
+          "recruits": 103
+        },
+        {
+          "city": "芜湖",
+          "exam": {
+            "国考": {
+              "jobs": 32,
+              "recruits": 63
+            },
+            "省考": {
+              "jobs": 339,
+              "recruits": 525
+            }
+          },
+          "jobs": 371,
+          "recruits": 588
+        },
+        {
+          "city": "芜湖市",
+          "exam": {
+            "事业编": {
+              "jobs": 251,
+              "recruits": 307
+            }
+          },
+          "jobs": 251,
+          "recruits": 307
+        },
+        {
+          "city": "蚌埠",
+          "exam": {
+            "国考": {
+              "jobs": 49,
+              "recruits": 119
+            },
+            "省考": {
+              "jobs": 173,
+              "recruits": 274
+            }
+          },
+          "jobs": 222,
+          "recruits": 393
+        },
+        {
+          "city": "蚌埠市",
+          "exam": {
+            "事业编": {
+              "jobs": 25,
+              "recruits": 29
+            }
+          },
+          "jobs": 25,
+          "recruits": 29
+        },
+        {
+          "city": "铜陵",
+          "exam": {
+            "国考": {
+              "jobs": 22,
+              "recruits": 49
+            },
+            "省考": {
+              "jobs": 169,
+              "recruits": 285
+            }
+          },
+          "jobs": 191,
+          "recruits": 334
+        },
+        {
+          "city": "铜陵义安区",
+          "exam": {
+            "事业编": {
+              "jobs": 44,
+              "recruits": 53
+            }
+          },
+          "jobs": 44,
+          "recruits": 53
+        },
+        {
+          "city": "铜陵市直",
+          "exam": {
+            "事业编": {
+              "jobs": 90,
+              "recruits": 102
+            }
+          },
+          "jobs": 90,
+          "recruits": 102
+        },
+        {
+          "city": "铜陵枞阳县",
+          "exam": {
+            "事业编": {
+              "jobs": 41,
+              "recruits": 53
+            }
+          },
+          "jobs": 41,
+          "recruits": 53
+        },
+        {
+          "city": "铜陵郊区",
+          "exam": {
+            "事业编": {
+              "jobs": 11,
+              "recruits": 11
+            }
+          },
+          "jobs": 11,
+          "recruits": 11
+        },
+        {
+          "city": "铜陵铜官区",
+          "exam": {
+            "事业编": {
+              "jobs": 12,
+              "recruits": 12
+            }
+          },
+          "jobs": 12,
+          "recruits": 12
+        },
+        {
+          "city": "阜阳",
+          "exam": {
+            "国考": {
+              "jobs": 42,
+              "recruits": 85
+            },
+            "省考": {
+              "jobs": 383,
+              "recruits": 761
+            }
+          },
+          "jobs": 425,
+          "recruits": 846
+        },
+        {
+          "city": "阜阳临泉县",
+          "exam": {
+            "事业编": {
+              "jobs": 77,
+              "recruits": 148
+            }
+          },
+          "jobs": 77,
+          "recruits": 148
+        },
+        {
+          "city": "阜阳太和县",
+          "exam": {
+            "事业编": {
+              "jobs": 43,
+              "recruits": 93
+            }
+          },
+          "jobs": 43,
+          "recruits": 93
+        },
+        {
+          "city": "阜阳市直",
+          "exam": {
+            "事业编": {
+              "jobs": 42,
+              "recruits": 43
+            }
+          },
+          "jobs": 42,
+          "recruits": 43
+        },
+        {
+          "city": "阜阳界首市",
+          "exam": {
+            "事业编": {
+              "jobs": 119,
+              "recruits": 150
+            }
+          },
+          "jobs": 119,
+          "recruits": 150
+        },
+        {
+          "city": "阜阳阜南县",
+          "exam": {
+            "事业编": {
+              "jobs": 81,
+              "recruits": 128
+            }
+          },
+          "jobs": 81,
+          "recruits": 128
+        },
+        {
+          "city": "阜阳颍上县",
+          "exam": {
+            "事业编": {
+              "jobs": 65,
+              "recruits": 135
+            }
+          },
+          "jobs": 65,
+          "recruits": 135
+        },
+        {
+          "city": "阜阳颍东区",
+          "exam": {
+            "事业编": {
+              "jobs": 25,
+              "recruits": 43
+            }
+          },
+          "jobs": 25,
+          "recruits": 43
+        },
+        {
+          "city": "阜阳颍州区",
+          "exam": {
+            "事业编": {
+              "jobs": 45,
+              "recruits": 46
+            }
+          },
+          "jobs": 45,
+          "recruits": 46
+        },
+        {
+          "city": "马鞍山",
+          "exam": {
+            "国考": {
+              "jobs": 22,
+              "recruits": 46
+            },
+            "省考": {
+              "jobs": 200,
+              "recruits": 353
+            }
+          },
+          "jobs": 222,
+          "recruits": 399
+        },
+        {
+          "city": "马鞍山博望区",
+          "exam": {
+            "事业编": {
+              "jobs": 5,
+              "recruits": 5
+            }
+          },
+          "jobs": 5,
+          "recruits": 5
+        },
+        {
+          "city": "马鞍山含山县",
+          "exam": {
+            "事业编": {
+              "jobs": 41,
+              "recruits": 42
+            }
+          },
+          "jobs": 41,
+          "recruits": 42
+        },
+        {
+          "city": "马鞍山和县",
+          "exam": {
+            "事业编": {
+              "jobs": 43,
+              "recruits": 45
+            }
+          },
+          "jobs": 43,
+          "recruits": 45
+        },
+        {
+          "city": "马鞍山市直",
+          "exam": {
+            "事业编": {
+              "jobs": 104,
+              "recruits": 109
+            }
+          },
+          "jobs": 104,
+          "recruits": 109
+        },
+        {
+          "city": "马鞍山当涂县",
+          "exam": {
+            "事业编": {
+              "jobs": 37,
+              "recruits": 41
+            }
+          },
+          "jobs": 37,
+          "recruits": 41
+        },
+        {
+          "city": "马鞍山花山区",
+          "exam": {
+            "事业编": {
+              "jobs": 13,
+              "recruits": 14
+            }
+          },
+          "jobs": 13,
+          "recruits": 14
+        },
+        {
+          "city": "马鞍山雨山区",
+          "exam": {
+            "事业编": {
+              "jobs": 10,
+              "recruits": 12
+            }
+          },
+          "jobs": 10,
+          "recruits": 12
+        },
+        {
+          "city": "黄山",
+          "exam": {
+            "国考": {
+              "jobs": 33,
+              "recruits": 64
+            },
+            "省考": {
+              "jobs": 236,
+              "recruits": 350
+            }
+          },
+          "jobs": 269,
+          "recruits": 414
+        },
+        {
+          "city": "黄山休宁县",
+          "exam": {
+            "事业编": {
+              "jobs": 37,
+              "recruits": 68
+            }
+          },
+          "jobs": 37,
+          "recruits": 68
+        },
+        {
+          "city": "黄山屯溪区",
+          "exam": {
+            "事业编": {
+              "jobs": 31,
+              "recruits": 40
+            }
+          },
+          "jobs": 31,
+          "recruits": 40
+        },
+        {
+          "city": "黄山市直",
+          "exam": {
+            "事业编": {
+              "jobs": 84,
+              "recruits": 93
+            }
+          },
+          "jobs": 84,
+          "recruits": 93
+        },
+        {
+          "city": "黄山徽州区",
+          "exam": {
+            "事业编": {
+              "jobs": 24,
+              "recruits": 26
+            }
+          },
+          "jobs": 24,
+          "recruits": 26
+        },
+        {
+          "city": "黄山歙县",
+          "exam": {
+            "事业编": {
+              "jobs": 59,
+              "recruits": 108
+            }
+          },
+          "jobs": 59,
+          "recruits": 108
+        },
+        {
+          "city": "黄山祁门县",
+          "exam": {
+            "事业编": {
+              "jobs": 36,
+              "recruits": 55
+            }
+          },
+          "jobs": 36,
+          "recruits": 55
+        },
+        {
+          "city": "黄山黄山区",
+          "exam": {
+            "事业编": {
+              "jobs": 13,
+              "recruits": 28
+            }
+          },
+          "jobs": 13,
+          "recruits": 28
+        },
+        {
+          "city": "黄山黟县",
+          "exam": {
+            "事业编": {
+              "jobs": 13,
+              "recruits": 16
+            }
+          },
+          "jobs": 13,
+          "recruits": 16
+        },
+        {
+          "city": "省直",
+          "exam": {
+            "事业编": {
+              "jobs": 1308,
+              "recruits": 1725
+            },
+            "国考": {
+              "jobs": 12,
+              "recruits": 18
+            },
+            "省考": {
+              "jobs": 135,
+              "recruits": 170
+            }
+          },
+          "jobs": 1455,
+          "recruits": 1913
+        }
+      ],
+      "meta": {
+        "compJoined": 4242,
+        "directed": 509,
+        "examCounts": {
+          "事业编": 5215,
+          "国考": 559,
+          "省考": 4243
+        },
+        "hukou": 78,
+        "recruits": 15331,
+        "scoreCoverage": {
+          "adv": 8842,
+          "bm": 10016,
+          "hg": 559,
+          "hire": 1229,
+          "jf": 0,
+          "line": 9048,
+          "perExam": {
+            "事业编": {
+              "adv": 4209,
+              "bm": 5215,
+              "line": 4278,
+              "total": 5215
+            },
+            "国考": {
+              "adv": 551,
+              "bm": 559,
+              "line": 551,
+              "total": 559
+            },
+            "省考": {
+              "adv": 4082,
+              "bm": 4242,
+              "line": 4219,
+              "total": 4243
+            }
+          },
+          "top": 8797
+        },
+        "total": 10017
+      },
+      "page": "deliverables/2024/皖域择岗总览.html",
+      "rows": 10017,
+      "stats": {
+        "bm_total": 365878,
+        "cycle": "2024",
+        "daxian_people": 197768,
+        "daxian_posts": 4082,
+        "guokao_jinmian_people": 3559,
+        "guokao_posts": 559,
+        "guokao_recruits": 1185,
+        "hire_people": 1968,
+        "shengkao_dup_codes": 0,
+        "shengkao_posts": 4243,
+        "shengkao_recruits": 7235,
+        "syb_posts": 5215,
+        "syb_recruits": 6911,
+        "syb_score_joined": 4209,
+        "total_posts": 10017,
+        "total_recruits": 15331
+      }
+    },
+    "2025": {
+      "cities": [
+        {
+          "city": "亳州",
+          "exam": {
+            "事业编": {
+              "jobs": 147,
+              "recruits": 210
+            },
+            "国考": {
+              "jobs": 26,
+              "recruits": 59
+            },
+            "省考": {
+              "jobs": 218,
+              "recruits": 397
+            }
+          },
+          "jobs": 391,
+          "recruits": 666
+        },
+        {
+          "city": "六安",
+          "exam": {
+            "事业编": {
+              "jobs": 454,
+              "recruits": 518
+            },
+            "国考": {
+              "jobs": 31,
+              "recruits": 61
+            },
+            "省考": {
+              "jobs": 258,
+              "recruits": 453
+            }
+          },
+          "jobs": 743,
+          "recruits": 1032
+        },
+        {
+          "city": "合肥",
+          "exam": {
+            "事业编": {
+              "jobs": 553,
+              "recruits": 812
+            },
+            "国考": {
+              "jobs": 77,
+              "recruits": 171
+            },
+            "省考": {
+              "jobs": 343,
+              "recruits": 542
+            }
+          },
+          "jobs": 973,
+          "recruits": 1525
+        },
+        {
+          "city": "安庆",
+          "exam": {
+            "事业编": {
+              "jobs": 153,
+              "recruits": 193
+            },
+            "国考": {
+              "jobs": 51,
+              "recruits": 104
+            },
+            "省考": {
+              "jobs": 385,
+              "recruits": 582
+            }
+          },
+          "jobs": 589,
+          "recruits": 879
+        },
+        {
+          "city": "宣城",
+          "exam": {
+            "事业编": {
+              "jobs": 312,
+              "recruits": 368
+            },
+            "国考": {
+              "jobs": 26,
+              "recruits": 57
+            },
+            "省考": {
+              "jobs": 274,
+              "recruits": 430
+            }
+          },
+          "jobs": 612,
+          "recruits": 855
+        },
+        {
+          "city": "宿州",
+          "exam": {
+            "事业编": {
+              "jobs": 320,
+              "recruits": 445
+            },
+            "国考": {
+              "jobs": 30,
+              "recruits": 71
+            },
+            "省考": {
+              "jobs": 277,
+              "recruits": 464
+            }
+          },
+          "jobs": 627,
+          "recruits": 980
+        },
+        {
+          "city": "池州",
+          "exam": {
+            "事业编": {
+              "jobs": 68,
+              "recruits": 74
+            },
+            "国考": {
+              "jobs": 19,
+              "recruits": 36
+            },
+            "省考": {
+              "jobs": 230,
+              "recruits": 342
+            }
+          },
+          "jobs": 317,
+          "recruits": 452
+        },
+        {
+          "city": "淮北",
+          "exam": {
+            "事业编": {
+              "jobs": 84,
+              "recruits": 93
+            },
+            "国考": {
+              "jobs": 32,
+              "recruits": 58
+            },
+            "省考": {
+              "jobs": 125,
+              "recruits": 195
+            }
+          },
+          "jobs": 241,
+          "recruits": 346
+        },
+        {
+          "city": "淮南",
+          "exam": {
+            "事业编": {
+              "jobs": 415,
+              "recruits": 560
+            },
+            "国考": {
+              "jobs": 22,
+              "recruits": 49
+            },
+            "省考": {
+              "jobs": 282,
+              "recruits": 454
+            }
+          },
+          "jobs": 719,
+          "recruits": 1063
+        },
+        {
+          "city": "滁州",
+          "exam": {
+            "事业编": {
+              "jobs": 508,
+              "recruits": 580
+            },
+            "国考": {
+              "jobs": 35,
+              "recruits": 60
+            },
+            "省考": {
+              "jobs": 227,
+              "recruits": 355
+            }
+          },
+          "jobs": 770,
+          "recruits": 995
+        },
+        {
+          "city": "芜湖",
+          "exam": {
+            "事业编": {
+              "jobs": 395,
+              "recruits": 463
+            },
+            "国考": {
+              "jobs": 34,
+              "recruits": 66
+            },
+            "省考": {
+              "jobs": 276,
+              "recruits": 434
+            }
+          },
+          "jobs": 705,
+          "recruits": 963
+        },
+        {
+          "city": "蚌埠",
+          "exam": {
+            "事业编": {
+              "jobs": 217,
+              "recruits": 283
+            },
+            "国考": {
+              "jobs": 32,
+              "recruits": 88
+            },
+            "省考": {
+              "jobs": 178,
+              "recruits": 286
+            }
+          },
+          "jobs": 427,
+          "recruits": 657
+        },
+        {
+          "city": "铜陵",
+          "exam": {
+            "事业编": {
+              "jobs": 167,
+              "recruits": 188
+            },
+            "国考": {
+              "jobs": 25,
+              "recruits": 54
+            },
+            "省考": {
+              "jobs": 172,
+              "recruits": 263
+            }
+          },
+          "jobs": 364,
+          "recruits": 505
+        },
+        {
+          "city": "阜阳",
+          "exam": {
+            "事业编": {
+              "jobs": 233,
+              "recruits": 304
+            },
+            "国考": {
+              "jobs": 31,
+              "recruits": 77
+            },
+            "省考": {
+              "jobs": 178,
+              "recruits": 305
+            }
+          },
+          "jobs": 442,
+          "recruits": 686
+        },
+        {
+          "city": "马鞍山",
+          "exam": {
+            "事业编": {
+              "jobs": 358,
+              "recruits": 393
+            },
+            "国考": {
+              "jobs": 30,
+              "recruits": 56
+            },
+            "省考": {
+              "jobs": 174,
+              "recruits": 285
+            }
+          },
+          "jobs": 562,
+          "recruits": 734
+        },
+        {
+          "city": "黄山",
+          "exam": {
+            "事业编": {
+              "jobs": 304,
+              "recruits": 386
+            },
+            "国考": {
+              "jobs": 28,
+              "recruits": 55
+            },
+            "省考": {
+              "jobs": 214,
+              "recruits": 332
+            }
+          },
+          "jobs": 546,
+          "recruits": 773
+        },
+        {
+          "city": "省直",
+          "exam": {
+            "事业编": {
+              "jobs": 803,
+              "recruits": 1086
+            },
+            "国考": {
+              "jobs": 14,
+              "recruits": 23
+            },
+            "省考": {
+              "jobs": 305,
+              "recruits": 501
+            }
+          },
+          "jobs": 1122,
+          "recruits": 1610
+        }
+      ],
+      "meta": {
+        "compJoined": 4116,
+        "directed": 412,
+        "examCounts": {
+          "事业编": 5491,
+          "国考": 543,
+          "省考": 4116
+        },
+        "hukou": 107,
+        "recruits": 14721,
+        "scoreCoverage": {
+          "adv": 8952,
+          "bm": 4659,
+          "hg": 543,
+          "hire": 1265,
+          "jf": 0,
+          "line": 8397,
+          "perExam": {
+            "事业编": {
+              "adv": 4308,
+              "bm": 0,
+              "line": 3749,
+              "total": 5491
+            },
+            "国考": {
+              "adv": 537,
+              "bm": 543,
+              "line": 537,
+              "total": 543
+            },
+            "省考": {
+              "adv": 4107,
+              "bm": 4116,
+              "line": 4111,
+              "total": 4116
+            }
+          },
+          "top": 8416
+        },
+        "total": 10150
+      },
+      "page": "deliverables/2025/皖域择岗总览.html",
+      "rows": 10150,
+      "stats": {
+        "bm_total": 225229,
+        "cycle": "2025",
+        "daxian_people": 225658,
+        "daxian_posts": 4107,
+        "guokao_jinmian_people": 3470,
+        "guokao_posts": 543,
+        "guokao_recruits": 1145,
+        "hire_people": 3061,
+        "shengkao_dup_codes": 0,
+        "shengkao_posts": 4116,
+        "shengkao_recruits": 6620,
+        "syb_posts": 5491,
+        "syb_recruits": 6956,
+        "syb_score_joined": 4948,
+        "total_posts": 10150,
+        "total_recruits": 14721
+      }
+    }
+  },
+  "main": {
+    "cities": [
+      {
+        "city": "亳州",
+        "exam": {
+          "国考": {
+            "jobs": 31,
+            "recruits": 67
+          },
+          "省考": {
+            "jobs": 214,
+            "recruits": 387
+          }
+        },
+        "jobs": 245,
+        "recruits": 454
+      },
+      {
+        "city": "六安",
+        "exam": {
+          "事业编": {
+            "jobs": 346,
+            "recruits": 392
+          },
+          "国考": {
+            "jobs": 29,
+            "recruits": 57
+          },
+          "省考": {
+            "jobs": 232,
+            "recruits": 431
+          }
+        },
+        "jobs": 607,
+        "recruits": 880
+      },
+      {
+        "city": "合肥",
+        "exam": {
+          "事业编": {
+            "jobs": 143,
+            "recruits": 236
+          },
+          "国考": {
+            "jobs": 89,
+            "recruits": 207
+          },
+          "省考": {
+            "jobs": 378,
+            "recruits": 552
+          }
+        },
+        "jobs": 610,
+        "recruits": 995
+      },
+      {
+        "city": "安庆",
+        "exam": {
+          "事业编": {
+            "jobs": 269,
+            "recruits": 301
+          },
+          "国考": {
+            "jobs": 53,
+            "recruits": 129
+          },
+          "省考": {
+            "jobs": 353,
+            "recruits": 564
+          }
+        },
+        "jobs": 675,
+        "recruits": 994
+      },
+      {
+        "city": "宣城",
+        "exam": {
+          "事业编": {
+            "jobs": 118,
+            "recruits": 134
+          },
+          "国考": {
+            "jobs": 33,
+            "recruits": 71
+          },
+          "省考": {
+            "jobs": 239,
+            "recruits": 325
+          }
+        },
+        "jobs": 390,
+        "recruits": 530
+      },
+      {
+        "city": "宿州",
+        "exam": {
+          "事业编": {
+            "jobs": 96,
+            "recruits": 122
+          },
+          "国考": {
+            "jobs": 34,
+            "recruits": 67
+          },
+          "省考": {
+            "jobs": 265,
+            "recruits": 447
+          }
+        },
+        "jobs": 395,
+        "recruits": 636
+      },
+      {
+        "city": "池州",
+        "exam": {
+          "事业编": {
+            "jobs": 154,
+            "recruits": 177
+          },
+          "国考": {
+            "jobs": 15,
+            "recruits": 25
+          },
+          "省考": {
+            "jobs": 187,
+            "recruits": 278
+          }
+        },
+        "jobs": 356,
+        "recruits": 480
+      },
+      {
+        "city": "淮北",
+        "exam": {
+          "事业编": {
+            "jobs": 135,
+            "recruits": 194
+          },
+          "国考": {
+            "jobs": 22,
+            "recruits": 45
+          },
+          "省考": {
+            "jobs": 117,
+            "recruits": 150
+          }
+        },
+        "jobs": 274,
+        "recruits": 389
+      },
+      {
+        "city": "淮南",
+        "exam": {
+          "事业编": {
+            "jobs": 233,
+            "recruits": 270
+          },
+          "国考": {
+            "jobs": 28,
+            "recruits": 55
+          },
+          "省考": {
+            "jobs": 252,
+            "recruits": 397
+          }
+        },
+        "jobs": 513,
+        "recruits": 722
+      },
+      {
+        "city": "滁州",
+        "exam": {
+          "事业编": {
+            "jobs": 524,
+            "recruits": 569
+          },
+          "国考": {
+            "jobs": 35,
+            "recruits": 66
+          },
+          "省考": {
+            "jobs": 226,
+            "recruits": 310
+          }
+        },
+        "jobs": 785,
+        "recruits": 945
+      },
+      {
+        "city": "芜湖",
+        "exam": {
+          "事业编": {
+            "jobs": 303,
+            "recruits": 338
+          },
+          "国考": {
+            "jobs": 33,
+            "recruits": 65
+          },
+          "省考": {
+            "jobs": 189,
+            "recruits": 279
+          }
+        },
+        "jobs": 525,
+        "recruits": 682
+      },
+      {
+        "city": "蚌埠",
+        "exam": {
+          "事业编": {
+            "jobs": 145,
+            "recruits": 161
+          },
+          "国考": {
+            "jobs": 42,
+            "recruits": 90
+          },
+          "省考": {
+            "jobs": 164,
+            "recruits": 293
+          }
+        },
+        "jobs": 351,
+        "recruits": 544
+      },
+      {
+        "city": "铜陵",
+        "exam": {
+          "事业编": {
+            "jobs": 164,
+            "recruits": 195
+          },
+          "国考": {
+            "jobs": 17,
+            "recruits": 28
+          },
+          "省考": {
+            "jobs": 198,
+            "recruits": 253
+          }
+        },
+        "jobs": 379,
+        "recruits": 476
+      },
+      {
+        "city": "阜阳",
+        "exam": {
+          "事业编": {
+            "jobs": 278,
+            "recruits": 358
+          },
+          "国考": {
+            "jobs": 35,
+            "recruits": 74
+          },
+          "省考": {
+            "jobs": 189,
+            "recruits": 327
+          }
+        },
+        "jobs": 502,
+        "recruits": 759
+      },
+      {
+        "city": "马鞍山",
+        "exam": {
+          "事业编": {
+            "jobs": 353,
+            "recruits": 381
+          },
+          "国考": {
+            "jobs": 23,
+            "recruits": 43
+          },
+          "省考": {
+            "jobs": 154,
+            "recruits": 188
+          }
+        },
+        "jobs": 530,
+        "recruits": 612
+      },
+      {
+        "city": "黄山",
+        "exam": {
+          "事业编": {
+            "jobs": 204,
+            "recruits": 235
+          },
+          "国考": {
+            "jobs": 31,
+            "recruits": 58
+          },
+          "省考": {
+            "jobs": 187,
+            "recruits": 231
+          }
+        },
+        "jobs": 422,
+        "recruits": 524
+      },
+      {
+        "city": "省直",
+        "exam": {
+          "事业编": {
+            "jobs": 711,
+            "recruits": 1002
+          },
+          "国考": {
+            "jobs": 1,
+            "recruits": 3
+          },
+          "省考": {
+            "jobs": 240,
+            "recruits": 379
+          }
+        },
+        "jobs": 952,
+        "recruits": 1384
+      }
+    ],
+    "meta": {
+      "compJoined": 3784,
+      "directed": 421,
+      "examCounts": {
+        "事业编": 4176,
+        "国考": 551,
+        "省考": 3784
+      },
+      "hukou": 95,
+      "recruits": 12006,
+      "scoreCoverage": {
+        "adv": 7455,
+        "bm": 8379,
+        "hg": 8379,
+        "hire": 795,
+        "jf": 3784,
+        "line": 7381,
+        "perExam": {
+          "事业编": {
+            "adv": 3129,
+            "bm": 4046,
+            "line": 3052,
+            "total": 4176
+          },
+          "国考": {
+            "adv": 546,
+            "bm": 549,
+            "line": 546,
+            "total": 551
+          },
+          "省考": {
+            "adv": 3780,
+            "bm": 3784,
+            "line": 3783,
+            "total": 3784
+          }
+        },
+        "top": 6907
+      },
+      "total": 8511
+    },
+    "page": "deliverables/皖域择岗总览.html",
+    "rows": 8511
+  },
+  "schema": 1
+}

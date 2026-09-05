@@ -1,0 +1,189 @@
+/* 皖域择岗维护站 · Design Token v3(v15.0"数据驾驶舱")
+   双主题:浅色工作台(默认) / 深色观测台(html[data-theme="dark"])。
+   规则:组件样式只引用本文件变量,不允许硬编码主题色;
+   每个语义 token 必须在两个主题中成对出现。 */
+:root {
+  color-scheme: light;
+  /* 画布与表面 */
+  --bg-context: #f5f9ff;
+  --bg-canvas: #f5f9ff;
+  --bg-surface: #ffffff;
+  --bg-surface-soft: #fbfdff;
+  --bg-sunken: #eef3fb;
+  /* 文字 */
+  --text-display: #0e1b2c;
+  --text-strong: #25466f;
+  --text-body: #3f5570;
+  --text-muted: #748cac;
+  /* 边界 */
+  --border-subtle: #dce8f8;
+  --line: #dce8f8;
+  /* 品牌与语义色 */
+  --accent-primary: #3a83f7;
+  --accent-primary-soft: #eef5ff;
+  --accent-2: #7c5cfc;
+  --accent-teal: #b7d1f8;
+  --grad-display: linear-gradient(92deg, #2f6fe0 0%, #7c5cfc 100%);
+  --pos: #158a52;
+  --status-success: #158a52;
+  --status-verified: #158a52;
+  --warn: #b37a32;
+  --status-warning: #b37a32;
+  --unknown: #8a94a6;
+  --status-unknown: #8a94a6;
+  --danger: #c4554d;
+  --status-danger: #c4554d;
+  /* 图表四色 */
+  --viz-1: #3a83f7;
+  --viz-2: #14b8a6;
+  --viz-3: #f5b04d;
+  --viz-4: #ef7bab;
+  /* 图表扩展四色(城市折线最多 8 条,v17.7.1 双主题成对) */
+  --viz-5: #8e44ad;
+  --viz-6: #16a085;
+  --viz-7: #d35400;
+  --viz-8: #475569;
+  /* 变更通报徽章:文字色/底色成对,双主题各自满足 WCAG AA */
+  --changes-added: #166a3f;
+  --changes-added-bg: rgba(26, 127, 75, .12);
+  --changes-withdrawn: #b3261e;
+  --changes-withdrawn-bg: rgba(179, 38, 30, .12);
+  --changes-revised: #1d5fbf;
+  --changes-revised-bg: rgba(29, 95, 191, .12);
+  --changes-review: #8f4a06;
+  --changes-review-bg: rgba(178, 94, 9, .14);
+  --changes-unchanged: #5f6368;
+  --changes-unchanged-bg: rgba(95, 99, 104, .12);
+  /* 旧名兼容(v13–v14 组件继续引用,值随主题走) */
+  --ink: #25466f;
+  --muted: #748cac;
+  --canvas: #f5f9ff;
+  --card: #ffffff;
+  --blue: #3a83f7;
+  --teal: #b7d1f8;
+  --gold: #b37a32;
+  --map-fill: #e7f0ff;
+  --map-stop-0: #edf4ff;
+  --map-stop-1: #dceaff;
+  --map-stop-2: #c9ddff;
+  --map-stop-3: #a9c8fa;
+  --map-stop-4: #79a8f4;
+  --map-stop-5: #3a83f7;
+  --grid-line: rgba(58, 131, 247, .05);
+  --canvas-top: #fcfdff;
+  --canvas-bottom: #f8fbff;
+  /* 字体(离线:仅系统栈) */
+  --font-display: "Segoe UI", "Microsoft YaHei UI", "PingFang SC", system-ui, sans-serif;
+  --font-body: "Segoe UI", "Microsoft YaHei UI", "PingFang SC", system-ui, sans-serif;
+  --sans: var(--font-body);
+  --mono: "Cascadia Code", Consolas, "Sarasa Mono SC", monospace;
+  /* 几何 */
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-pill: 999px;
+  /* 阴影 / 焦点 / 玻璃 */
+  --shadow-soft: 0 10px 28px rgba(39, 88, 150, .08);
+  --shadow: var(--shadow-soft);
+  --shadow-lift: 0 12px 32px rgba(15, 40, 90, .14);
+  --focus-ring: 0 0 0 3px rgba(58, 131, 247, .22);
+  --glass-bg: rgba(251, 253, 255, .97);
+  --glass-border: rgba(220, 232, 248, .9);
+  /* 动效:解释功能,不做装饰 */
+  --dur-fast: 120ms;
+  --dur-med: 220ms;
+  --dur-slow: 420ms;
+  --ease: cubic-bezier(.22, .61, .36, 1);
+  /* v16.2: 显现系统(对齐参考站节奏) */
+  --dur-reveal: 780ms;
+  --dur-reveal-x: 920ms;
+  --ease-pop: cubic-bezier(.16, 1, .3, 1);
+  /* 页尾行动带(v16.1):满幅深色段,深底文字对比度进 test_ui_v15 回归 */
+  --band-bg: #0f1d33;
+  --band-fg: #f2f6fc;
+  --band-muted: #9db1cf;
+  --band-accent: #8fb3ff;
+  --band-on-accent: #0f1d33;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg-context: #0d1524;
+  --bg-canvas: #0d1524;
+  --bg-surface: #131d31;
+  --bg-surface-soft: #0f1829;
+  --bg-sunken: #0e1626;
+  --text-display: #f2f6fc;
+  --text-strong: #dbe6f5;
+  --text-body: #b9c6da;
+  --text-muted: #7e8fa9;
+  --border-subtle: #24354f;
+  --line: #24354f;
+  --accent-primary: #5b9bff;
+  --accent-primary-soft: rgba(91, 155, 255, .14);
+  --accent-2: #a78bfa;
+  --accent-teal: #2dd4bf;
+  --grad-display: linear-gradient(92deg, #5b9bff 0%, #a78bfa 100%);
+  --pos: #34d399;
+  --status-success: #34d399;
+  --status-verified: #34d399;
+  --warn: #f5b04d;
+  --status-warning: #f5b04d;
+  --unknown: #8090a8;
+  --status-unknown: #8090a8;
+  --danger: #f87a72;
+  --status-danger: #f87a72;
+  --viz-1: #5b9bff;
+  --viz-2: #2dd4bf;
+  --viz-3: #f5b04d;
+  --viz-4: #f472b6;
+  /* 图表扩展四色(城市折线最多 8 条,v17.7.1 双主题成对) */
+  --viz-5: #c4b5fd;
+  --viz-6: #5eead4;
+  --viz-7: #fb923c;
+  --viz-8: #94a3b8;
+  /* 变更通报徽章:文字色/底色成对,双主题各自满足 WCAG AA */
+  --changes-added: #4ade80;
+  --changes-added-bg: rgba(74, 222, 128, .16);
+  --changes-withdrawn: #fca5a5;
+  --changes-withdrawn-bg: rgba(248, 122, 114, .16);
+  --changes-revised: #93c5fd;
+  --changes-revised-bg: rgba(91, 155, 255, .16);
+  --changes-review: #fcd34d;
+  --changes-review-bg: rgba(245, 176, 77, .16);
+  --changes-unchanged: #a8b3c5;
+  --changes-unchanged-bg: rgba(148, 163, 184, .14);
+  --ink: #dbe6f5;
+  --muted: #7e8fa9;
+  --canvas: #0d1524;
+  --card: #131d31;
+  --blue: #5b9bff;
+  --teal: #2dd4bf;
+  --gold: #f5b04d;
+  --map-fill: #16233b;
+  --map-stop-0: #101a2d;
+  --map-stop-1: #16233f;
+  --map-stop-2: #1d2f52;
+  --map-stop-3: #274a86;
+  --map-stop-4: #3f6fc4;
+  --map-stop-5: #5b9bff;
+  --grid-line: rgba(139, 160, 255, .05);
+  --canvas-top: #101a2d;
+  --canvas-bottom: #0b1320;
+  --shadow-soft: 0 10px 28px rgba(0, 0, 0, .35);
+  --shadow-lift: 0 14px 36px rgba(0, 0, 0, .5);
+  --focus-ring: 0 0 0 3px rgba(91, 155, 255, .3);
+  --glass-bg: rgba(15, 24, 41, .97);
+  --glass-border: rgba(36, 53, 79, .9);
+  --band-bg: #16233c;
+  --band-fg: #f2f6fc;
+  --band-muted: #9db1cf;
+  --band-accent: #a78bfa;
+  --band-on-accent: #0f1d33;
+}
+
+html, body { background: var(--bg-canvas); color: var(--text-body); }
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
