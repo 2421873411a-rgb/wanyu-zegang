@@ -1,8 +1,8 @@
 {
  "audit": {
-  "bytes": 15470,
+  "bytes": 20358,
   "data": "data/audit/three-year.json",
-  "sha256": "75ee0d763cd52d6d1db5f001956c0926a68a868c03c256daf38c7ccded668815"
+  "sha256": "ecd1f637ed5dd1fed05e1d0f9fa4b985cef24f2af80cfab849956997404b9265"
  },
  "cycles": [
   {
@@ -154,17 +154,17 @@
    "status": "verified"
   },
   {
-   "bytes": 15052368,
+   "bytes": 15066656,
    "cycle": "2026",
    "data": "data/cycles/2026/jobs.json",
    "gaps": 2,
    "label": "2026 · 快照 2026-08-28",
    "modules": {
     "audit": {
-     "bytes": 6344,
+     "bytes": 6768,
      "data": "data/cycles/2026/audit.json",
      "schema": "wanyu-maintainable-audit/v1",
-     "sha256": "3d57cd21ea496d6983e2a411e165aa2e1a0faec8d8d1c7a2e4534b6d126c9b7a"
+     "sha256": "7c3b6f74f82fbe7c6f6d5f41a89cd24bcccf1d837ccf578d9b4f1feba9338265"
     },
     "catalog": {
      "bytes": 3959668,
@@ -179,16 +179,16 @@
      "sha256": "daed0af0e9da768bf59a0bf72d35f862c3cacf0952ab31ed37775e2dc9333f01"
     },
     "derived": {
-     "bytes": 2450,
+     "bytes": 3900,
      "data": "data/cycles/2026/derived.json",
      "schema": "wanyu-maintainable-derived/v1",
-     "sha256": "58304ec8cf20bb0abecc728c0040d7f3aa770563eec4b76e97183ac3229ea160"
+     "sha256": "d272459781f0eddde19fcb827791c5c602c9dbd68518e628f2fc8ab95260e5e9"
     },
     "jobs": {
-     "bytes": 15052368,
+     "bytes": 15066656,
      "data": "data/cycles/2026/jobs.json",
      "schema": "wanyu-maintainable-jobs/v1",
-     "sha256": "67952773f733aa664dd1ed4e27e9680e15f3e19e57142cf072ff7fc7d93f2cdd"
+     "sha256": "d0a14539b9ed61a8d51479a51c03c12f00af8ab35f436accf64b4f05bcbfd770"
     },
     "jobs_lite": {
      "bytes": 4870150,
@@ -229,8 +229,8 @@
    },
    "posts": 8511,
    "recruits": 12006,
-   "score_unresolved": 116,
-   "sha256": "67952773f733aa664dd1ed4e27e9680e15f3e19e57142cf072ff7fc7d93f2cdd",
+   "score_unresolved": 0,
+   "sha256": "d0a14539b9ed61a8d51479a51c03c12f00af8ab35f436accf64b4f05bcbfd770",
    "status": "verified"
   }
  ],
@@ -239,7 +239,7 @@
   "bytes": 715622,
   "data": "data/job_history.json",
   "schema": "wanyu-maintainable-job-history/v1",
-  "sha256": "9f916ede45c950100c3255a3536cbf62bf497edb43153bbfdc5d6914637097ce"
+  "sha256": "af629ee3cbe4d21bb00a536eea3bc0d3882a43b16c349f2c22fd3fdfc9586998"
  },
  "maintenance": {
   "data_is_external": true,

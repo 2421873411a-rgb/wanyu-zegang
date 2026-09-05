@@ -226,12 +226,19 @@
  "schema": "wanyu-maintainable-audit/v1",
  "scoreLists": {
   "keyed": {
-   "unresolved": 116
+   "unresolved": 0,
+   "unresolved_detail": "116 组撞码已于 2026-09-05 全部归属（公告来源定市）；明细则见 keyed.resolution_20260905"
   },
   "repair_20260905": {
    "recovered_rows": 629,
    "merge_policy": "只增不减（pre_fix/pre0830 底料 + 排零重收割 line 恢复）",
    "scale_gate": "事业单位 120-300 → comparable/syb_300；越界 → incompatible_scale"
+  },
+  "unresolved": 0,
+  "resolution_20260905": {
+   "attributed_codes": 116,
+   "method": "公告来源定市（raw 附件 pid→scan 标题城市）",
+   "finding": "110 组为华图源跨市重复收录（幽灵行全在马鞍山，成绩归六安），已打标待官方核对"
   }
  },
  "gaps": [
