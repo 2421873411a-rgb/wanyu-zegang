@@ -44,20 +44,30 @@ def _discover_template_assets() -> tuple[str, ...]:
 MAINTAINABLE_TEMPLATE_ASSETS = _discover_template_assets()
 
 
+def _render_sw_template() -> str:
+    """SW 模板 → 实际产物内容（release.json 注入版本占位符）。"""
+    template = (ROOT / "tools" / "anhui_web" / "templates" / "maintainable-sw.js").read_text(encoding="utf-8")
+    release_doc = json.loads((ROOT / "release.json").read_text(encoding="utf-8"))
+    return (
+        template
+        .replace("__SW_VERSION__", str(release_doc.get("service_worker_version") or ""))
+        .replace("__ASSET_VERSION__", str(release_doc.get("asset_version") or ""))
+    )
+
+
 def verify_template_asset_parity(site_dir: Path) -> dict[str, object]:
     """Compare the built shell assets with their checked-in templates.
 
     The comparison is byte-for-byte so a stale template cannot silently erase
-    a feature at the next rebuild.  The two view renderers are also checked for
-    their source markers; the browser smoke test exercises their actual route.
+    a feature at the next rebuild.  The SW template is compared after the same
+    release.json placeholder substitution the builder applies.  The two view
+    renderers are also checked for their source markers; the browser smoke test
+    exercises their actual route.
     """
     site_dir = Path(site_dir).resolve()
     template_dir = ROOT / "tools" / "anhui_web" / "templates"
     pairs = [(name, template_dir / name, site_dir / "assets" / name) for name in MAINTAINABLE_TEMPLATE_ASSETS]
-    pairs.extend((name, template_name, site_dir / output_name) for name, template_name, output_name in (
-        ("sw.js", template_dir / "maintainable-sw.js", "sw.js"),
-        ("manifest.webmanifest", template_dir / "maintainable.webmanifest", "manifest.webmanifest"),
-    ))
+    pairs.append(("manifest.webmanifest", template_dir / "maintainable.webmanifest", site_dir / "manifest.webmanifest"))
     mismatches: list[str] = []
     checked = 0
     for name, template_path, output_path in pairs:
@@ -67,6 +77,14 @@ def verify_template_asset_parity(site_dir: Path) -> dict[str, object]:
         checked += 1
         if template_path.read_bytes() != output_path.read_bytes():
             mismatches.append(f"{name}: bytes differ")
+    # sw.js：模板经版本注入后与产物逐字比对
+    sw_output = site_dir / "sw.js"
+    if not sw_output.is_file():
+        mismatches.append("sw.js: missing output")
+    else:
+        checked += 1
+        if _render_sw_template() != sw_output.read_text(encoding="utf-8"):
+            mismatches.append("sw.js: bytes differ after release.json injection")
     site_js = site_dir / "assets" / "maintainable-site.js"
     if site_js.is_file():
         text = site_js.read_text(encoding="utf-8")
@@ -92,6 +110,8 @@ def write_release_record(deliverables: Path) -> Path:
     record = {
         "release": BUILD_VERSION,
         "created_on": _dt.datetime.now(_dt.timezone.utc).isoformat(),
+        "validation_status": BROWSER_VALIDATION["status"],
+        "browser_smoke_skipped": list(BROWSER_VALIDATION["skipped_scripts"]),
         "maintainable_manifest": manifest,
         "rollback": {
             "unit": "cycle/module",
@@ -147,15 +167,41 @@ def run_tests() -> None:
     run_browser_smoke("tests/browser_smoke_v12.js", require_browser=True)
 
 
-def run_browser_smoke(script: str, require_browser: bool = False) -> None:
-    # playwright-core does not ship browsers; a package.json probe alone would
-    # crash on machines without the Chromium binary. Probe the real executable
-    # and degrade to a loud warning so the release still records the gap.
-    node_modules = Path.home() / ".cache" / "codex-runtimes" / "codex-primary-runtime" / "dependencies" / "node" / "node_modules"
-    if not (node_modules / "playwright-core" / "package.json").is_file():
-        if require_browser:
-            raise RuntimeError(f"G2: 正式发布不允许静默跳过浏览器烟测（{script} 缺 playwright-core）；安装后重试，或显式使用 --allow-missing-browser 并承担人工走查责任。")
-        print(f"[警告] 未找到 playwright-core，浏览器烟测 {script} 跳过；需以人工/内置浏览器走查补偿。")
+# I(2026-09-05 v17.8.5-RC2)：浏览器烟测真 fail-closed。
+# - playwright-core 缺失 或 Chromium 缺失 => 一律 FAIL；
+#   只有显式 --allow-missing-browser 才允许跳过，且 release 记录 validation_status=degraded_validation。
+# - 标准 node_modules 优先（项目源码/node_modules），codex 运行时仅作兼容回退并显式告警。
+BROWSER_VALIDATION = {"status": "verified", "skipped_scripts": []}
+ALLOW_MISSING_BROWSER = False
+
+
+def _playwright_node_modules() -> Path | None:
+    candidates = [ROOT / "node_modules", Path.home() / ".cache" / "codex-runtimes" / "codex-primary-runtime" / "dependencies" / "node" / "node_modules"]
+    for candidate in candidates:
+        if (candidate / "playwright-core" / "package.json").is_file():
+            if candidate != candidates[0]:
+                print(f"[警告] 使用非标准 node_modules 回退：{candidate}（请 npm install 以标准化）")
+            return candidate
+    return None
+
+
+def run_browser_smoke(script: str, require_browser: bool = False, allow_missing_browser: bool = False) -> None:
+    del require_browser  # 历史 API；fail-closed 后只有 allow_missing_browser 一个豁免口
+    allow_missing_browser = allow_missing_browser or ALLOW_MISSING_BROWSER
+    node_modules = _playwright_node_modules()
+    def _skip(reason: str) -> None:
+        if not allow_missing_browser:
+            raise RuntimeError(
+                f"G2: 正式发布浏览器烟测不允许静默跳过（{script}: {reason}）。"
+                "先安装依赖与浏览器（npm install && npx playwright install chromium），"
+                "或显式使用 --allow-missing-browser 承担人工走查责任（release 将标记 degraded_validation）。"
+            )
+        BROWSER_VALIDATION["status"] = "degraded_validation"
+        BROWSER_VALIDATION["skipped_scripts"].append(script)
+        print(f"[degraded] 浏览器烟测 {script} 被显式豁免（{reason}）；release 记录 validation_status=degraded_validation。")
+
+    if node_modules is None:
+        _skip("缺 playwright-core（标准位置与 codex 回退均未找到）")
         return
     env = dict(__import__("os").environ)
     env["NODE_PATH"] = str(node_modules)
@@ -165,7 +211,7 @@ def run_browser_smoke(script: str, require_browser: bool = False) -> None:
     )
     executable = probe.stdout.strip() if probe.returncode == 0 else ""
     if not executable or not Path(executable).is_file():
-        print(f"[警告] 本机未安装 Chromium（playwright-core 有库无浏览器），烟测 {script} 跳过；需以人工/内置浏览器走查补偿。")
+        _skip("playwright-core 有库无 Chromium 二进制（npx playwright install chromium）")
         return
     subprocess.run(["node", script], cwd=ROOT, env=env, check=True)
 
@@ -281,7 +327,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="测试 + 构建 + 同步 + 打包")
     parser.add_argument("--zip", action="store_true", help="追加打包发布 zip")
     parser.add_argument("--skip-tests", action="store_true", help="跳过测试（调试用）")
+    parser.add_argument("--allow-missing-browser", action="store_true",
+                        help="显式豁免浏览器烟测（release 记录 validation_status=degraded_validation）")
     arguments = parser.parse_args()
+    ALLOW_MISSING_BROWSER = bool(arguments.allow_missing_browser)
     if not arguments.skip_tests:
         run_tests()
     build_and_sync()

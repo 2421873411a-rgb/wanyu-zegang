@@ -1,5 +1,12 @@
 {
   "dependencies": {
     "playwright-core": "^1.62.1"
+  },
+  "scripts": {
+    "setup:browsers": "node node_modules/playwright-core/cli.js install chromium",
+    "test:node": "node --test tests/test_wanyu_core.cjs tests/test_major_city_index.cjs tests/test_user_store_contract.cjs",
+    "test:datastore": "node tests/test_datastore_contract.cjs",
+    "test:browser": "node tests/maintainable_browser_smoke.js",
+    "test:release": "python tools/anhui_web/release.py"
   }
 }
