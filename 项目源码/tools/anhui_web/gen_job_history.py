@@ -14,8 +14,12 @@ import argparse
 import hashlib
 import json
 import re
+import sys
 from collections import defaultdict
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from tools.anhui_web.record_lifecycle import is_active_record  # noqa: E402
 
 SITE = Path(__file__).resolve().parents[3] / "网站"
 CYCLES = ("2024", "2025", "2026")
@@ -35,13 +39,17 @@ def build() -> dict:
     for cycle in CYCLES:
         rows = json.loads((SITE / "data" / "cycles" / cycle / "jobs.json").read_text(encoding="utf-8"))["allMajors"]["rows"]
         grouped: dict[str, list] = defaultdict(list)
+        # wanyu-record-status/v1：跨年同岗走势是用户口径，排除行不进入聚合
         for row in rows:
+            if not is_active_record(row):
+                continue
             city, unit, zw = str(row.get("city") or ""), str(row.get("unit") or ""), str(row.get("zw") or "")
             if not city or not unit or not zw:
                 continue
             grouped[norm_key(city, unit, zw)].append(row)
         for key, group in grouped.items():
             posts = len(group)
+            families[key]["city"] = str(group[0].get("city") or "")
             num = sum(int(r.get("num") or 0) for r in group)
             bm = sum(int(r.get("bm") or 0) for r in group)
             lines = [float(r["line"]) for r in group if isinstance(r.get("line"), (int, float)) and r["line"] > 0]
@@ -53,8 +61,7 @@ def build() -> dict:
     multi = {k: v for k, v in families.items() if len(v["cycles"]) >= 2}
     jobs = {}
     for key in sorted(multi):
-        city = next(iter(multi[key]["cycles"].values())) and None
-        jobs[key] = {"cycles": multi[key]["cycles"]}
+        jobs[key] = {"city": multi[key].get("city"), "cycles": multi[key]["cycles"]}
     return jobs
 
 
@@ -87,7 +94,9 @@ def main() -> int:
         for k in list(ck & nk)[:2]:
             if current["jobs"][k] != jobs[k]:
                 print(f"  值差异 {k}:\n    现 {json.dumps(current['jobs'][k], ensure_ascii=False)[:200]}\n    新 {json.dumps(jobs[k], ensure_ascii=False)[:200]}")
-        return 1
+        if not args.write:
+            return 1
+        print("  --write 已显式给出：按重建内容落盘（active 行源 + 现库 bm/城市更新）")
     if args.write:
         keep = current.get("key_semantics")
         if keep:
