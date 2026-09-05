@@ -219,6 +219,12 @@
      "data": "data/cycles/2026/major-index.json",
      "schema": "wanyu-major-index/v1",
      "sha256": "7c2eb594f688a17a5104d2ed017fce054758792ef1f2b0d900b19c65a68d65ad"
+    },
+    "req_fields": {
+     "bytes": 2759264,
+     "data": "data/req-fields-2026.json",
+     "schema": "wanyu-req-fields/v1",
+     "sha256": "259283928605bc79d3614ba8a012c560aa8db9770b864c96558c4000681b5159"
     }
    },
    "posts": 8511,
@@ -248,7 +254,7 @@
   "sha256": "d98fb053398facec707a3c842c138b82118990bf3b173ce8ecb9348caa9fbc77",
   "source": "tools/anhui_web/data/anhui_340000_full.json"
  },
- "release": "v17.8.0",
+ "release": "v17.8.1",
  "review_queue": {
   "bytes": 4225,
   "data": "data/audit/review-queue.json",
@@ -276,5 +282,11 @@
   "schema": "wanyu-supplement-evidence/v1",
   "sha256": "11da6cfd0f7dba0b4f683f727ecaeb28482444776b13305905c3e01efce8b915",
   "source": "source_data/supplement_20260904"
+ },
+ "calendar": {
+  "bytes": 1307,
+  "data": "data/calendar.json",
+  "schema": "wanyu-calendar/v1",
+  "sha256": "1defdd8b0332123c8bd8ac66f4b51c9377e7573d2c67376f26aa329a13fe3a65"
  }
 }

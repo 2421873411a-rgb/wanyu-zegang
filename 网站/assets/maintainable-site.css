@@ -668,3 +668,16 @@ h1,h2,h3{font-family:var(--font-display)}
 [data-theme="dark"] .maint-search-stats__tier.t1{color:#43d17c}
 [data-theme="dark"] .maint-search-stats__tier.t2{color:#e8b15d}
 [data-theme="dark"] .maint-search-stats__tier.t3{color:#7e8fa9}
+
+/* T2 我的条件面板 + P3 收藏提醒 + P10 证据 chip + 铁律行 */
+.maint-profile-panel{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;align-items:end;margin-top:12px;padding:12px;border:1px solid var(--line,#d5e4ed);border-radius:10px;background:var(--card,#fff)}
+.maint-profile-panel__title{grid-column:1/-1;color:#5b7391;font-weight:700;font-size:11px}
+[data-theme="dark"] .maint-profile-panel{border-color:rgba(126,143,169,.4);background:rgba(15,24,41,.6)}
+[data-theme="dark"] .maint-profile-panel__title{color:#7e8fa9}
+.maint-saved-alert{border-left:3px solid #c99643;margin-bottom:16px}
+.maint-saved-alert__list{margin:8px 0 0;padding-left:18px;color:#5b7391;font-size:12px;line-height:1.7}
+[data-theme="dark"] .maint-saved-alert__list{color:#7e8fa9}
+.maint-evidence-chip{display:inline-block;margin-top:6px;padding:3px 9px;border-radius:999px;color:#267b78;background:rgba(38,123,120,.1);font-size:10px;font-weight:700}
+[data-theme="dark"] .maint-evidence-chip{color:#43d17c;background:rgba(67,209,124,.12)}
+.maint-cta__trust{margin:0 0 10px;color:#5b7391;font-size:12px;font-weight:700;letter-spacing:.04em}
+[data-theme="dark"] .maint-cta__trust{color:#7e8fa9}

@@ -19,7 +19,7 @@ CYCLES = ("2024", "2025", "2026")
 MAP_CITIES = ("合肥", "芜湖", "蚌埠", "淮南", "马鞍山", "淮北", "铜陵", "安庆", "黄山", "滁州", "阜阳", "宿州", "六安", "亳州", "池州", "宣城")
 MODULES = ("overview", "jobs", "jobs_lite", "catalog", "positions", "changes", "audit", "derived", "major_city")
 # P0-9③(2026-09-05): palette.json 退役（命令面板改由 jobs_lite 派生）——已登记 palette 的旧包仍按原口径校验
-OPTIONAL_MODULES = ("palette", "major_index")
+OPTIONAL_MODULES = ("palette", "major_index", "req_fields")
 MODULE_SCHEMAS = {
     "overview": "wanyu-maintainable-overview/v1",
     "jobs": "wanyu-maintainable-jobs/v1",
@@ -33,6 +33,7 @@ MODULE_SCHEMAS = {
     "jobs_lite": "wanyu-maintainable-jobs-lite/v1",
     "major_city": "wanyu-maintainable-major-city/v1",
     "major_index": "wanyu-major-index/v1",
+    "req_fields": "wanyu-req-fields/v1",
 }
 
 
