@@ -1,0 +1,27 @@
+[merge] 底料 = syb2026_daxian_all.pre_fix.json（3385 行）
+[merge] 合并后 3385 行（恢复 line 656 条，零删减）
+[D1] 2026 哨兵/缺失恢复 629 行；floor null 化 135 行
+[D1] 修复后状态分布: {'comparable': 4849, 'unavailable': 1125, 'not_applicable': 551, 'incompatible_scale': 1837, 'suspected_sentinel': 149}
+  样例 1601001 安庆 suspected_sentinel → line=58.0
+  样例 1601002 安庆 suspected_sentinel → line=42.0
+  样例 1601003 安庆 suspected_sentinel → line=29.0
+  样例 1601004 安庆 suspected_sentinel → line=47.0
+  样例 1601005 安庆 suspected_sentinel → line=44.0
+  样例 1601006 安庆 suspected_sentinel → line=65.5
+  样例 1601007 安庆 suspected_sentinel → line=49.0
+  样例 1601008 安庆 suspected_sentinel → line=52.0
+  样例 1601009 安庆 suspected_sentinel → line=23.0
+  样例 1601011 安庆 suspected_sentinel → line=40.0
+  样例 1601012 安庆 suspected_sentinel → line=66.0
+  样例 1601013 安庆 suspected_sentinel → line=48.0
+  样例 1601014 安庆 suspected_sentinel → line=35.0
+  样例 1601015 安庆 suspected_sentinel → line=20.0
+  样例 1601017 安庆 suspected_sentinel → line=49.0
+  样例 1601018 安庆 suspected_sentinel → line=58.5
+  样例 1601019 安庆 suspected_sentinel → line=50.5
+  样例 1601020 安庆 suspected_sentinel → line=60.0
+  样例 1601021 安庆 suspected_sentinel → line=48.0
+  样例 1601022 安庆 suspected_sentinel → line=71.0
+[D3] 2024 城市归一 3989 行；未落入规范集 0 行
+[manifest] 2024/2026 jobs 哈希+字节数已重发布；2026 score_unresolved 重算
+[audit] 2026 audit.json scoreLists 修复记录已追加
