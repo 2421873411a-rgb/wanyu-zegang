@@ -1,5 +1,5 @@
 {
- "schema": "wanyu-source-lock/v1",
+ "schema": "wanyu-source-lock/v2",
  "snapshot": "2026-09-05",
  "sources": [
   {
@@ -59,22 +59,38 @@
    "required": true
   },
   {
+   "id": "three_year_audit.json",
+   "path": "项目源码\\tools\\anhui_web\\data\\three_year_audit.json",
+   "sha256": "41daa19509328bd6c394cf7ed1c9cf90a8db9c700e2e7a5bc8a2705b8ea08c75",
+   "bytes": 27275,
+   "required": true
+  },
+  {
+   "id": "record_status_overrides.json",
+   "path": "项目源码\\tools\\anhui_web\\data\\record_status_overrides.json",
+   "sha256": "0a8a76cae54204f5f449d4bf2fd01a84ce23d83417a42bf151c06b663d2a7b94",
+   "bytes": 4690,
+   "required": true
+  },
+  {
    "id": "dir:source_data",
    "path": "项目源码\\source_data",
-   "sha256": null,
    "bytes": 458322941,
    "files": 3357,
+   "rollup_sha256": "1d191d29381db1471b83730883bfe197dc54fe16d7331946fa11b374165b728b",
    "required": true,
-   "hash_level": "directory_rollup"
+   "hash_level": "directory_rollup",
+   "rollup_algo": "sha256(relpath\\0file_sha256\\0bytes\\n sorted by relpath)"
   },
   {
    "id": "dir:raw_syb_fugao",
    "path": "项目源码\\tools\\anhui_web\\data\\raw_syb_fugao",
-   "sha256": null,
    "bytes": 29477685,
    "files": 340,
+   "rollup_sha256": "29a893c3b2258126b68fb3a641f75a94789139ff62d6d5a7e2b8f8154dc4f2f2",
    "required": true,
-   "hash_level": "directory_rollup"
+   "hash_level": "directory_rollup",
+   "rollup_algo": "sha256(relpath\\0file_sha256\\0bytes\\n sorted by relpath)"
   }
  ]
 }
