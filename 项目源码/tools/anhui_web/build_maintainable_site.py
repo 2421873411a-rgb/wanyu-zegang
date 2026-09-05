@@ -215,7 +215,13 @@ def _lifecycle_meta(
       全量行上复现它（否则中止构建），再切换 active 口径。
     """
     if not excluded_rows:
-        return _summary_meta(carryover_meta)
+        passed = _summary_meta(carryover_meta)
+        # 无排除周期同样统一 wanyu-record-status/v1 形状（raw==active），
+        # 与 2026 形状一致，避免overview 读到无口径的裸 total。
+        passed["raw_total"] = len(raw_rows)
+        passed["excluded"] = len(excluded_rows)
+        passed["record_status_model"] = RECORD_STATUS_MODEL
+        return passed
     if calibration_meta is not None:
         raw_meta = _compute_cycle_meta(raw_rows)
         for key in _LIFECYCLE_CALIBRATION_KEYS:
@@ -695,10 +701,25 @@ def _index_html(three_year: dict[str, object] | None = None) -> str:
 
 
 def build_maintainable_site(root: Path = ROOT, output_dir: Path = DEFAULT_OUTPUT) -> dict[str, object]:
-    """Build and return the manifest for the external-data maintenance site."""
+    """Build and return the manifest for the external-data maintenance site.
+
+    全链入口：legacy 页面 → 统一 bundle → 维护站。legacy_v11 缺失时这里会抛
+    CycleBundleError（此时可用 rc2_regen_site_modules.py 以现库 raw 行走同一装配层）。
+    """
     root = Path(root).resolve()
     output_dir = Path(output_dir).resolve()
     bundles = build_unified_bundles(root)
+    return assemble_maintainable_site(bundles, root=root, output_dir=output_dir)
+
+
+def assemble_maintainable_site(
+    bundles: dict[str, Any],
+    root: Path = ROOT,
+    output_dir: Path = DEFAULT_OUTPUT,
+) -> dict[str, object]:
+    """Assemble the site from cycle bundles (shared by full build and RC2 regen)."""
+    root = Path(root).resolve()
+    output_dir = Path(output_dir).resolve()
     data_entries: list[dict[str, object]] = []
     snapshot_date = _stable_snapshot_date(bundles)
     previous_cycle: str | None = None
