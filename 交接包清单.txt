@@ -155,3 +155,14 @@ GitHub 远端（2026-09-05 夜）：
 1. 私有仓库 https://github.com/2421873411a-rgb/wanyu-zegang （GitHub 仓库名不支持中文，"皖域择岗"自动转写为"-"已弃用且无权限删除——需站长手动在网页删除名为"-"的空仓库）。
 2. main 全量推送完成（15+ 提交，含 tag v17.7.2-baseline）；此后同步= git push。
 3. 多设备协作改 Git 流：网盘仅作备份，不再当传输通道。
+
+v17.8.5-trust-convergence（2026-09-05 深夜 · 分支 fix/v17.8.5-trust-convergence · 可信度收口版）：
+1. 【假绿修复】verifier 新增语义不变式层（17 条新检查，255/255）：unresolved 五投影强一致（缺位=FAIL 不再默认 0）、raw=active+excluded、版本四链一致（release.json/manifest/index ?v/SW PRECACHE）、review_queue 期望对齐 manifest（移除硬编码 116）。
+2. 【116 全投影收口】overview.auditSummary / audit.coverage / review-queue.summary 三处残留 116 全部归零；keyed.unresolved=0 为唯一真源；resolved_score_count=116 + 公告定市法证据链保留；ambiguous_join 项标记 resolved。
+3. 【record 生命周期】wanyu-record-status/v1：110 条幽灵行 record_status=duplicate + exclusion_reason/evidence/excluded_at；meta 全链切 active 口径（overview/检索/榜单/匹配=8401；raw 8511 仅审计层）；PHANTOM_CODES 前端黑名单删除。
+4. 【版本单源】项目源码/release.json 唯一真源；builder/release.py 改读；站点/模板/manifest → v17.8.5 / SW v48。
+5. 【release.py】资产表自动发现（模板扫描，幽灵资产不可能混入）；浏览器烟测缺浏览器=FAIL（--allow-missing-browser 显式豁免）。
+6. 【sources.lock】8 关键源文件哈希 + 2 大数据目录 rollup；fetch_sources.py --verify 构建前对账。
+7. 【scoreCoverage.line 修正】7381→7342（git 考古证实 7381 为构建期过期投影；真实值=基线 6603+629 恢复+110 归属）。
+8. 【阶段 F BLOCKED_BY_EVIDENCE】全链 docx 重建缺 legacy_v11 工件（随设备灾难丢失），恢复方案已列 docs/audit/stage-F-rebuild-status.md；现树 255/255 + fetch_sources 10 项 + 门禁全绿已验。
+9. 冻结基线与事实字典：docs/audit/v17.8.4-baseline.md、docs/data-contract/metrics.md（raw/active/excluded/recruits 受控词表）。
