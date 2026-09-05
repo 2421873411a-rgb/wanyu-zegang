@@ -406,6 +406,12 @@ def build_single_file_html(root: Path) -> str:
     """Return the complete v12 HTML without writing it to disk."""
     root = Path(root).resolve()
     bundles = build_unified_bundles(root)
+    missing_pages = [c for c, b in bundles.items() if not (b.page_content or "").strip()]
+    if missing_pages:
+        raise RuntimeError(
+            f"v12 单文件重建需要 legacy 页面内容，canonical 周期包不含 page_content：{missing_pages}；"
+            "单文件保持冻结快照，重建引擎列入 v17.9（RC3 阶段 I：HTML 只是输出）"
+        )
     scaffold_path = _find_scaffold(root)
     scaffold = scaffold_path.read_text(encoding="utf-8")
     head = _extract_head(scaffold)

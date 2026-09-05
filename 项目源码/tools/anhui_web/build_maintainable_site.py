@@ -25,6 +25,7 @@ if str(ROOT) not in sys.path:
 try:
     from .build_catalog import build_catalog, extract_major_keywords
     from .build_changes import build_change_payload
+    from .build_major_index import build as build_major_index_index
     from .build_map import build_map_payload
     from .build_position_index import build_position_index
     from .build_review_queue import build_review_queue
@@ -37,6 +38,7 @@ try:
 except ImportError:  # pragma: no cover - supports direct script execution
     from tools.anhui_web.build_catalog import build_catalog, extract_major_keywords
     from tools.anhui_web.build_changes import build_change_payload
+    from tools.anhui_web.build_major_index import build as build_major_index_index
     from tools.anhui_web.build_map import build_map_payload
     from tools.anhui_web.build_position_index import build_position_index
     from tools.anhui_web.build_review_queue import build_review_queue
@@ -49,7 +51,9 @@ except ImportError:  # pragma: no cover - supports direct script execution
 
 
 TEMPLATE_DIR = Path(__file__).resolve().parent / "templates"
-DEFAULT_OUTPUT = ROOT / "deliverables" / "maintainable"
+# RC3：builder 的默认输出=部署树（OUTPUT 侧，O-ALLOWED-OUTPUT 标记豁免）；
+# 正式发布走 release.py 显式传参。
+DEFAULT_OUTPUT = ROOT.parent / "网站"  # O:OUTPUT-SIDE
 SCHEMA = "wanyu-maintainable-site/v3"
 # D(2026-09-05)+RC2(H): 版本唯一真源 = 项目源码/release.json，三字段各用各的，
 # 禁止从 release 推导 asset 版本（不得 RELEASE.lstrip("v")）。
@@ -739,6 +743,41 @@ def assemble_maintainable_site(
     """Assemble the site from cycle bundles (shared by full build and RC2 regen)."""
     root = Path(root).resolve()
     output_dir = Path(output_dir).resolve()
+    # RC3(N)：job_history 由 builder 原生构建（行源=canonical；绑定 canonical sha）
+    from .gen_job_history import build_payload as build_job_history_payload
+
+    job_history_payload = build_job_history_payload()
+    job_history_path = output_dir / "data" / "job_history.json"
+    job_history_encoded = _write_json(job_history_path, job_history_payload)
+    # RC3(N)：精选静态输入（curated）从 canonical 复制进产物并登记
+    curated_specs = (
+        ("req_fields", "canonical/curated/req-fields-2026.json", "data/req-fields-2026.json", "2026"),
+        ("calendar", "canonical/curated/calendar.json", "data/calendar.json", None),
+    )
+    curated_payloads: dict[str, dict[str, object]] = {
+        "job_history": {
+            "data": "data/job_history.json",
+            "bytes": len(job_history_encoded),
+            "sha256": hashlib.sha256(job_history_encoded).hexdigest(),
+            "schema": job_history_payload.get("schema"),
+        },
+    }
+    for name, source_rel, output_rel, only_cycle in curated_specs:
+        source_path = root / source_rel
+        if not source_path.is_file():
+            raise BuildInvariantError(f"精选输入缺失：{source_path}")
+        target = output_dir / output_rel
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source_path, target)
+        payload_doc = json.loads(target.read_text(encoding="utf-8"))
+        curated_payloads[name] = {
+            "data": output_rel,
+            "bytes": target.stat().st_size,
+            "sha256": hashlib.sha256(target.read_bytes()).hexdigest(),
+            "schema": payload_doc.get("schema"),
+            **({"cycle": only_cycle} if only_cycle else {}),
+        }
+
     data_entries: list[dict[str, object]] = []
     snapshot_date = _stable_snapshot_date(bundles)
     previous_cycle: str | None = None
@@ -811,15 +850,7 @@ def assemble_maintainable_site(
             "sha256": hashlib.sha256(derived_encoded).hexdigest(),
             "schema": derived.get("schema"),
         }
-        palette = _palette_payload(cycle, rows_by_cycle[cycle])
-        palette_path = output_dir / "data" / "cycles" / cycle / "palette.json"
-        palette_encoded = _write_json(palette_path, palette)
-        cycle_entries_by_cycle[cycle]["modules"]["palette"] = {
-            "data": f"data/cycles/{cycle}/palette.json",
-            "bytes": len(palette_encoded),
-            "sha256": hashlib.sha256(palette_encoded).hexdigest(),
-            "schema": palette.get("schema"),
-        }
+        # palette 已退役（v17.7.1）：命令面板由 jobs_lite 内存派生，builder 不再产出/登记。
         lite = _lite_payload(cycle, rows_by_cycle[cycle], meta_by_cycle.get(cycle, {}))
         lite_path = output_dir / "data" / "cycles" / cycle / "jobs_lite.json"
         lite_encoded = _write_json(lite_path, lite)
@@ -829,6 +860,26 @@ def assemble_maintainable_site(
             "sha256": hashlib.sha256(lite_encoded).hexdigest(),
             "schema": lite.get("schema"),
         }
+        # RC3(N)：major_index 由 builder 原生构建（行源=canonical active 行，输入图零产物）
+        major_catalog_path = root / "tools" / "anhui_web" / "data" / "major_catalog.json"
+        major_catalog = json.loads(major_catalog_path.read_text(encoding="utf-8"))
+        major_index = build_major_index_index(major_catalog.get("map") or {}, rows_by_cycle[cycle])
+        major_index["cycle"] = str(cycle)
+        canonical_file = root / "canonical" / "cycles" / f"{cycle}.json"
+        major_index["computed_from"] = {
+            "jobs_sha256": hashlib.sha256(canonical_file.read_bytes()).hexdigest(),
+            "source": "canonical/cycles",
+        }
+        major_index_path = output_dir / "data" / "cycles" / cycle / "major-index.json"
+        major_index_encoded = _write_json(major_index_path, major_index)
+        cycle_entries_by_cycle[cycle]["modules"]["major_index"] = {
+            "data": f"data/cycles/{cycle}/major-index.json",
+            "bytes": len(major_index_encoded),
+            "sha256": hashlib.sha256(major_index_encoded).hexdigest(),
+            "schema": major_index.get("schema"),
+        }
+        if str(cycle) == "2026":
+            cycle_entries_by_cycle[cycle]["modules"]["req_fields"] = curated_payloads["req_fields"]
 
     audit_path = output_dir / "data" / "audit" / "three-year.json"
     audit_payload = _global_audit_payload(
@@ -847,6 +898,7 @@ def assemble_maintainable_site(
     salary_path = output_dir / "data" / "salary" / "anhui.json"
     salary_payload = _salary_payload()
     salary_encoded = _write_json(salary_path, salary_payload)
+
     supplement_payload: dict[str, Any] | None = None
     supplement_encoded: bytes | None = None
     supplement_dir = root / "source_data" / "supplement_20260904"
@@ -887,6 +939,8 @@ def assemble_maintainable_site(
             "schema": map_payload.get("schema"),
             "source": map_payload.get("source_module"),
         },
+        "job_history": curated_payloads["job_history"],
+        "calendar": curated_payloads["calendar"],
         "salary": {
             "data": "data/salary/anhui.json",
             "bytes": len(salary_encoded),
