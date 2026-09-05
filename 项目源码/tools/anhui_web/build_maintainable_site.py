@@ -49,8 +49,12 @@ except ImportError:  # pragma: no cover - supports direct script execution
 TEMPLATE_DIR = Path(__file__).resolve().parent / "templates"
 DEFAULT_OUTPUT = ROOT / "deliverables" / "maintainable"
 SCHEMA = "wanyu-maintainable-site/v3"
-# D(2026-09-05): 版本唯一真源 = 项目源码/release.json，禁止此处硬编码
-RELEASE = json.loads((Path(__file__).resolve().parents[2] / "release.json").read_text(encoding="utf-8"))["release"]
+# D(2026-09-05)+RC2(H): 版本唯一真源 = 项目源码/release.json，三字段各用各的，
+# 禁止从 release 推导 asset 版本（不得 RELEASE.lstrip("v")）。
+_RELEASE_DOC = json.loads((Path(__file__).resolve().parents[2] / "release.json").read_text(encoding="utf-8"))
+RELEASE = _RELEASE_DOC["release"]
+ASSET_VERSION = _RELEASE_DOC["asset_version"]
+SW_VERSION = _RELEASE_DOC["service_worker_version"]
 
 
 def _stable_snapshot_date(bundles: dict[str, Any]) -> str:
@@ -532,8 +536,13 @@ def _lite_payload(cycle: str, rows: list[dict[str, Any]], source_meta: dict[str,
     }
 
 
-def _global_audit_payload(bundles: dict[str, Any]) -> dict[str, object]:
-    """Create a compact, source-backed three-year audit index."""
+def _global_audit_payload(bundles: dict[str, Any], active_totals: dict[str, int] | None = None) -> dict[str, object]:
+    """Create a compact, source-backed three-year audit index.
+
+    summary 的 post_count/recruit_count 是审计口径（raw，含排除行）；
+    active_post_count/active_recruit_count 是用户口径（wanyu-metrics/v1），
+    由调用方从 manifest 周期条目汇总传入，供首页 CTA 与用户视图使用。
+    """
     first_bundle = bundles[SUPPORTED_CYCLES[0]]
     audit_source = first_bundle.payload.get("threeYearAudit") or {}
     cycle_items = []
@@ -541,6 +550,7 @@ def _global_audit_payload(bundles: dict[str, Any]) -> dict[str, object]:
         item = copy.deepcopy(bundles[cycle].audit)
         item["score_unresolved"] = _unresolved_score_count(bundles[cycle])
         cycle_items.append(item)
+    active_totals = active_totals or {}
     return {
         "schema": "wanyu-maintainable-audit/v1",
         "generated_on": audit_source.get("generated_on") if isinstance(audit_source, dict) else None,
@@ -554,6 +564,9 @@ def _global_audit_payload(bundles: dict[str, Any]) -> dict[str, object]:
             "gap_count": sum(len(item.get("gaps") or []) for item in cycle_items),
             "unresolved_score_count": sum(int(item.get("score_unresolved") or 0) for item in cycle_items),
             "partial_cycle_count": sum(item.get("evidence_level") == "partial_evidence" for item in cycle_items),
+            "active_post_count": int(active_totals.get("active_post_count") or 0),
+            "active_recruit_count": int(active_totals.get("active_recruit_count") or 0),
+            "scope_note": "post_count/recruit_count 为含排除行（record_status≠active）的 raw 审计口径；active_* 为用户口径（wanyu-metrics/v1）",
         },
     }
 
@@ -569,6 +582,8 @@ THEME_BOOT = """<script>
         else if (stored === 'dark' || stored === 'light') theme = stored;
         else if (window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches) theme = 'dark';
         document.documentElement.dataset.theme = theme;
+        var tc = document.querySelector('meta[name="theme-color"]');
+        if (tc) tc.content = theme === 'dark' ? '#0f1829' : '#3a83f7';
       } catch (error) { document.documentElement.dataset.theme = 'light'; }
     })();
   </script>"""
@@ -582,29 +597,39 @@ SW_BOOT = """<script>
 
 
 def _index_html(three_year: dict[str, object] | None = None) -> str:
-    """Render the app shell; three-year totals are computed at build time, never hand-written."""
+    """Render the app shell; three-year totals are computed at build time, never hand-written.
+
+    v17.8.5-RC2(H)：与现役 index.html 逐字对齐（og 六件套/考生视角导航/CTA 信任行），
+    资产版本全部取 release.json 的 asset_version，禁止从 release 推导。
+    """
     summary = three_year if isinstance(three_year, dict) else {}
-    posts = int(summary.get("post_count") or 0)
-    recruits = int(summary.get("recruit_count") or 0)
-    band_stats = f"{posts:,} 岗 · {recruits:,} 人 · 来源均可本地核对" if posts and recruits else "三年岗位行与证据边界 · 按周期加载"
+    # 首页 CTA/og 是用户口径：优先 active 总数，缺失时退回 raw 审计总数
+    posts = int(summary.get("active_post_count") or summary.get("post_count") or 0)
+    band_stats = f"{posts:,} 岗 · 来源均可本地核对" if posts else "三年岗位行与证据边界 · 按周期加载"
     return f"""<!doctype html>
 <html lang="zh-CN" data-site="wanyu-maintainable" data-schema="{SCHEMA}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light dark">
-  <meta name="description" content="皖域择岗三年周期长期维护站，数据按周期外置并可回到审计边界。">
-  <title>皖域择岗 · 长期维护站</title>
+  <meta name="description" content="安徽三年公考/事业编岗位数据：按专业、城市、学历找岗位，看竞争比、入围线与各地待遇。数据来自官方公告，来源可核对。">
+  <title>皖域择岗 · 安徽公考岗位查询</title>
   {THEME_BOOT}
   <link rel="manifest" href="manifest.webmanifest">
   <meta name="theme-color" content="#3a83f7">
-  <link rel="icon" href="assets/wanyu-icon.svg?v={RELEASE}" type="image/svg+xml">
-  <link rel="stylesheet" href="assets/maintainable-tokens.css?v={RELEASE}">
-  <link rel="stylesheet" href="assets/maintainable-site.css?v={RELEASE}">
-  <link rel="stylesheet" href="assets/v17-ui-upgrade.css?v={RELEASE}">
-  <link rel="stylesheet" href="assets/v17-search.css?v={RELEASE}">
-  <link rel="stylesheet" href="assets/v17-tools.css?v={RELEASE}">
-  <link rel="stylesheet" href="assets/v17-exam-picker.css?v={RELEASE}">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="皖域择岗 · 安徽公考岗位查询">
+  <meta property="og:description" content="三年 {posts:,} 岗逐岗可溯源：专业匹配亮依据、官方竞争与入围线、报考日历盯节点。未公布不显示，推导亮明依据。">
+  <meta property="og:image" content="assets/og-card.png">
+  <meta property="og:url" content="https://wan.kaogong.art/maintainable/">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="assets/wanyu-icon.svg?v={ASSET_VERSION}" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/maintainable-tokens.css?v={ASSET_VERSION}">
+  <link rel="stylesheet" href="assets/maintainable-site.css?v={ASSET_VERSION}">
+  <link rel="stylesheet" href="assets/v17-ui-upgrade.css?v={ASSET_VERSION}">
+  <link rel="stylesheet" href="assets/v17-search.css?v={ASSET_VERSION}">
+  <link rel="stylesheet" href="assets/v17-tools.css?v={ASSET_VERSION}">
+  <link rel="stylesheet" href="assets/v17-exam-picker.css?v={ASSET_VERSION}">
 </head>
 <body>
   <div id="maintainable-app" class="maintainable-app">
@@ -613,7 +638,7 @@ def _index_html(three_year: dict[str, object] | None = None) -> str:
       <div class="maintain-header__inner">
         <a class="maintain-brand" href="#overview" aria-label="返回全省总览">
           <span class="maintain-brand__mark">皖</span>
-          <span><strong>皖域择岗</strong><small>LONG-LIVED DATA WORKBENCH</small></span>
+          <span><strong>皖域择岗</strong><small>安徽公考岗位查询</small></span>
         </a>
         <div class="maintain-cycle-picker" id="maintain-cycle-picker" aria-label="选择数据周期"></div>
         <div class="maintain-header__tools">
@@ -623,14 +648,15 @@ def _index_html(three_year: dict[str, object] | None = None) -> str:
       </div>
       <div class="maintain-header__sub">
         <nav class="maintain-nav" aria-label="维护站导航">
-          <a href="#overview" data-maintain-view="overview">周期总览</a>
-          <a href="#cycle_compare" data-maintain-view="cycle_compare">三年对照</a>
+          <a href="#overview" data-maintain-view="overview">总览</a>
+          <a href="#jobs_search" data-maintain-view="jobs_search">找岗位</a>
+          <a href="#match" data-maintain-view="match">为我匹配</a>
           <a href="#jobs_map" data-maintain-view="jobs_map">岗位地图</a>
-          <a href="#salary_map" data-maintain-view="salary_map">待遇地图</a>
-          <a href="#jobs_ranking" data-maintain-view="jobs_ranking">岗位榜单</a>
-          <a href="#jobs_search" data-maintain-view="jobs_search">岗位检索</a>
-          <a href="#saved" data-maintain-view="saved">收藏与快照</a>
-          <a href="#data_boundary" data-maintain-view="data_boundary">数据审计</a>
+          <a href="#salary_map" data-maintain-view="salary_map">待遇对比</a>
+          <a href="#jobs_ranking" data-maintain-view="jobs_ranking">城市排行</a>
+          <a href="#cycle_compare" data-maintain-view="cycle_compare">三年趋势</a>
+          <a href="#calendar" data-maintain-view="calendar">报考日历</a>
+          <a href="#saved" data-maintain-view="saved">我的收藏</a>
           <a href="#help" data-maintain-view="help">使用说明</a>
           <a href="#changelog" data-maintain-view="changelog">更新日志</a>
         </nav>
@@ -638,29 +664,30 @@ def _index_html(three_year: dict[str, object] | None = None) -> str:
       </div>
       <span class="maintain-scroll-progress" aria-hidden="true"></span>
     </header>
-    <main id="maintain-main" class="maintain-main" aria-live="polite"></main>
+    <main id="maintain-main" class="maintain-main"></main>
     <section class="maint-cta" aria-labelledby="maint-cta-title">
       <span class="maint-cta__glow" aria-hidden="true"></span>
       <div class="maint-cta__inner">
         <p class="maint-eyebrow"><span class="maint-eyebrow__index">下一步</span>从这里开始</p>
-        <h2 id="maint-cta-title">拿不准就先看数据边界，<br>想好了就直接查岗位。</h2>
+        <h2 id="maint-cta-title">拿不准就先看数据说明，<br>想好了就直接查岗位。</h2>
         <div class="maint-cta__actions">
           <a class="maint-cta__primary" href="#jobs_search" data-maintain-view="jobs_search">打开岗位检索 <i class="maint-cta__arrow">→</i></a>
-          <a class="maint-cta__ghost" href="#data_boundary" data-maintain-view="data_boundary">查看数据审计</a>
+          <a class="maint-cta__ghost" href="#calendar" data-maintain-view="calendar">查看报考日历</a>
         </div>
+        <p class="maint-cta__trust">本站三条铁律：未公布不显示 · 推导亮明依据 · 来源可核对</p>
         <p class="maint-cta__stats">2024—2026 · {band_stats}</p>
       </div>
     </section>
     <footer class="maintain-footer">
-      <span>外置 JSON 维护站 · 数据与界面分离</span>
-      <span>单文件离线快照：<a href="../皖域择岗总览.html">打开回退入口</a></span>
+      <span>数据来自官方公告，来源可核对 · <a href="#data_boundary" data-maintain-view="data_boundary">数据说明</a></span>
+      <span>第一次使用？请看导航里的「使用说明」</span>
     </footer>
   </div>
-  <script src="assets/maintainable-data.js?v={RELEASE}"></script>
-  <script src="assets/maintainable-major-city.js?v={RELEASE}"></script>
-  <script src="assets/maintainable-user-store.js?v={RELEASE}"></script>
-  <script src="assets/v17-tools.js?v={RELEASE.lstrip('v')}-supplement-evidence"></script>
-  <script type="module" src="assets/maintainable-site.js?v={RELEASE.lstrip('v')}-supplement-evidence"></script>
+  <script src="assets/maintainable-data.js?v={ASSET_VERSION}"></script>
+  <script src="assets/maintainable-major-city.js?v={ASSET_VERSION}"></script>
+  <script src="assets/maintainable-user-store.js?v={ASSET_VERSION}"></script>
+  <script src="assets/v17-tools.js?v={ASSET_VERSION}"></script>
+  <script type="module" src="assets/maintainable-site.js?v={ASSET_VERSION}"></script>
   {SW_BOOT}
 </body>
 </html>
@@ -764,7 +791,13 @@ def build_maintainable_site(root: Path = ROOT, output_dir: Path = DEFAULT_OUTPUT
         }
 
     audit_path = output_dir / "data" / "audit" / "three-year.json"
-    audit_payload = _global_audit_payload(bundles)
+    audit_payload = _global_audit_payload(
+        bundles,
+        active_totals={
+            "active_post_count": sum(int(entry.get("active_posts") or entry.get("posts") or 0) for entry in data_entries),
+            "active_recruit_count": sum(int(entry.get("recruits") or 0) for entry in data_entries),
+        },
+    )
     audit_encoded = _write_json(audit_path, audit_payload)
     review_queue_path = output_dir / "data" / "audit" / "review-queue.json"
     review_queue_encoded = _write_json(review_queue_path, build_review_queue(bundles, audit_payload))
@@ -845,13 +878,19 @@ def build_maintainable_site(root: Path = ROOT, output_dir: Path = DEFAULT_OUTPUT
         manifest["source_chain"]["supplement_evidence"] = "tools/anhui_web/build_supplement_evidence.py"
     _write_json(output_dir / "data" / "site-manifest.json", manifest)
     output_dir.mkdir(parents=True, exist_ok=True)
-    (output_dir / "index.html").write_text(_index_html(audit_payload.get("summary")), encoding="utf-8")
+    (output_dir / "index.html").write_text(_index_html(audit_payload.get("summary")), encoding="utf-8", newline="\n")
     assets = output_dir / "assets"
     assets.mkdir(parents=True, exist_ok=True)
-    for name in ("maintainable-site.js", "maintainable-site.css", "v17-ui-upgrade.css", "maintainable-tokens.css", "maintainable-data.js", "maintainable-major-city.js", "maintainable-user-store.js", "v17-exam-picker.css", "v17-search.css", "v17-tools.css", "v17-tools.js"):
+    for name in ("maintainable-site.js", "maintainable-site.css", "v17-ui-upgrade.css", "maintainable-tokens.css", "maintainable-data.js", "maintainable-major-city.js", "maintainable-user-store.js", "v17-exam-picker.css", "v17-search.css", "v17-tools.css", "v17-tools.js", "og-card.png"):
         shutil.copyfile(TEMPLATE_DIR / name, assets / name)
-    # PWA 离线层：SW 与应用清单位于站点根（作用域即站点根）
-    shutil.copyfile(TEMPLATE_DIR / "maintainable-sw.js", output_dir / "sw.js")
+    # PWA 离线层：SW 与应用清单位于站点根（作用域即站点根）。
+    # SW 的 VERSION/PRECACHE 版本号由 release.json 在构建期注入（占位符替换）。
+    sw_template = (TEMPLATE_DIR / "maintainable-sw.js").read_text(encoding="utf-8")
+    for token, value in (("__SW_VERSION__", SW_VERSION), ("__ASSET_VERSION__", ASSET_VERSION)):
+        if token not in sw_template:
+            raise RuntimeError(f"maintainable-sw.js 模板缺少 {token} 占位符，版本注入失效")
+        sw_template = sw_template.replace(token, value)
+    (output_dir / "sw.js").write_text(sw_template, encoding="utf-8", newline="\n")
     shutil.copyfile(TEMPLATE_DIR / "maintainable.webmanifest", output_dir / "manifest.webmanifest")
     shutil.copyfile(TEMPLATE_DIR / "wanyu-icon.svg", assets / "wanyu-icon.svg")
     return manifest
