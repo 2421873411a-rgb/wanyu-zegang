@@ -1,0 +1,80 @@
+{
+ "schema": "wanyu-source-lock/v1",
+ "snapshot": "2026-09-05",
+ "sources": [
+  {
+   "id": "major_catalog.json",
+   "path": "项目源码\\tools\\anhui_web\\data\\major_catalog.json",
+   "sha256": "bae5c2f9d0e208b3800976b1ace5185d9cbe82ebdf841d1fe5bca6201fb1a669",
+   "bytes": 102347,
+   "required": true
+  },
+  {
+   "id": "huatu_syb_2026.json",
+   "path": "项目源码\\tools\\anhui_web\\data\\huatu_syb_2026.json",
+   "sha256": "cc9736cf4549c626e37713a9a3643d7f6abb9b371e98d6726c0895f38b92bd57",
+   "bytes": 3091050,
+   "required": true
+  },
+  {
+   "id": "score_lists.json",
+   "path": "项目源码\\tools\\anhui_web\\data\\score_lists.json",
+   "sha256": "4d6d85dfe3d69f48733125eb33ccf369baa9ea6faa59a589f5f97466d0b6c72d",
+   "bytes": 40360145,
+   "required": true
+  },
+  {
+   "id": "syb2026_daxian_all.json",
+   "path": "项目源码\\tools\\anhui_web\\data\\syb2026_daxian_all.json",
+   "sha256": "5a1ae15ab52ac9217a604c636bbc5156125194400f1a627638627eb3b94f4a52",
+   "bytes": 444968,
+   "required": true
+  },
+  {
+   "id": "syb2026_daxian_all.pre_fix.json",
+   "path": "项目源码\\tools\\anhui_web\\data\\syb2026_daxian_all.pre_fix.json",
+   "sha256": "6426b3af2a57f509e6326a0e8c3b68634931995efb17835121f88352b51f3837",
+   "bytes": 504929,
+   "required": true
+  },
+  {
+   "id": ".zhaokao_syb_scan.json",
+   "path": "项目源码\\tools\\anhui_web\\data\\.zhaokao_syb_scan.json",
+   "sha256": "a59a37240e73a4d71e45c6dd6f4843154bb164ea1e7ece798a3feb06e9dff61d",
+   "bytes": 70302,
+   "required": true
+  },
+  {
+   "id": "ahsk2026_hire.json",
+   "path": "项目源码\\tools\\anhui_web\\data\\ahsk2026_hire.json",
+   "sha256": "8803417bb43ef9d9dd6ea29e5b3186b1969a604bbc6119bd14fdac39e5389ef3",
+   "bytes": 145049,
+   "required": true
+  },
+  {
+   "id": "phantom_codes_2026.json",
+   "path": "项目源码\\tools\\anhui_web\\data\\phantom_codes_2026.json",
+   "sha256": "e09605026e703827e811a43d7b8a4d77f441af04048e1d99804a63fa1f88a9f2",
+   "bytes": 1433,
+   "required": true
+  },
+  {
+   "id": "dir:source_data",
+   "path": "项目源码\\source_data",
+   "sha256": null,
+   "bytes": 458322941,
+   "files": 3357,
+   "required": true,
+   "hash_level": "directory_rollup"
+  },
+  {
+   "id": "dir:raw_syb_fugao",
+   "path": "项目源码\\tools\\anhui_web\\data\\raw_syb_fugao",
+   "sha256": null,
+   "bytes": 29477685,
+   "files": 340,
+   "required": true,
+   "hash_level": "directory_rollup"
+  }
+ ]
+}
