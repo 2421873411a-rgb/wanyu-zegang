@@ -1,6 +1,47 @@
 {
  "allMajors": {
   "meta": {
+   "total": 8401,
+   "recruits": 11883,
+   "raw_total": 8511,
+   "excluded": 110,
+   "record_status_model": "wanyu-record-status/v1",
+   "examCounts": {
+    "省考": 3784,
+    "事业编": 4066,
+    "国考": 551
+   },
+   "compJoined": 3784,
+   "directed": 421,
+   "hukou": 95,
+   "scoreCoverage": {
+    "adv": 7455,
+    "bm": 8269,
+    "hg": 8269,
+    "jf": 3784,
+    "hire": 795,
+    "line": 7342,
+    "perExam": {
+     "省考": {
+      "total": 3784,
+      "adv": 3780,
+      "bm": 3784,
+      "line": 3783
+     },
+     "国考": {
+      "total": 551,
+      "adv": 546,
+      "bm": 549,
+      "line": 546
+     },
+     "事业编": {
+      "total": 4066,
+      "adv": 3129,
+      "bm": 3936,
+      "line": 3013
+     }
+    }
+   },
    "categories": [
     "专业技术",
     "中央机关及其省级直属机构综合管理类",
@@ -32,52 +73,13 @@
     "黄山",
     "省直"
    ],
-   "compJoined": 3784,
    "cycle": "2026 · 快照 2026-08-28",
-   "directed": 421,
-   "examCounts": {
-    "事业编": 4176,
-    "国考": 551,
-    "省考": 3784
-   },
-   "hukou": 95,
-   "recruits": 12006,
-   "scoreCoverage": {
-    "adv": 7455,
-    "bm": 8379,
-    "hg": 8379,
-    "hire": 795,
-    "jf": 3784,
-    "line": 7381,
-    "perExam": {
-     "事业编": {
-      "adv": 3129,
-      "bm": 4046,
-      "line": 3052,
-      "total": 4176
-     },
-     "国考": {
-      "adv": 546,
-      "bm": 549,
-      "line": 546,
-      "total": 551
-     },
-     "省考": {
-      "adv": 3780,
-      "bm": 3784,
-      "line": 3783,
-      "total": 3784
-     }
-    },
-    "top": 6907
-   },
    "scoreSources": [
     "软件工程档案源表",
     "省考官方逐岗汇编（报名/合格/缴费/分数线）",
     "省考省直与事业编省直达线名单",
     "2026国考职位表+进面名单"
-   ],
-   "total": 8511
+   ]
   },
   "rows": [
    {
@@ -463704,7 +463706,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "政治学（0302）、马克思主义理论（0305）、中共党史党建学（0307）"
+    "zy": "政治学（0302）、马克思主义理论（0305）、中共党史党建学（0307）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -463769,7 +463775,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "法学（0301）、法律（0351）"
+    "zy": "法学（0301）、法律（0351）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -463834,7 +463844,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "本科：广播电视编导（130305）、播音与主持艺术（130309）、影视摄影与制作（130311T）；研究生：专业不限"
+    "zy": "本科：广播电视编导（130305）、播音与主持艺术（130309）、影视摄影与制作（130311T）；研究生：专业不限",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -463899,7 +463913,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "本科：人工智能（080717T）、计算机科学与技术（080901）、网络工程（080903）、数字媒体技术（080906）、新媒体技术（080912T）；研究生：专业不限"
+    "zy": "本科：人工智能（080717T）、计算机科学与技术（080901）、网络工程（080903）、数字媒体技术（080906）、新媒体技术（080912T）；研究生：专业不限",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -463964,7 +463982,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "本科：汉语言文学（050101）、广告学（050303）、市场营销（120202）、电子商务（120801）；研究生：专业不限"
+    "zy": "本科：汉语言文学（050101）、广告学（050303）、市场营销（120202）、电子商务（120801）；研究生：专业不限",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -464029,7 +464051,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "本科：中国语言文学类（0501）、新闻传播学类（0503）；研究生：专业不限"
+    "zy": "本科：中国语言文学类（0501）、新闻传播学类（0503）；研究生：专业不限",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -464094,7 +464120,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "马克思主义理论（0305）"
+    "zy": "马克思主义理论（0305）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -464159,7 +464189,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "体育学（0403）、体育（0452）"
+    "zy": "体育学（0403）、体育（0452）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -464224,7 +464258,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "体育教育训练学（040303）、体育教学（045201）、运动训练（045202）"
+    "zy": "体育教育训练学（040303）、体育教学（045201）、运动训练（045202）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -464289,7 +464327,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "体育学（0403）、体育（0452）"
+    "zy": "体育学（0403）、体育（0452）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -464354,7 +464396,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "数学（0701）"
+    "zy": "数学（0701）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -464419,7 +464465,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "管理岗",
-    "zy": "专业不限"
+    "zy": "专业不限",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -464484,7 +464534,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "管理岗",
-    "zy": "会计学（120201）、会计（1253）"
+    "zy": "会计学（120201）、会计（1253）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -464549,7 +464603,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "管理岗",
-    "zy": "工商管理学（1202）、公共管理学（1204）、工商管理（1251）、公共管理（1252）、会计（1253）"
+    "zy": "工商管理学（1202）、公共管理学（1204）、工商管理（1251）、公共管理（1252）、会计（1253）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -464614,7 +464672,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "管理岗",
-    "zy": "法学（0301）、法律（0351）、教育学（0401）、中国语言文学（0501）、外国语言文学（0502）"
+    "zy": "法学（0301）、法律（0351）、教育学（0401）、中国语言文学（0501）、外国语言文学（0502）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -464679,7 +464741,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "管理岗",
-    "zy": "专业不限"
+    "zy": "专业不限",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -464744,7 +464810,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "管理岗",
-    "zy": "基础医学（1001）、临床医学（1002或1051）、中医学（1005）、中医（1057）、中药学（1008）、中药（1056）"
+    "zy": "基础医学（1001）、临床医学（1002或1051）、中医学（1005）、中医（1057）、中药学（1008）、中药（1056）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -464809,7 +464879,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "马克思主义基本原理（030501）、马克思主义发展史（030502）、马克思主义中国化研究（030503）、思想政治教育（030505）"
+    "zy": "马克思主义基本原理（030501）、马克思主义发展史（030502）、马克思主义中国化研究（030503）、思想政治教育（030505）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -464874,7 +464948,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "史学理论及史学史（060101）、中国近现代史（060107）"
+    "zy": "史学理论及史学史（060101）、中国近现代史（060107）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -464939,7 +465017,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "心理学（0402）、应用心理（0454）"
+    "zy": "心理学（0402）、应用心理（0454）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -465004,7 +465086,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "机械制造及其自动化（080201）、机械电子工程（080202）、机械设计及理论（080203）"
+    "zy": "机械制造及其自动化（080201）、机械电子工程（080202）、机械设计及理论（080203）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -465069,7 +465155,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "机械工程（0802）、机械（0855）"
+    "zy": "机械工程（0802）、机械（0855）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -465134,7 +465224,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "控制科学与工程（0811）、控制工程（085406）"
+    "zy": "控制科学与工程（0811）、控制工程（085406）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -465199,7 +465293,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "电气工程（0808或085801）"
+    "zy": "电气工程（0808或085801）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -465329,7 +465427,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "食品科学与工程（0832）、食品工程（086003）"
+    "zy": "食品科学与工程（0832）、食品工程（086003）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -465394,7 +465496,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "管理科学与工程（1201）、工商管理学（1202）、工商管理（1251）"
+    "zy": "管理科学与工程（1201）、工商管理学（1202）、工商管理（1251）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -465459,7 +465565,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "本科：会计学（120203K）、财务管理（120204）、审计学(120207)、内部审计（120218T）；研究生：会计学（120201）、会计（1253）、审计（1257）"
+    "zy": "本科：会计学（120203K）、财务管理（120204）、审计学(120207)、内部审计（120218T）；研究生：会计学（120201）、会计（1253）、审计（1257）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -465524,7 +465634,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "管理岗",
-    "zy": "本科：经济学门类（02）；研究生：经济学门类（02）"
+    "zy": "本科：经济学门类（02）；研究生：经济学门类（02）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -465589,7 +465703,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "本科：土木工程（081001）、道路桥梁与渡河工程（081006T）；研究生：土木工程（0814或085901）"
+    "zy": "本科：土木工程（081001）、道路桥梁与渡河工程（081006T）；研究生：土木工程（0814或085901）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -465654,7 +465772,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "管理岗",
-    "zy": "本科：法学（030101K）；研究生：法学（0301）、法律（0351）"
+    "zy": "本科：法学（030101K）；研究生：法学（0301）、法律（0351）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -465719,7 +465841,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "管理岗",
-    "zy": "本科：会计学（120203K）、财务管理（120204）；研究生：会计学（120201）、会计（1253）"
+    "zy": "本科：会计学（120203K）、财务管理（120204）；研究生：会计学（120201）、会计（1253）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -465784,7 +465910,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "本科：计算机科学与技术（080901）、网络工程（080903）、信息安全（080904K）；研究生：计算机科学与技术（0812）、计算机技术（085404）、网络与信息安全（085412）"
+    "zy": "本科：计算机科学与技术（080901）、网络工程（080903）、信息安全（080904K）；研究生：计算机科学与技术（0812）、计算机技术（085404）、网络与信息安全（085412）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -465849,7 +465979,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "管理岗",
-    "zy": "本科：经济学门类（02）、法学类（0301）、中国语言文学类（0501）、新闻传播学类（0503）；研究生：经济学门类（02）、法学（0301）、法律（0351）、中国语言文学（0501）、新闻传播学（0503）、新闻与传播（0552）"
+    "zy": "本科：经济学门类（02）、法学类（0301）、中国语言文学类（0501）、新闻传播学类（0503）；研究生：经济学门类（02）、法学（0301）、法律（0351）、中国语言文学（0501）、新闻传播学（0503）、新闻与传播（0552）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -465979,7 +466113,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "本科：计算机类（0809）；研究生：计算机科学与技术（0812）、软件工程（0835）、电子信息（0854）"
+    "zy": "本科：计算机类（0809）；研究生：计算机科学与技术（0812）、软件工程（0835）、电子信息（0854）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -466044,7 +466182,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "计算机科学与技术（0812）、计算机技术（085404）"
+    "zy": "计算机科学与技术（0812）、计算机技术（085404）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -466109,7 +466251,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "教育学（0401）、教育（0451）"
+    "zy": "教育学（0401）、教育（0451）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -466174,7 +466320,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "本科：体育学类（0402）；研究生：体育学（0403）、体育（0452）"
+    "zy": "本科：体育学类（0402）；研究生：体育学（0403）、体育（0452）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -466239,7 +466389,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "本科：法学（030101K）；研究生：法学（0301）、法律（0351）"
+    "zy": "本科：法学（030101K）；研究生：法学（0301）、法律（0351）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -466304,7 +466458,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "本科：经济学（020101）；研究生：应用经济学（0202）"
+    "zy": "本科：经济学（020101）；研究生：应用经济学（0202）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -466369,7 +466527,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "本科：中国语言文学类（0501）；研究生：中国语言文学（0501）、学科教学（语文）（045103）"
+    "zy": "本科：中国语言文学类（0501）；研究生：中国语言文学（0501）、学科教学（语文）（045103）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -466434,7 +466596,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "本科：数学类（0701）；研究生：数学（0701）、学科教学（数学）（045104）"
+    "zy": "本科：数学类（0701）；研究生：数学（0701）、学科教学（数学）（045104）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -466499,7 +466665,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "本科：数学类（0701）；研究生：数学（0701）、学科教学（数学）（045104）"
+    "zy": "本科：数学类（0701）；研究生：数学（0701）、学科教学（数学）（045104）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -466564,7 +466734,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "本科：英语（050201）、商务英语（050262）；研究生：英语语言文学（050201）、学科教学（英语）（045108）"
+    "zy": "本科：英语（050201）、商务英语（050262）；研究生：英语语言文学（050201）、学科教学（英语）（045108）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -466629,7 +466803,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "本科：地理科学类（0705）；研究生：地理学（0705）、学科教学（地理）（045110）"
+    "zy": "本科：地理科学类（0705）；研究生：地理学（0705）、学科教学（地理）（045110）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -466694,7 +466872,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "本科：特殊教育(040108)、教育康复学(040110TK)、孤独症儿童教育(040116TK)；研究生：特殊教育学(040109)、特殊教育（045119）"
+    "zy": "本科：特殊教育(040108)、教育康复学(040110TK)、孤独症儿童教育(040116TK)；研究生：特殊教育学(040109)、特殊教育（045119）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -466759,7 +466941,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "本科：康复治疗学(101005)、听力与言语康复学(101008T)、康复物理治疗(101009T)、康复作业治疗(101010T)；研究生：康复医学与理疗学(100215或105110)"
+    "zy": "本科：康复治疗学(101005)、听力与言语康复学(101008T)、康复物理治疗(101009T)、康复作业治疗(101010T)；研究生：康复医学与理疗学(100215或105110)",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -466824,7 +467010,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "本科：临床医学(100201K)、中西医临床医学(100601K)；研究生：内科学(100201或105101)、中西医结合临床(100602)"
+    "zy": "本科：临床医学(100201K)、中西医临床医学(100601K)；研究生：内科学(100201或105101)、中西医结合临床(100602)",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -466889,7 +467079,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "管理岗",
-    "zy": "本科：汉语言文学（050101）、汉语言（050102）、秘书学（050107T）；研究生：中国语言文学（0501）"
+    "zy": "本科：汉语言文学（050101）、汉语言（050102）、秘书学（050107T）；研究生：中国语言文学（0501）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -466954,7 +467148,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "本科：法学（030101K）、知识产权(030102T)、司法鉴定学(030110TK)；研究生：法学(0301)、法律（0351）、知识产权（0354）"
+    "zy": "本科：法学（030101K）、知识产权(030102T)、司法鉴定学(030110TK)；研究生：法学(0301)、法律（0351）、知识产权（0354）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -467019,7 +467217,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "本科：会计学（120203K）、财务管理(120204)、审计学(120207)；研究生：会计学（120201）、会计(1253)、审计(1257)"
+    "zy": "本科：会计学（120203K）、财务管理(120204)、审计学(120207)；研究生：会计学（120201）、会计(1253)、审计(1257)",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -467084,7 +467286,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "本科：经济学门类（02）、会计学（120203K）、财务管理（120204）；研究生：经济学门类（02）、会计学（120201）、会计（1253）"
+    "zy": "本科：经济学门类（02）、会计学（120203K）、财务管理（120204）；研究生：经济学门类（02）、会计学（120201）、会计（1253）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -467149,7 +467355,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "专业不限"
+    "zy": "专业不限",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -467214,7 +467424,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "本科：基础医学类（1001）、临床医学类（1002）、中西医结合类（1006）；研究生：基础医学（1001）、临床医学（1002或1051）、中西医结合（1006）"
+    "zy": "本科：基础医学类（1001）、临床医学类（1002）、中西医结合类（1006）；研究生：基础医学（1001）、临床医学（1002或1051）、中西医结合（1006）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -467279,7 +467493,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "本科：会计学(120203K)、财务管理(120204)；研究生：会计学(120201)、会计(1253)"
+    "zy": "本科：会计学(120203K)、财务管理(120204)；研究生：会计学(120201)、会计(1253)",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -467344,7 +467562,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "本科：中国语言文学类(0501)；研究生：中国语言文学(0501)"
+    "zy": "本科：中国语言文学类(0501)；研究生：中国语言文学(0501)",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -467474,7 +467696,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "本科：测绘类(0812)；研究生：测绘科学与技术(0816)、测绘工程(085704)"
+    "zy": "本科：测绘类(0812)；研究生：测绘科学与技术(0816)、测绘工程(085704)",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -467539,7 +467765,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "本科：化学类（0703）；研究生：化学（0703）"
+    "zy": "本科：化学类（0703）；研究生：化学（0703）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -467604,7 +467834,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "本科：新闻传播学类（0503）；研究生：新闻传播学（0503）、新闻与传播（0552）"
+    "zy": "本科：新闻传播学类（0503）；研究生：新闻传播学（0503）、新闻与传播（0552）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -467669,7 +467903,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "本科：会计学（120203K）、财务管理（120204）；研究生：会计学（120201）、会计（1253）"
+    "zy": "本科：会计学（120203K）、财务管理（120204）；研究生：会计学（120201）、会计（1253）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -467734,7 +467972,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "本科：会计学（120203K）、财务管理（120204）、人力资源管理（120206）；研究生：工商管理学（1202）、工商管理（1251）、会计（1253）"
+    "zy": "本科：会计学（120203K）、财务管理（120204）、人力资源管理（120206）；研究生：工商管理学（1202）、工商管理（1251）、会计（1253）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -467799,7 +468041,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "本科：法学（030101K）；研究生：法学（0301）、法律（0351）"
+    "zy": "本科：法学（030101K）；研究生：法学（0301）、法律（0351）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -467864,7 +468110,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "专业不限"
+    "zy": "专业不限",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -467929,7 +468179,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "本科：环境科学与工程（082501）、环境工程（082502）、环境科学（082503）；研究生：环境科学与工程（0830）、环境工程（085701）"
+    "zy": "本科：环境科学与工程（082501）、环境工程（082502）、环境科学（082503）；研究生：环境科学与工程（0830）、环境工程（085701）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -467994,7 +468248,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "本科：环境科学与工程类（0825）；研究生：环境科学与工程（0830）、环境工程（085701）"
+    "zy": "本科：环境科学与工程类（0825）；研究生：环境科学与工程（0830）、环境工程（085701）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -468059,7 +468317,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "本科：会计学（120203K）、财务管理（120204）；研究生：会计学（120201）、会计（1253）"
+    "zy": "本科：会计学（120203K）、财务管理（120204）；研究生：会计学（120201）、会计（1253）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -468124,7 +468386,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "本科：地理科学类（0705）、地质学类（0709）、地质类（0814）；研究生：地理学（0705）、地质学（0709）、地质资源与地质工程（0818）、地质工程（085703）"
+    "zy": "本科：地理科学类（0705）、地质学类（0709）、地质类（0814）；研究生：地理学（0705）、地质学（0709）、地质资源与地质工程（0818）、地质工程（085703）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -468189,7 +468455,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "本科：建筑类（0828）；研究生：建筑学（0813）、建筑（0851）"
+    "zy": "本科：建筑类（0828）；研究生：建筑学（0813）、建筑（0851）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -468254,7 +468524,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "本科：管理科学与工程类（1201）；研究生：管理科学与工程（1201）、工程管理（1256）"
+    "zy": "本科：管理科学与工程类（1201）；研究生：管理科学与工程（1201）、工程管理（1256）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -468319,7 +468593,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "本科：汉语言文学（050101）、汉语言（050102）；研究生：中国语言文学（0501）"
+    "zy": "本科：汉语言文学（050101）、汉语言（050102）；研究生：中国语言文学（0501）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -468384,7 +468662,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "本科：安全科学与工程类（0829）；研究生：安全科学与工程（0837）、安全工程（085702）"
+    "zy": "本科：安全科学与工程类（0829）；研究生：安全科学与工程（0837）、安全工程（085702）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -468449,7 +468731,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "管理岗",
-    "zy": "本科：法学类（0301）；研究生：法学（0301）、法律（0351）"
+    "zy": "本科：法学类（0301）；研究生：法学（0301）、法律（0351）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -468514,7 +468800,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "管理岗",
-    "zy": "本科：汉语言文学（050101）、汉语言（050102）、汉语国际教育（050103）；研究生：中国语言文学（0501）"
+    "zy": "本科：汉语言文学（050101）、汉语言（050102）、汉语国际教育（050103）；研究生：中国语言文学（0501）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -468644,7 +468934,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "本科：土木工程（081001）、道路桥梁与渡河工程（081006T）、土木、水利与交通工程（081010T）；研究生：土木工程（0814）、土木水利（0859）"
+    "zy": "本科：土木工程（081001）、道路桥梁与渡河工程（081006T）、土木、水利与交通工程（081010T）；研究生：土木工程（0814）、土木水利（0859）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -468709,7 +469003,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "本科：会计学（120203K）、财务管理（120204）；研究生：会计学（120201）、会计（1253）"
+    "zy": "本科：会计学（120203K）、财务管理（120204）；研究生：会计学（120201）、会计（1253）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -468774,7 +469072,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "中国语言文学（0501）"
+    "zy": "中国语言文学（0501）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -468839,7 +469141,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "食品科学与工程（0832）、食品工程（086003）"
+    "zy": "食品科学与工程（0832）、食品工程（086003）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -468904,7 +469210,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "本科：水产养殖学（090601）、水生动物医学（090604TK）；研究生：水产（0908）"
+    "zy": "本科：水产养殖学（090601）、水生动物医学（090604TK）；研究生：水产（0908）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -468969,7 +469279,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "本科：环境科学与工程类（0825）；研究生：环境科学与工程（0830）、资源与环境（0857）"
+    "zy": "本科：环境科学与工程类（0825）；研究生：环境科学与工程（0830）、资源与环境（0857）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -469034,7 +469348,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "本科：会计学（120203K）、财务管理（120204）、审计学（120207）；研究生：会计学（120201）、会计（1253）、审计（1257）"
+    "zy": "本科：会计学（120203K）、财务管理（120204）、审计学（120207）；研究生：会计学（120201）、会计（1253）、审计（1257）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -469099,7 +469417,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "管理岗",
-    "zy": "本科：音乐学（130202）、广播电视编导（130305）、戏剧影视导演（130306）、录音艺术（130308）、播音与主持艺术（130309）、环境设计（130503）；研究生：艺术学（1301或0504）、音乐（1352）、戏剧与影视（1354）、设计（1357）"
+    "zy": "本科：音乐学（130202）、广播电视编导（130305）、戏剧影视导演（130306）、录音艺术（130308）、播音与主持艺术（130309）、环境设计（130503）；研究生：艺术学（1301或0504）、音乐（1352）、戏剧与影视（1354）、设计（1357）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -469164,7 +469486,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "管理岗",
-    "zy": "本科：文物与博物馆学（060104）、旅游管理（120901K）、旅游管理与服务教育（120904T）；研究生：博物馆（0651）、旅游管理（120203或1254）"
+    "zy": "本科：文物与博物馆学（060104）、旅游管理（120901K）、旅游管理与服务教育（120904T）；研究生：博物馆（0651）、旅游管理（120203或1254）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -469229,7 +469555,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "公共卫生与预防医学（1004）、公共卫生（1053）"
+    "zy": "公共卫生与预防医学（1004）、公共卫生（1053）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -469294,7 +469624,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "本科：汉语言文学（050101）；研究生：中国语言文学（0501）"
+    "zy": "本科：汉语言文学（050101）；研究生：中国语言文学（0501）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -469359,7 +469693,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "本科：预防医学（100401K）；研究生：劳动卫生与环境卫生学（100402）"
+    "zy": "本科：预防医学（100401K）；研究生：劳动卫生与环境卫生学（100402）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -469424,7 +469762,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "本科：汉语言文学（050101）、汉语言（050102）、汉语国际教育（050103）、法学（030101K）；研究生：中国语言文学（0501）、法学（0301）、法律（0351）"
+    "zy": "本科：汉语言文学（050101）、汉语言（050102）、汉语国际教育（050103）、法学（030101K）；研究生：中国语言文学（0501）、法学（0301）、法律（0351）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -469489,7 +469831,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "本科：药学（100701）、中药学（100801）；研究生：药学（1007或1055）、中药学（1008）、中药（1056）"
+    "zy": "本科：药学（100701）、中药学（100801）；研究生：药学（1007或1055）、中药学（1008）、中药（1056）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -469554,7 +469900,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "本科：医学影像学（100203TK）；研究生：影像医学与核医学（100207）"
+    "zy": "本科：医学影像学（100203TK）；研究生：影像医学与核医学（100207）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -469749,7 +470099,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "本科：中国共产党历史（030502）、思想政治教育（030503）、马克思主义理论（030504T）；研究生：政治学（0302）、马克思主义理论（0305）、中共党史党建学（0307）"
+    "zy": "本科：中国共产党历史（030502）、思想政治教育（030503）、马克思主义理论（030504T）；研究生：政治学（0302）、马克思主义理论（0305）、中共党史党建学（0307）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -469814,7 +470168,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "本科：法学类（0301）、社会学类（0303）、心理学类（0711）；研究生：法学（0301）、法律（0351）、社会学（0303）、社会工作（0352）、心理学（0402）、应用心理（0454）"
+    "zy": "本科：法学类（0301）、社会学类（0303）、心理学类（0711）；研究生：法学（0301）、法律（0351）、社会学（0303）、社会工作（0352）、心理学（0402）、应用心理（0454）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -469879,7 +470237,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "本科：会计学（120203K）、财务管理（120204）；研究生：会计学（120201）、会计（1253）"
+    "zy": "本科：会计学（120203K）、财务管理（120204）；研究生：会计学（120201）、会计（1253）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -469944,7 +470306,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "本科：会计学（120203K）、财务管理（120204）、审计学（120207）；研究生：会计学（120201）、会计（1253）、审计（1257）"
+    "zy": "本科：会计学（120203K）、财务管理（120204）、审计学（120207）；研究生：会计学（120201）、会计（1253）、审计（1257）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -470009,7 +470375,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "本科：会计学（120203K）、财务管理（120204）；研究生：会计学（120201）、会计（1253）"
+    "zy": "本科：会计学（120203K）、财务管理（120204）；研究生：会计学（120201）、会计（1253）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -470074,7 +470444,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "本科：食品科学与工程类（0827）；研究生：食品科学与工程（0832）、食品工程（086003）"
+    "zy": "本科：食品科学与工程类（0827）；研究生：食品科学与工程（0832）、食品工程（086003）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -470139,7 +470513,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "本科：制药工程（081302）；研究生：制药工程（086002）"
+    "zy": "本科：制药工程（081302）；研究生：制药工程（086002）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -470204,7 +470582,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "中药学（1008）、中药（1056）"
+    "zy": "中药学（1008）、中药（1056）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -470269,7 +470651,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "微生物学（071005）"
+    "zy": "微生物学（071005）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -470334,7 +470720,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "管理岗",
-    "zy": "专业不限"
+    "zy": "专业不限",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -470399,7 +470789,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "本科：理论与应用力学（080101）、测控技术与仪器（080301）、精密仪器（080302T）、能源与动力工程（080501）、电气工程及其自动化（080601）；研究生：力学（0801）、光学工程（0803）、仪器科学与技术（0804）、电气工程（0808）、电子信息（0854）、能源动力（0858）"
+    "zy": "本科：理论与应用力学（080101）、测控技术与仪器（080301）、精密仪器（080302T）、能源与动力工程（080501）、电气工程及其自动化（080601）；研究生：力学（0801）、光学工程（0803）、仪器科学与技术（0804）、电气工程（0808）、电子信息（0854）、能源动力（0858）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -470529,7 +470923,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "本科：机械类（0802）；研究生：机械工程（0802）、机械（0855）"
+    "zy": "本科：机械类（0802）；研究生：机械工程（0802）、机械（0855）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -470594,7 +470992,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "本科：中国语言文学类（0501）；研究生：中国语言文学（0501）"
+    "zy": "本科：中国语言文学类（0501）；研究生：中国语言文学（0501）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -470659,7 +471061,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "本科：食品科学与工程类（0827）；研究生：食品科学与工程（0832）、食品工程（086003）"
+    "zy": "本科：食品科学与工程类（0827）；研究生：食品科学与工程（0832）、食品工程（086003）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -470724,7 +471130,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "本科：药学类（1007）；研究生：药学（1007或1055)"
+    "zy": "本科：药学类（1007）；研究生：药学（1007或1055)",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -470789,7 +471199,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "管理岗",
-    "zy": "专业不限"
+    "zy": "专业不限",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -470919,7 +471333,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "本科：过程装备与控制工程（080206）、金属材料工程（080405）、焊接技术与工程（080411T）、能源与动力工程（080501）；研究生：材料科学与工程（0805）、动力工程及工程热物理（0807）、材料工程(085601)、动力工程(085802)"
+    "zy": "本科：过程装备与控制工程（080206）、金属材料工程（080405）、焊接技术与工程（080411T）、能源与动力工程（080501）；研究生：材料科学与工程（0805）、动力工程及工程热物理（0807）、材料工程(085601)、动力工程(085802)",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -470984,7 +471402,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "本科：法学类（0301）；研究生:法学（0301）、法律（0351）"
+    "zy": "本科：法学类（0301）；研究生:法学（0301）、法律（0351）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -471049,7 +471471,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "本科：人工智能（080717T）、信息安全（080904K）、智能科学与技术（080907T）、数据科学与大数据技术（080910T）；研究生：计算机科学与技术（0812）、软件工程（0835或085405）、计算机技术（085404）、人工智能（085410）、大数据技术与工程（085411）、智能科学与技术（1405）"
+    "zy": "本科：人工智能（080717T）、信息安全（080904K）、智能科学与技术（080907T）、数据科学与大数据技术（080910T）；研究生：计算机科学与技术（0812）、软件工程（0835或085405）、计算机技术（085404）、人工智能（085410）、大数据技术与工程（085411）、智能科学与技术（1405）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -471114,7 +471540,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "专业技术岗",
-    "zy": "本科：人工智能（080717T）、信息安全（080904K）、智能科学与技术（080907T）、数据科学与大数据技术（080910T）；研究生：计算机科学与技术（0812）、软件工程（0835或085405）、计算机技术（085404）、人工智能（085410）、大数据技术与工程（085411）、智能科学与技术（1405）"
+    "zy": "本科：人工智能（080717T）、信息安全（080904K）、智能科学与技术（080907T）、数据科学与大数据技术（080910T）；研究生：计算机科学与技术（0812）、软件工程（0835或085405）、计算机技术（085404）、人工智能（085410）、大数据技术与工程（085411）、智能科学与技术（1405）",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -471179,7 +471609,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "管理岗",
-    "zy": "本科：投资学(020304)、经济与金融(020307T)；研究生：专业不限"
+    "zy": "本科：投资学(020304)、经济与金融(020307T)；研究生：专业不限",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -471244,7 +471678,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "管理岗",
-    "zy": "本科：新闻学(050301)、网络与新媒体(050306T)；研究生：新闻传播学(0503)、新闻与传播(0552)"
+    "zy": "本科：新闻学(050301)、网络与新媒体(050306T)；研究生：新闻传播学(0503)、新闻与传播(0552)",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": null,
@@ -471309,7 +471747,11 @@
     "xz": "事业编",
     "zj": "",
     "zw": "管理岗",
-    "zy": "本科：经济学(020101)、经济统计学(020102)；研究生：应用经济学(0202)、应用统计(0252)"
+    "zy": "本科：经济学(020101)、经济统计学(020102)；研究生：应用经济学(0202)、应用统计(0252)",
+    "record_status": "duplicate",
+    "exclusion_reason": "cross_city_source_duplication",
+    "exclusion_evidence": "tools/anhui_web/d2_resolution_report_20260905.txt",
+    "excluded_at": "2026-09-05"
    },
    {
     "adv": 3,
