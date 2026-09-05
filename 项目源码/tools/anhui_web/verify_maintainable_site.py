@@ -99,9 +99,17 @@ def verify_maintainable_site(site_dir: Path) -> dict[str, Any]:
         _check(checks, "review_queue.sha256", review_entry.get("sha256"), _sha256(review_path), "review queue hash")
         _check(checks, "review_queue.schema", "wanyu-maintainable-review-queue/v1", review_queue.get("schema"), "review queue schema")
         review_summary = review_queue.get("summary") if isinstance(review_queue.get("summary"), dict) else {}
-        _check(checks, "review_queue.public_boundaries", 8, review_summary.get("public_boundary_count"), "public boundary count")
+        expected_boundaries = sum(int(item.get("gaps") or 0) for item in cycle_entries)
+        _check(checks, "review_queue.public_boundaries", expected_boundaries, review_summary.get("public_boundary_count"), "public boundary count follows manifest gaps (no hardcoded history values)")
         manifest_unresolved_total = sum(int(item.get("score_unresolved") or 0) for item in cycle_entries)
         _check(checks, "review_queue.unresolved_scores", manifest_unresolved_total, review_summary.get("unresolved_score_count"), "unresolved score count matches manifest (no hardcoded history values)")
+        # E4：队列拆 open / resolved_history，已解决项不得计入待处理风险
+        review_items = review_queue.get("items") if isinstance(review_queue.get("items"), list) else []
+        open_ambiguous = [item for item in review_items if isinstance(item, dict) and str(item.get("kind")) == "ambiguous_join" and str(item.get("status")) != "resolved"]
+        _check(checks, "review_queue.no_open_ambiguous_join", [], open_ambiguous, "resolved score-collision issues live in resolved_history, not open items")
+        resolved_history = review_queue.get("resolved_history") if isinstance(review_queue.get("resolved_history"), list) else []
+        history_resolved_scores = sum(int(item.get("resolved_count") or 0) for item in resolved_history if isinstance(item, dict) and str(item.get("kind")) == "ambiguous_join")
+        _check(checks, "review_queue.resolved_history_consistent", review_summary.get("resolved_score_count"), history_resolved_scores, "resolved_score_count equals ambiguous_join resolved_count total in resolved_history")
     map_entry = manifest.get("map") if isinstance(manifest.get("map"), dict) else {}
     map_path = site_dir / str(map_entry.get("data") or "")
     map_present = map_path.is_file()
@@ -180,15 +188,34 @@ def verify_maintainable_site(site_dir: Path) -> dict[str, Any]:
         jobs = loaded.get("jobs") or {}
         rows = ((jobs.get("allMajors") or {}).get("rows") if isinstance(jobs.get("allMajors"), dict) else [])
         rows = rows if isinstance(rows, list) else []
-        _check(checks, f"{cycle}.jobs.rows", int(cycle_entry.get("posts") or 0), len(rows), f"{cycle} jobs row count")
-        recruits = sum(int(row.get("num") or 0) for row in rows if isinstance(row, dict))
-        _check(checks, f"{cycle}.jobs.recruits", int(cycle_entry.get("recruits") or 0), recruits, f"{cycle} jobs recruit sum")
+        # wanyu-metrics/v1：jobs.json 保留 raw 行；active/excluded 由行内 record_status 派生
+        excluded_rows = [row for row in rows if str(row.get("record_status") or "") not in ("", "active")]
+        active_rows = [row for row in rows if str(row.get("record_status") or "") in ("", "active")]
+        raw_recruits = sum(int(row.get("num") or 0) for row in rows if isinstance(row, dict))
+        active_recruits = sum(int(row.get("num") or 0) for row in active_rows)
+        _check(checks, f"{cycle}.jobs.raw_rows", int(cycle_entry.get("raw_posts") or cycle_entry.get("posts") or 0), len(rows), f"{cycle} jobs keeps every raw row (incl. excluded)")
+        _check(checks, f"{cycle}.jobs.active_rows", int(cycle_entry.get("active_posts") or cycle_entry.get("posts") or -1), len(active_rows), f"{cycle} active rows == manifest active_posts")
+        _check(checks, f"{cycle}.jobs.excluded_rows", int(cycle_entry.get("excluded_posts") or 0), len(excluded_rows), f"{cycle} excluded rows == manifest excluded_posts")
+        _check(checks, f"{cycle}.jobs.raw_recruits", int(cycle_entry.get("raw_recruits") or cycle_entry.get("recruits") or -1), raw_recruits, f"{cycle} raw recruit sum")
+        _check(checks, f"{cycle}.jobs.recruits", int(cycle_entry.get("recruits") or -1), active_recruits, f"{cycle} recruit sum (active scope) == manifest recruits")
         row_ids = [str(row.get("job_id") or "") for row in rows if isinstance(row, dict)]
         _check(checks, f"{cycle}.jobs.ids", len(row_ids), len(set(row_ids)), f"{cycle} stable job IDs are unique")
         major_city = loaded.get("major_city") or {}
         lite_entry = modules.get("jobs_lite") if isinstance(modules.get("jobs_lite"), dict) else {}
         _check(checks, f"{cycle}.major_city.provenance", lite_entry.get("sha256"), major_city.get("source_sha256"), f"{cycle} major_city binds to jobs_lite sha256")
         _check(checks, f"{cycle}.major_city.keywords", True, len(major_city.get("keywords") or {}) >= 100, f"{cycle} major_city keyword coverage")
+        _check(checks, f"{cycle}.major_city.rows_total_active", len(active_rows), int(major_city.get("rows_total") or -1), f"{cycle} major_city rows_total == active rows (active-only index)")
+        major_index = loaded.get("major_index") or {}
+        if major_index:
+            mi_stats = major_index.get("stats") if isinstance(major_index.get("stats"), dict) else {}
+            _check(checks, f"{cycle}.major_index.stats_rows_active", len(active_rows), int(mi_stats.get("rows") or -1), f"{cycle} major_index stats.rows == active rows (active-only index)")
+            excluded_ids = {str(row.get("job_id") or "") for row in excluded_rows}
+            postings = major_index.get("postings") if isinstance(major_index.get("postings"), dict) else {}
+            leaked: list[str] = []
+            for ids in postings.values():
+                values = ids if isinstance(ids, list) else []
+                leaked.extend(str(value) for value in values if str(value) in excluded_ids)
+            _check(checks, f"{cycle}.major_index.no_excluded", [], leaked[:5], f"{cycle} major_index postings reference no excluded rows ({len(leaked)} leaks)")
         overview = loaded.get("overview") or {}
         audit_module = loaded.get("audit") or {}
         overview_has_rows = isinstance((overview.get("allMajors") or {}), dict) and "rows" in (overview.get("allMajors") or {})
@@ -201,9 +228,10 @@ def verify_maintainable_site(site_dir: Path) -> dict[str, Any]:
         catalog = loaded.get("catalog") or {}
         _check(checks, f"{cycle}.catalog.no_rows", False, "rows" in catalog, f"{cycle} catalog has no full rows")
         _check(checks, f"{cycle}.catalog.readable_majors", True, all(bool(re.search(r"[A-Za-z\u4e00-\u9fff]", str(value))) for value in (catalog.get("majors") or [])), f"{cycle} catalog majors are readable")
+        _check(checks, f"{cycle}.catalog.row_count_active", len(active_rows), int(catalog.get("row_count") or -1), f"{cycle} catalog row_count == active rows (active-only catalog)")
         positions = loaded.get("positions") or {}
-        _check(checks, f"{cycle}.positions.rows", len(rows), int(positions.get("row_count") or 0), f"{cycle} position index row count")
-        _check(checks, f"{cycle}.positions.list", len(rows), len(positions.get("rows") or []), f"{cycle} position index entries")
+        _check(checks, f"{cycle}.positions.rows", len(active_rows), int(positions.get("row_count") or 0), f"{cycle} position index row count (active-only)")
+        _check(checks, f"{cycle}.positions.list", len(active_rows), len(positions.get("rows") or []), f"{cycle} position index entries (active-only)")
         _check(checks, f"{cycle}.scores_archive.unresolved", int(cycle_entry.get("score_unresolved") or 0), int((score_archive.get("summary") or {}).get("unresolved") or 0), f"{cycle} archived score unresolved count")
         changes = loaded.get("changes") or {}
         _check(checks, f"{cycle}.changes.target_cycle", cycle, str(changes.get("target_cycle")), f"{cycle} changes target cycle")
@@ -232,23 +260,26 @@ def verify_maintainable_site(site_dir: Path) -> dict[str, Any]:
         palette = loaded.get("palette") or {}
         if palette:
             palette_entries = palette.get("entries") if isinstance(palette.get("entries"), list) else []
-            _check(checks, f"{cycle}.palette.rows", len(rows), len(palette_entries), f"{cycle} palette entry count equals job rows")
+            _check(checks, f"{cycle}.palette.rows", len(active_rows), len(palette_entries), f"{cycle} palette entry count equals active job rows")
             palette_ids = [str(item.get("id") or "") for item in palette_entries]
             _check(checks, f"{cycle}.palette.ids_unique", len(palette_ids), len(set(palette_ids)), f"{cycle} palette stable IDs are unique")
             _check(checks, f"{cycle}.palette.ids_known", True, all(job_id in set(row_ids) for job_id in palette_ids), f"{cycle} palette IDs reference job rows")
+            _check(checks, f"{cycle}.palette.active_only", True, not any(pid not in {str(r.get('job_id') or '') for r in active_rows} for pid in palette_ids), f"{cycle} palette excludes non-active rows")
         lite = loaded.get("jobs_lite") or {}
         lite_rows = lite.get("allMajors", {}).get("rows", []) if isinstance(lite.get("allMajors"), dict) else []
-        _check(checks, f"{cycle}.jobs_lite.rows", len(rows), len(lite_rows), f"{cycle} lite index row count equals jobs rows")
+        _check(checks, f"{cycle}.jobs_lite.rows", len(active_rows), len(lite_rows), f"{cycle} lite index row count equals active rows (active-only index)")
         lite_ids = [str(item.get("job_id") or "") for item in lite_rows]
-        _check(checks, f"{cycle}.jobs_lite.ids", sorted(row_ids), sorted(lite_ids), f"{cycle} lite index ID set equals jobs rows")
-        _check(checks, f"{cycle}.jobs_lite.recruits", recruits_total, sum(int(item.get("num") or item.get("recruits") or 0) for item in lite_rows), f"{cycle} lite index recruits sum equals cycle recruits")
+        _check(checks, f"{cycle}.jobs_lite.ids", sorted(str(r.get("job_id") or "") for r in active_rows), sorted(lite_ids), f"{cycle} lite index ID set equals active rows")
+        _check(checks, f"{cycle}.jobs_lite.recruits", active_recruits, sum(int(item.get("num") or item.get("recruits") or 0) for item in lite_rows), f"{cycle} lite index recruits sum equals active recruits")
+        _check(checks, f"{cycle}.jobs_lite.no_excluded", True, not lite_ids or set(lite_ids).isdisjoint({str(r.get('job_id') or '') for r in excluded_rows}), f"{cycle} lite index contains no excluded rows")
         source_by_id = {str(row.get("job_id") or ""): row for row in rows}
         _check(checks, f"{cycle}.jobs_lite.values_match_source", True, all(all(source_by_id.get(str(item.get("job_id") or ""), {}).get(key) == value for key, value in item.items()) for item in lite_rows), f"{cycle} lite row values are copied verbatim from jobs rows")
 
     expected_summary = {
         "cycle_count": 3,
-        "post_count": sum(int(item.get("posts") or 0) for item in cycle_entries),
-        "recruit_count": sum(int(item.get("recruits") or 0) for item in cycle_entries),
+        # 审计口径 = raw（含排除行）；用户口径（active）由各模块单独把关
+        "post_count": sum(int(item.get("raw_posts") or item.get("posts") or 0) for item in cycle_entries),
+        "recruit_count": sum(int(item.get("raw_recruits") or item.get("recruits") or 0) for item in cycle_entries),
         "gap_count": sum(int(item.get("gaps") or 0) for item in cycle_entries),
         "unresolved_score_count": sum(int(item.get("score_unresolved") or 0) for item in cycle_entries),
     }
@@ -320,11 +351,22 @@ def verify_maintainable_site(site_dir: Path) -> dict[str, Any]:
         mp_act = int(cycle_entry.get("active_posts") or 0)
         mp_exc = int(cycle_entry.get("excluded_posts") or 0)
         _check(checks, f"{cycle}.records.manifest_counts_consistent", [mp_raw, mp_act, mp_exc], [raw_posts, active, excluded], "manifest raw/active/excluded match jobs.json rows")
+        # wanyu-metrics/v1：posts 是 active_posts 的别名；raw_recruits/recruits 双口径
+        _check(checks, f"{cycle}.metrics.posts_alias_active", mp_act, int(cycle_entry.get("posts") or -1), f"{cycle} manifest posts is the deprecated alias of active_posts")
+        raw_recruits_sum = sum(int(row.get("num") or 0) for row in rows_c)
+        active_recruits_sum = sum(int(row.get("num") or 0) for row in rows_c if str(row.get("record_status") or "") in ("", "active"))
+        if cycle_entry.get("raw_recruits") is not None:
+            _check(checks, f"{cycle}.metrics.raw_recruits", raw_recruits_sum, int(cycle_entry.get("raw_recruits") or -1), f"{cycle} manifest raw_recruits == raw row recruit sum")
+            _check(checks, f"{cycle}.metrics.recruits_active", active_recruits_sum, int(cycle_entry.get("recruits") or -1), f"{cycle} manifest recruits == active row recruit sum")
         ov_path = cyc_dir / "overview.json"
         if ov_path.is_file():
-            ov_meta = ((json.loads(ov_path.read_text(encoding="utf-8")).get("allMajors") or {}).get("meta") or {})
+            ov_doc = json.loads(ov_path.read_text(encoding="utf-8"))
+            ov_meta = ((ov_doc.get("allMajors") or {}).get("meta") or {})
             _check(checks, f"{cycle}.overview.meta_total_is_active", active, int(ov_meta.get("total") or -1), "overview meta.total == active posts")
             _check(checks, f"{cycle}.overview.meta_raw_total", raw_posts, int(ov_meta.get("raw_total") or -1), "overview meta.raw_total == raw posts")
+            runtime = ov_doc.get("cycleRuntime") if isinstance(ov_doc.get("cycleRuntime"), dict) else {}
+            if runtime.get("raw_row_count") is not None:
+                _check(checks, f"{cycle}.overview.runtime_rows", [active, raw_posts], [int(runtime.get("row_count") or -1), int(runtime.get("raw_row_count") or -1)], "cycleRuntime row_count/raw_row_count == active/raw posts")
         if cycle == "2026":
             # E-A：unresolved 跨位置强一致（缺位置 = FAIL）
             audit_p = cyc_dir / "audit.json"
@@ -337,8 +379,10 @@ def verify_maintainable_site(site_dir: Path) -> dict[str, Any]:
                 cov = ((a_doc.get("audit") or {}).get("coverage") or {}).get("score_unresolved")
                 keyed = ((a_doc.get("scoreLists") or {}).get("keyed") or {}).get("unresolved")
                 sl_scalar = (a_doc.get("scoreLists") or {}).get("unresolved")
+                sl_inner = ((a_doc.get("audit") or {}).get("score_lists") or {}).get("unresolved")
                 locations["audit.coverage"] = cov
                 locations["audit.scoreLists.keyed"] = len(keyed) if isinstance(keyed, list) else keyed
+                locations["audit.audit.score_lists"] = sl_inner
                 if sl_scalar is not None:
                     locations["audit.scoreLists.scalar"] = sl_scalar
             if ov_p.is_file():
@@ -347,6 +391,45 @@ def verify_maintainable_site(site_dir: Path) -> dict[str, Any]:
                 locations["review_queue.summary"] = (json.loads(rq_p.read_text(encoding="utf-8")).get("summary") or {}).get("unresolved_score_count")
             bad = {k: v for k, v in locations.items() if v is None or int(v) != expected}
             _check(checks, "2026.unresolved.all_locations_consistent", True, not bad, f"unresolved == {expected} in every projection (missing/inconsistent = fail: {bad or 'none'})")
+            # E-A2：resolved 记录与 unresolved=0 强配对（无 116 时不得再写 116 语义）
+            if expected == 0 and audit_p.is_file():
+                a_doc = json.loads(audit_p.read_text(encoding="utf-8"))
+                resolved_expected = ((a_doc.get("audit") or {}).get("score_lists") or {}).get("resolved")
+                if isinstance(resolved_expected, int):
+                    resolved_locations = {
+                        "overview.auditSummary.resolved_score_count": (json.loads(ov_p.read_text(encoding="utf-8")).get("auditSummary") or {}).get("resolved_score_count") if ov_p.is_file() else None,
+                        "review_queue.summary.resolved_score_count": (json.loads(rq_p.read_text(encoding="utf-8")).get("summary") or {}).get("resolved_score_count") if rq_p.is_file() else None,
+                    }
+                    resolved_bad = {k: v for k, v in resolved_locations.items() if v is None or int(v) != resolved_expected}
+                    _check(checks, "2026.resolved.all_locations_consistent", True, not resolved_bad, f"resolved == {resolved_expected} in every projection (missing/inconsistent = fail: {resolved_bad or 'none'})")
+            # E-F：unresolved=0 时 active gap 不得残留 116 语义
+            if expected == 0:
+                stale_texts: list[str] = []
+                if audit_p.is_file():
+                    a_doc = json.loads(audit_p.read_text(encoding="utf-8"))
+                    inner = a_doc.get("audit") or {}
+                    for field in ("gaps", "known_gaps"):
+                        for gap in inner.get(field) or []:
+                            if isinstance(gap, dict) and "无法唯一匹配" in str(gap.get("title") or ""):
+                                stale_texts.append(f"audit.{field}:{str(gap.get('title'))[:40]}")
+                    for scope in inner.get("unverified_scope") or []:
+                        if isinstance(scope, str) and "无法唯一匹配" in scope:
+                            stale_texts.append(f"audit.unverified_scope:{scope[:40]}")
+                ty_audit_path = site_dir / str(audit_entry.get("data") or "")
+                if ty_audit_path.is_file():
+                    ty_doc = json.loads(ty_audit_path.read_text(encoding="utf-8"))
+                    for ty_cycle in ty_doc.get("cycles") or []:
+                        if str(ty_cycle.get("cycle")) != cycle or not isinstance(ty_cycle, dict):
+                            continue
+                        for field in ("gaps", "known_gaps", "unverified_scope"):
+                            for item in ty_cycle.get(field) or []:
+                                text = str(item.get("title") or item) if isinstance(item, dict) else str(item)
+                                if "无法唯一匹配" in text:
+                                    stale_texts.append(f"three-year.{field}:{text[:40]}")
+                _check(checks, "2026.audit.no_stale_unresolved_semantics", [], stale_texts, "resolved issue must not remain in active gap descriptions (all locations)")
+                rq_doc = json.loads(rq_p.read_text(encoding="utf-8")) if rq_p.is_file() else {}
+                rq_open_titles = [str(item.get("title") or "") for item in (rq_doc.get("items") or []) if isinstance(item, dict) and "无法唯一匹配" in str(item.get("title") or "")]
+                _check(checks, "2026.review_queue.no_stale_unresolved_semantics", [], rq_open_titles, "review queue open items keep no resolved-gap wording")
 
     failed = sum(item["status"] == "fail" for item in checks)
     passed = sum(item["status"] == "pass" for item in checks)
