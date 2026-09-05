@@ -39,8 +39,10 @@
     }
    },
    "score_by_key": 6521,
-   "score_unresolved": 116,
-   "top": 6907
+   "score_unresolved": 0,
+   "top": 6907,
+   "score_resolved": 116,
+   "score_resolution_method": "公告来源定市（raw 附件 pid→scan 标题城市），2026-09-05"
   },
   "cycle": "2026",
   "evidence_level": "partial_evidence",
