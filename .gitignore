@@ -23,5 +23,6 @@ tools/anhui_web/.deploy_wan.local
 # 派生同步副本（由 网站/ 同步产出，本地工作树保留供测试比对；不入 git）
 网站-lite/
 # 构建中间数据/收割产物（R1：大数据版本化交给 COS 快照，不入 git；backup_wanyu.sh 月备覆盖）
-项目源码/tools/anhui_web/data/
+项目源码/tools/anhui_web/data/*
+!项目源码/tools/anhui_web/data/record_status_overrides.json
 *.db
