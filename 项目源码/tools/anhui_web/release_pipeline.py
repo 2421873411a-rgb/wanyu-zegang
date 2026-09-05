@@ -77,10 +77,24 @@ def run_step(cmd: list[str], cwd: Path = PROJECT_ROOT) -> subprocess.CompletedPr
 
 
 # ---------------------------------------------------------------- 阶段 1
+def _dirty_entries() -> list[str]:
+    """git status --porcelain（core.quotepath=off），返回原始脏项行。"""
+    result = subprocess.run(
+        ["git", "-c", "core.quotepath=off", "status", "--porcelain"],
+        cwd=str(PROJECT_ROOT), capture_output=True, text=True, encoding="utf-8",
+    )
+    return [line for line in (result.stdout or "").splitlines() if line.strip()]
+
+
+def _pipeline_owned(line: str) -> bool:
+    """发布资料/ = 流水线自产发布记录（本运行写入/重写），不算脏项。"""
+    path = line[3:].strip().strip('"').strip()
+    return path == "发布资料" or path.startswith("发布资料/")
+
+
 def git_precheck(allow_dirty: bool = False) -> bool:
-    """正式发布要求 git 工作树干净；豁免必须同时满足 WANYU_DEV=1。返回 dirty 标记。"""
-    result = subprocess.run(["git", "status", "--porcelain"], cwd=str(PROJECT_ROOT), capture_output=True, text=True)
-    dirty = [line for line in (result.stdout or "").splitlines() if line.strip()]
+    """正式发布要求 git 工作树干净（发布资料/ 豁免：流水线自产输出）；豁免脏树必须同时满足 WANYU_DEV=1。返回 dirty 标记。"""
+    dirty = [line for line in _dirty_entries() if not _pipeline_owned(line)]
     if not dirty:
         return False
     if not allow_dirty or os.environ.get("WANYU_DEV", "").strip() != "1":
@@ -414,5 +428,5 @@ def run_pipeline(output_dir: Path, *, promote: bool, allow_dirty: bool, tests_su
 
 
 def _dirty_flag() -> bool:
-    result = subprocess.run(["git", "status", "--porcelain"], cwd=str(PROJECT_ROOT), capture_output=True, text=True)
-    return bool((result.stdout or "").strip())
+    """非提升形态的脏标记（发布资料/ 豁免同 precheck）。"""
+    return bool([line for line in _dirty_entries() if not _pipeline_owned(line)])

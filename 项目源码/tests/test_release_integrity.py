@@ -239,6 +239,26 @@ class GitPrecheckTests(unittest.TestCase):
         finally:
             marker.unlink(missing_ok=True)
 
+    def test_release_record_dir_is_pipeline_owned(self) -> None:
+        # 发布资料/ 是流水线自产输出（本运行写入/重写），不得阻塞下一轮 precheck。
+        self.assertTrue(release_pipeline._pipeline_owned('?? "发布资料/releases/v17.8.6/manifest.json"'))
+        self.assertTrue(release_pipeline._pipeline_owned('?? 发布资料/'))
+        self.assertFalse(release_pipeline._pipeline_owned(' M 项目源码/tools/anhui_web/release.py'))
+        self.assertFalse(release_pipeline._pipeline_owned('?? "网站/data/site-manifest.json"'))
+
+    def test_dirty_entries_exclude_release_record_dir(self) -> None:
+        marker_dir = ROOT.parent / "发布资料" / ".wanyu-test-exempt"
+        try:
+            marker_dir.mkdir(parents=True, exist_ok=True)
+            (marker_dir / "x.tmp").write_text("exempt", encoding="utf-8")
+            dirty = [line for line in release_pipeline._dirty_entries() if not release_pipeline._pipeline_owned(line)]
+            self.assertTrue(all("发布资料" not in line for line in dirty),
+                            f"发布资料/ 未被 precheck 豁免：{[l for l in dirty if '发布资料' in l]}")
+        finally:
+            import shutil as _shutil
+
+            _shutil.rmtree(marker_dir, ignore_errors=True)
+
 
 # ---------------------------------------------------------------- F 正式链纪律（源码扫描）
 class FormalChainDisciplineTests(unittest.TestCase):
