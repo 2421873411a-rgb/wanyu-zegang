@@ -1,8 +1,17 @@
-"""一键发布：审计 + 单测（Python + node）→ 构建 → 打包 zip。
+"""一键发布（v17.8.6 方案 A）：正式产物 = 维护站（canonical 唯一输入）。
+
+正式发布链不再包含任何单文件 HTML 步骤：
+  测试（Python + node）→ 维护站构建 → 磁盘校验 + perf 预算 + 模板一致性
+  → 浏览器烟测 → 发布记录。历史版本（含 v14.4 / v16.2.1）记录保持不可变。
+
+单文件 皖域择岗总览.html 已降级为"遗留存档工件"：只有显式 --legacy-single-file
+才会重建（build_score_lists + 审计重生成 + build_pages + 单文件校验），
+它不是发布门禁、不参与 validation_status，正式发布无需它存在。
 
 用法：
-    python tools/anhui_web/release.py            # 测试 + 构建 + 同步
-    python tools/anhui_web/release.py --zip      # 追加打包 皖域择岗档案_网页产品化升级版_YYYYMMDD_v14.4.zip
+    python tools/anhui_web/release.py                  # 测试 + 维护站构建 + 校验
+    python tools/anhui_web/release.py --legacy-single-file   # 追加遗留单文件存档链
+    python tools/anhui_web/release.py --zip            # 追加打包发布 zip
 """
 from __future__ import annotations
 
@@ -20,9 +29,7 @@ ROOT = Path(__file__).resolve().parents[2]
 BUILD_VERSION = json.loads((Path(__file__).resolve().parents[2] / "release.json").read_text(encoding="utf-8"))["release"]
 # Historical release records, including v16.2.1, remain immutable; this
 # entrypoint only advances the current release marker.
-DELIVERABLE_HTML = [
-    "皖域择岗总览.html",
-]
+LEGACY_SINGLE_HTML = "皖域择岗总览.html"
 ZIP_ROOT_FILES = [
     "build.ps1", "test.ps1", "design-qa.md", "HANDOFF.md",
     "archive/交接文档_皖域择岗总包v12.1_20260831.md",
@@ -121,7 +128,6 @@ def write_release_record(deliverables: Path) -> Path:
             "rule": "只允许同周期同模块恢复；恢复后必须重建 manifest 并重新校验。",
         },
         "artifacts": {
-            "offline_html": "../../皖域择岗总览.html",
             "maintainable_site": "../../maintainable",
         },
     }
@@ -149,9 +155,9 @@ def rollback_module(release_dir: Path, cycle: str, module: str, previous_hash: s
 
 
 def run_tests() -> None:
-    print("== v15 Python 单测与源审计 ==")
+    print("== 正式链 Python 单测 ==")
     test_modules = [
-        "tests.test_anhui_web", "tests.test_single_file_cycle_workbench", "tests.test_three_year_audit", "tests.test_data_quality_guards",
+        "tests.test_anhui_web", "tests.test_three_year_audit", "tests.test_data_quality_guards",
         "tests.test_ui_v13", "tests.test_v14_upgrade_baseline", "tests.test_data_contract", "tests.test_source_registry",
         "tests.test_catalog_and_changes", "tests.test_position_detail_contract", "tests.test_changes_and_comparability",
         "tests.test_review_queue", "tests.test_scores_contract", "tests.test_datastore_contract",
@@ -159,14 +165,11 @@ def run_tests() -> None:
         "tests.test_v17_salary_and_motion",
     ]
     subprocess.run([sys.executable, "-m", "unittest", *test_modules], cwd=ROOT, check=True)
-    subprocess.run([sys.executable, str(ROOT / "tools" / "anhui_web" / "verify_single_file_v12.py"), "prebuild"], cwd=ROOT, check=True)
-    subprocess.run([sys.executable, str(ROOT / "tools" / "anhui_web" / "verify_single_file_v12.py"), "postbuild", "--html", str(ROOT / "deliverables" / "皖域择岗总览.html")], cwd=ROOT, check=True)
     print("== node 纯函数单测 ==")
     subprocess.run(["node", "--test", "tests/test_wanyu_core.cjs"], cwd=ROOT, check=True)
     subprocess.run(["node", "--test", "tests/test_major_city_index.cjs"], cwd=ROOT, check=True)
     subprocess.run(["node", "tests/test_datastore_contract.cjs"], cwd=ROOT, check=True)
     subprocess.run(["node", "--test", "tests/test_user_store_contract.cjs"], cwd=ROOT, check=True)
-    run_browser_smoke("tests/browser_smoke_v12.js", require_browser=True)
 
 
 # I(2026-09-05 v17.8.5-RC2)：浏览器烟测真 fail-closed。
@@ -219,7 +222,8 @@ def run_browser_smoke(script: str, require_browser: bool = False, allow_missing_
 
 
 def run_audit() -> None:
-    print("== 三周期数据审计 ==")
+    """三周期审计重生成——仅限遗留单文件链；正式链使用 --check 只读模式。"""
+    print("== 三周期数据审计（遗留链重生成）==")
     subprocess.run(
         [
             sys.executable,
@@ -234,30 +238,10 @@ def run_audit() -> None:
 
 
 def build_and_sync() -> None:
-    print("== 成绩清单构建 ==")
-    for cycle in ("2026", "2025", "2024"):
-        subprocess.run(
-            [sys.executable, str(ROOT / "tools" / "anhui_web" / "build_score_lists.py"), "--cycle", cycle],
-            cwd=ROOT,
-            check=True,
-        )
-    # The audit consumes the generated score sidecars, so it must run after
-    # their rebuild and before the final HTML embeds the audit envelope.
-    run_audit()
-    print("== 页面构建 ==")
+    """正式发布链：维护站（canonical 唯一输入）构建 + 校验 + 发布记录。"""
+    print("== 外置 JSON 维护站 ==")
     deliverables = ROOT / "deliverables"
     deliverables.mkdir(exist_ok=True)
-    subprocess.run(
-        [sys.executable, str(ROOT / "tools" / "anhui_web" / "build_pages.py"), "--output-dir", str(deliverables)],
-        cwd=ROOT,
-        check=True,
-    )
-    subprocess.run(
-        [sys.executable, str(ROOT / "tools" / "anhui_web" / "verify_single_file_v12.py"), "postbuild", "--html", str(deliverables / "皖域择岗总览.html")],
-        cwd=ROOT,
-        check=True,
-    )
-    print("== 外置 JSON 维护站 ==")
     subprocess.run(
         [sys.executable, str(ROOT / "tools" / "anhui_web" / "build_maintainable_site.py"),
          "--root", str(ROOT), "--output-dir", str(deliverables / "maintainable")],
@@ -289,14 +273,39 @@ def build_and_sync() -> None:
     if BROWSER_VALIDATION["status"] != "verified":
         print("[RC3-P2] validation_status=degraded_validation → tag_allowed=false（禁止打正式版本 tag）")
     print("release manifest →", write_release_record(deliverables))
+    for name in (LEGACY_SINGLE_HTML,):
+        if (deliverables / name).is_file():
+            print("legacy archive present →", name)
+
+
+def legacy_single_file_chain() -> None:
+    """遗留单文件存档链（v17.8.6 方案 A）：显式请求才运行，非发布门禁。
+
+    产物 = deliverables/皖域择岗总览.html（遗留存档）。它不参与正式
+    validation_status，也不进入 发布资料 发布清单。
+    """
+    print("== [遗留链] 成绩清单构建 ==")
+    for cycle in ("2026", "2025", "2024"):
+        subprocess.run(
+            [sys.executable, str(ROOT / "tools" / "anhui_web" / "build_score_lists.py"), "--cycle", cycle],
+            cwd=ROOT,
+            check=True,
+        )
+    run_audit()
+    print("== [遗留链] 单文件页面构建 ==")
+    deliverables = ROOT / "deliverables"
+    deliverables.mkdir(exist_ok=True)
     subprocess.run(
-        [sys.executable, str(ROOT / "tools" / "anhui_web" / "write_deliverable_manifest.py"), "--root", str(ROOT), "--date", _dt.date.today().isoformat()],
+        [sys.executable, str(ROOT / "tools" / "anhui_web" / "build_pages.py"), "--output-dir", str(deliverables)],
         cwd=ROOT,
         check=True,
     )
-    for name in DELIVERABLE_HTML:
-        if (deliverables / name).is_file():
-            print("built →", name)
+    subprocess.run(
+        [sys.executable, str(ROOT / "tools" / "anhui_web" / "verify_single_file_v12.py"), "postbuild", "--html", str(deliverables / LEGACY_SINGLE_HTML)],
+        cwd=ROOT,
+        check=True,
+    )
+    print(f"[遗留链] 存档工件构建完成：{deliverables / LEGACY_SINGLE_HTML}（非正式发布物，不参与 validation_status）")
 
 
 def package_zip() -> Path:
@@ -319,18 +328,21 @@ def package_zip() -> Path:
                 if path.is_file() and not (ZIP_SKIP_PARTS & set(path.parts)):
                     bundle.write(path, path.relative_to(ROOT).as_posix())
     print("zip →", zip_path, f"({zip_path.stat().st_size / 1e6:.1f} MB)")
-    subprocess.run(
-        [sys.executable, str(ROOT / "tools" / "anhui_web" / "verify_single_file_v12.py"), "package", "--zip", str(zip_path)],
-        cwd=ROOT,
-        check=True,
-    )
+    if (ROOT / "deliverables" / LEGACY_SINGLE_HTML).is_file():
+        subprocess.run(
+            [sys.executable, str(ROOT / "tools" / "anhui_web" / "verify_single_file_v12.py"), "package", "--zip", str(zip_path)],
+            cwd=ROOT,
+            check=True,
+        )
     return zip_path
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="测试 + 构建 + 同步 + 打包")
+    parser = argparse.ArgumentParser(description="测试 + 维护站构建 + 校验（正式链）；单文件链已降级为 --legacy-single-file")
     parser.add_argument("--zip", action="store_true", help="追加打包发布 zip")
     parser.add_argument("--skip-tests", action="store_true", help="跳过测试（调试用）")
+    parser.add_argument("--legacy-single-file", action="store_true",
+                        help="追加遗留单文件存档链（非发布门禁；产物为 deliverables/皖域择岗总览.html）")
     parser.add_argument("--allow-missing-browser", action="store_true",
                         help="显式豁免浏览器烟测（release 记录 validation_status=degraded_validation）")
     arguments = parser.parse_args()
@@ -345,5 +357,7 @@ if __name__ == "__main__":
     if not arguments.skip_tests:
         run_tests()
     build_and_sync()
+    if arguments.legacy_single_file:
+        legacy_single_file_chain()
     if arguments.zip:
         package_zip()
