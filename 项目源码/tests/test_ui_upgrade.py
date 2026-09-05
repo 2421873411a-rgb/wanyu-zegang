@@ -26,7 +26,13 @@ class UiUpgradeContractTests(unittest.TestCase):
         self.assertIn(ASSET, builder)
 
     def test_upgrade_asset_is_precached(self) -> None:
-        sw = (TEMPLATE / "maintainable-sw.js").read_text(encoding="utf-8")
+        # RC3：sw 模板为占位符形态，版本断言针对 release.json 注入后的渲染结果。
+        import sys as _sys
+
+        _sys.path.insert(0, str(TEMPLATE.parents[2]))
+        from tools.anhui_web.release import _render_sw_template
+
+        sw = _render_sw_template()
         self.assertIn(ASSET, sw)
         # 2026-09-05 P0-5/P0-6: 版本断言改单调（>= v30），不再钉死历史版本号
         version = re.search(r"wanyu-shell-v(\d+)", sw)

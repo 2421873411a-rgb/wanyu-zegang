@@ -112,6 +112,8 @@ def write_release_record(deliverables: Path) -> Path:
         "created_on": _dt.datetime.now(_dt.timezone.utc).isoformat(),
         "validation_status": BROWSER_VALIDATION["status"],
         "browser_smoke_skipped": list(BROWSER_VALIDATION["skipped_scripts"]),
+        # RC3-P2：degraded_validation 的 release 不得打正式版本 tag（tag_allowed=false 为硬规则）。
+        "tag_allowed": BROWSER_VALIDATION["status"] == "verified",
         "maintainable_manifest": manifest,
         "rollback": {
             "unit": "cycle/module",
@@ -284,6 +286,8 @@ def build_and_sync() -> None:
     run_browser_smoke("tests/maintainable_browser_smoke.js", require_browser=True)
     run_browser_smoke("tests/ui_upgrade_browser_smoke.cjs", require_browser=True)
     print("== 发布记录 ==")
+    if BROWSER_VALIDATION["status"] != "verified":
+        print("[RC3-P2] validation_status=degraded_validation → tag_allowed=false（禁止打正式版本 tag）")
     print("release manifest →", write_release_record(deliverables))
     subprocess.run(
         [sys.executable, str(ROOT / "tools" / "anhui_web" / "write_deliverable_manifest.py"), "--root", str(ROOT), "--date", _dt.date.today().isoformat()],
@@ -331,6 +335,13 @@ if __name__ == "__main__":
                         help="显式豁免浏览器烟测（release 记录 validation_status=degraded_validation）")
     arguments = parser.parse_args()
     ALLOW_MISSING_BROWSER = bool(arguments.allow_missing_browser)
+    if arguments.skip_tests:
+        # RC3-P1：--skip-tests 仅限 dev/debug（WANYU_DEV=1）；正式 release 拒绝。
+        import os as _os
+
+        if _os.environ.get("WANYU_DEV", "").strip() != "1":
+            raise SystemExit("RC3-P1：正式 release 禁止 --skip-tests（dev/debug 请设 WANYU_DEV=1）")
+        print("[dev] WANYU_DEV=1：--skip-tests 生效（release 记录将标注 dev_mode=true）")
     if not arguments.skip_tests:
         run_tests()
     build_and_sync()

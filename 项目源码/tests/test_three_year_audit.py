@@ -33,10 +33,16 @@ class ThreeYearAuditContractTests(unittest.TestCase):
         for item in self.summary["cycles"]:
             self.assertTrue(set(item["statuses"]).issubset(allowed))
 
-    def test_known_unresolved_2026_join_is_not_filled(self) -> None:
+    def test_known_unresolved_2026_join_is_resolved_history(self) -> None:
+        # RC3：116 撞码已全部归属（公告来源定市）——active gap 归零、进入 resolution_history。
         current = next(item for item in self.summary["cycles"] if item["cycle"] == "2026")
-        self.assertEqual(current["coverage"]["score_unresolved"], 116)
-        self.assertTrue(any(item["kind"] == "ambiguous_join" for item in current["gaps"]))
+        self.assertEqual(current["coverage"]["score_unresolved"], 0)
+        self.assertEqual(current["score_lists"]["unresolved"], 0)
+        self.assertEqual(current["score_lists"]["resolved"], 116)
+        history = next((r for r in current.get("resolution_history") or [] if r.get("kind") == "ambiguous_join"), None)
+        self.assertIsNotNone(history)
+        self.assertEqual((history["original_count"], history["resolved_count"], history["remaining_count"]), (116, 116, 0))
+        self.assertFalse(any("无法唯一匹配" in str(g.get("title") or "") for g in current["gaps"]))
 
     def test_internal_cross_layer_checks_are_green(self) -> None:
         self.assertGreater(self.summary["checks"]["passed"], 0)

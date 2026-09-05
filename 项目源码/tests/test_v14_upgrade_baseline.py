@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import unittest
+import json
 from pathlib import Path
 
 
@@ -30,10 +31,13 @@ class V14BaselineTests(unittest.TestCase):
         from tools.anhui_web.v14_baseline import snapshot_site
 
         snapshot = snapshot_site(ROOT)
-        self.assertEqual(snapshot["release"], "v16.2.1")
-        self.assertEqual(snapshot["summary"], {"posts": 28678, "recruits": 42058, "gaps": 8, "score_unresolved": 116})
+        # RC3：断言改为“快照与 release 单一真源 + 当前部署树一致”（不再钉历史版本/旧模块集）。
+        release_doc = json.loads((ROOT / "release.json").read_text(encoding="utf-8"))
+        self.assertEqual(snapshot["release"], release_doc["release"])
+        self.assertEqual(snapshot["summary"], {"posts": 28678, "recruits": 42058, "gaps": 7, "score_unresolved": 0})
         self.assertEqual(set(snapshot["cycles"]), {"2024", "2025", "2026"})
-        self.assertEqual(snapshot["cycles"]["2026"]["modules"], {"audit", "catalog", "changes", "derived", "jobs", "jobs_lite", "overview", "palette", "positions", "scores"})
+        self.assertNotIn("scores", snapshot["cycles"]["2026"]["modules"])
+        self.assertIn("jobs_lite", snapshot["cycles"]["2026"]["modules"])
 
 
 if __name__ == "__main__":
