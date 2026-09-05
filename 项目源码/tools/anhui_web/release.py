@@ -3,7 +3,8 @@
 正式链全部经由 tools/anhui_web/release_pipeline.py 编排（单一真源）：
   测试 → precheck（git 干净）→ verify_sources（锁只读）→ validate_canonical
   → audit --check（three_year_audit 工件只读复核，不重生成）→ staging 构建
-  → verify_maintainable_site.py 磁盘校验 + 2026 事实闸 + perf_budget.py 预算
+  → 外置 JSON 维护站 staging 构建 → verify_maintainable_site.py 磁盘校验
+  + 2026 事实闸 + perf_budget.py 预算
   → 三脚本浏览器烟测（tests/maintainable_browser_smoke.js、
   tests/major_city_browser_smoke.cjs、tests/ui_upgrade_browser_smoke.cjs，
   经 WANYU_SITE_DIR 指向 staging）→ 发布资料 manifest + SHA256SUMS
@@ -46,8 +47,8 @@ from tools.anhui_web.release_pipeline import (  # noqa: E402
     verify_template_asset_parity,
 )
 
-# 正式链测试模块（--legacy-single-file 遗留链的测试在 tests/test_single_file_legacy.py，
-# 不进入本清单；新增正式测试模块时同步登记）。
+# 正式链测试模块（P 重分类：单文件遗留套件 = tests/test_single_file_legacy.py，
+# 不进入本清单——正式套件因此零功能性跳过；新增正式测试模块时同步登记）。
 FORMAL_TEST_MODULES = [
     "tests.test_anhui_web", "tests.test_three_year_audit", "tests.test_data_quality_guards",
     "tests.test_ui_v13", "tests.test_v14_upgrade_baseline", "tests.test_data_contract", "tests.test_source_registry",
@@ -55,6 +56,9 @@ FORMAL_TEST_MODULES = [
     "tests.test_review_queue", "tests.test_scores_contract", "tests.test_datastore_contract",
     "tests.test_accessibility_and_export", "tests.test_ui_v14", "tests.test_ui_v15", "tests.test_map_restore", "tests.test_maintainable_site", "tests.test_release_v14",
     "tests.test_v17_salary_and_motion",
+    "tests.test_build_input_purity", "tests.test_record_lifecycle", "tests.test_doc_truth_gate",
+    "tests.test_frontend_data_audit", "tests.test_supplement_integrity", "tests.test_ui_upgrade",
+    "tests.test_release_integrity",
 ]
 
 # 单文件链遗留工件（--legacy-single-file 才会生成；非正式发布物）

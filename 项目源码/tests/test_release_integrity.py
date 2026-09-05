@@ -257,6 +257,20 @@ class FormalChainDisciplineTests(unittest.TestCase):
         source = inspect.getsource(release_pipeline.run_pipeline)
         self.assertLess(source.index("verify_sources()"), source.index("build_site("), "锁校验必须先于构建")
 
+    def test_legacy_suite_excluded_from_formal_list(self) -> None:
+        release_source = (ROOT / "tools" / "anhui_web" / "release.py").read_text(encoding="utf-8")
+        self.assertNotIn("tests.test_single_file_legacy", release_source, "遗留单文件套件不得进入正式测试清单")
+        self.assertTrue((ROOT / "tests" / "test_single_file_legacy.py").is_file(), "遗留套件文件必须存在（重分类不等于删除）")
+
+    def test_formal_module_list_covers_all_formal_suites(self) -> None:
+        import re
+
+        release_source = (ROOT / "tools" / "anhui_web" / "release.py").read_text(encoding="utf-8")
+        listed = sorted(set(re.findall(r'"(tests\.test_[a-z0-9_]+)"', release_source)))
+        on_disk = sorted(f"tests.{p.stem}" for p in (ROOT / "tests").glob("test_*.py"))
+        expected = [m for m in on_disk if m != "tests.test_single_file_legacy"]
+        self.assertEqual(listed, expected, f"正式清单与磁盘正式套件不一致；磁盘多出：{set(expected)-set(listed)} 清单多出：{set(listed)-set(expected)}")
+
 
 if __name__ == "__main__":
     unittest.main()

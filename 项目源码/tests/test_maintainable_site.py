@@ -172,9 +172,13 @@ class MaintainableSiteContractTests(unittest.TestCase):
             self.assertIn(marker, rendered)
 
     def test_release_pipeline_invokes_external_site_builder(self) -> None:
+        # v17.8.6：release.py 编排交由共享流水线；构建入口 = release_pipeline.build_site
+        # （import build_maintainable_site 的 assemble_maintainable_site）。
         release = (ROOT / "tools" / "anhui_web" / "release.py").read_text(encoding="utf-8")
-        self.assertIn("build_maintainable_site.py", release)
-        self.assertIn("外置 JSON 维护站", release)
+        pipeline = (ROOT / "tools" / "anhui_web" / "release_pipeline.py").read_text(encoding="utf-8")
+        self.assertIn("run_pipeline", release)
+        self.assertIn("外置 JSON 维护站", pipeline + release)
+        self.assertIn("build_maintainable_site", pipeline)
 
 
 if __name__ == "__main__":
