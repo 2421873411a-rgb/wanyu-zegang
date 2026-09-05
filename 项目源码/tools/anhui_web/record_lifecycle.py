@@ -4,9 +4,9 @@
 规则（与 docs/data-contract/record-status.md 及前端 isActiveRow 防御层一致）：
 - 行缺失 record_status 或等于 "active" => active（进入所有用户口径模块）。
 - duplicate / invalid_source / withdrawn / superseded / needs_review => 排除出用户口径。
-- 排除行保留在 jobs.json（raw 审计真源），只从用户模块消失。
+- 排除行保留在 jobs raw 层（canonical 行源，审计真源），只从用户模块消失。
 - 生命周期标记来自构建输入 record_status_overrides.json（证据外置），builder 在进入
-  业务派生前统一应用；禁止对网站产物做外科手术（v17.8.5-RC2 纪律）。
+  业务派生前统一应用；禁止对站点产物做外科手术（v17.8.5-RC2 纪律）。
 """
 from __future__ import annotations
 

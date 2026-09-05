@@ -162,13 +162,14 @@ def verify_maintainable_site(site_dir: Path) -> dict[str, Any]:
         history_jobs = history_payload.get("jobs") if isinstance(history_payload.get("jobs"), dict) else {}
         _check(checks, "job_history.coverage", True, len(history_jobs) >= 500, "job history covers a meaningful number of job families")
         sources = history_payload.get("sources") if isinstance(history_payload.get("sources"), dict) else {}
+        # RC3(O)：绑定对象=canonical 周期包（行源真源）；生成物 jobs.json 不再是输入。
+        canonical_root = Path(__file__).resolve().parents[2]
         provenance_ok = True
         for cycle, source in sources.items():
-            cycle_entry = next((item for item in cycle_entries if str(item.get("cycle")) == str(cycle)), {})
-            lite_entry = (cycle_entry.get("modules") or {}).get("jobs") if isinstance(cycle_entry.get("modules"), dict) else {}
-            if not source or lite_entry.get("sha256") != source.get("sha256"):
+            canonical_file = canonical_root / "canonical" / "cycles" / f"{cycle}.json"
+            if not source or not canonical_file.is_file() or _sha256(canonical_file) != source.get("sha256"):
                 provenance_ok = False
-        _check(checks, "job_history.provenance", True, provenance_ok and len(sources) >= 2, "job history binds to jobs.json sha256 per cycle")
+        _check(checks, "job_history.provenance", True, provenance_ok and len(sources) >= 2, "job history binds to canonical cycle sha256 per row source")
     for cycle_entry in cycle_entries:
         cycle = str(cycle_entry.get("cycle"))
         modules = cycle_entry.get("modules") if isinstance(cycle_entry.get("modules"), dict) else {}

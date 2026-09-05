@@ -66,21 +66,19 @@ def facts_of(out_dir: Path) -> dict:
 
 def main() -> int:
     out_dir = Path(tempfile.mkdtemp(prefix="wanyu-clean-rebuild-"))
-    print(f"[1/6] 源锁校验")
-    run([sys.executable, "verify_sources.py"])
-    print("[2/6] 审计重生成（canonical 行源，HTML 零输入）")
+    print("[1/6] 审计重生成（canonical 行源，HTML 零输入；其输出是受锁源工件）")
     run([sys.executable, "tools/anhui_web/audit_three_years.py", "--root", ".",
          "--output-json", "tools/anhui_web/data/three_year_audit.json",
          "--report", "../docs/audit/clean-rebuild-three-year-audit.md"])
-    print("[3/6] 重锁 sources（审计工件哈希刷新）并复验")
+    print("[2/6] 重锁 sources（审计工件哈希刷新）并校验")
     run([sys.executable, "tools/anhui_web/gen_sources_lock.py"])
     run([sys.executable, "verify_sources.py"])
-    print("[4/6] canonical bundles → assemble（空目录）")
+    print("[3/6] canonical bundles → assemble（空目录）")
     from tools.anhui_web.unified_cycle_bundle import build_unified_bundles
     from tools.anhui_web.build_maintainable_site import assemble_maintainable_site
     bundles = build_unified_bundles(PROJECT_ROOT)
     assemble_maintainable_site(bundles, root=PROJECT_ROOT, output_dir=out_dir)
-    print("[5/6] 事实对比")
+    print("[4/6] 事实对比")
     facts = facts_of(out_dir)
     bad = {k: (facts.get(k), v) for k, v in EXPECTED_2026.items() if facts.get(k) != v}
     if bad:
@@ -88,7 +86,7 @@ def main() -> int:
         raise SystemExit(f"clean rebuild 事实闸失败：{bad}")
     print("    2026 事实：", json.dumps({k: facts[k] for k in EXPECTED_2026}, ensure_ascii=False))
     print(f"    globals: {facts['module_globals']} | job_history families: {facts['job_history_total']}")
-    print("[6/6] verifier（空目录产物）")
+    print("[5/6] verifier（空目录产物）")
     run([sys.executable, "tools/anhui_web/verify_maintainable_site.py", str(out_dir)])
     print(f"clean rebuild PASS → {out_dir}")
     print("注意：tmp 产物与 站点 的字节差异仅允许来自 runtime source_file（canonical 引用名）等装配元数据；")
