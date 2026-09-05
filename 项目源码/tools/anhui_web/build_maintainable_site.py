@@ -46,7 +46,8 @@ except ImportError:  # pragma: no cover - supports direct script execution
 TEMPLATE_DIR = Path(__file__).resolve().parent / "templates"
 DEFAULT_OUTPUT = ROOT / "deliverables" / "maintainable"
 SCHEMA = "wanyu-maintainable-site/v3"
-RELEASE = "v17.7.1"
+# D(2026-09-05): 版本唯一真源 = 项目源码/release.json，禁止此处硬编码
+RELEASE = json.loads((Path(__file__).resolve().parents[2] / "release.json").read_text(encoding="utf-8"))["release"]
 
 
 def _stable_snapshot_date(bundles: dict[str, Any]) -> str:

@@ -2,23 +2,23 @@
    策略：页面导航与无 sha 的 JSON 走 network-first（在线立即拿新，离线回退缓存）；
    带 ?sha= 的内容寻址 JSON 走 cache-first（manifest 变更 → URL 变更 → 自动失效）；
    其余静态资产 cache-first 并后台刷新（URL 带 ?v= 版本号，改版即失效）。 */
-const VERSION = "wanyu-shell-v42";
+const VERSION = "wanyu-shell-v48";
 const PRECACHE = [
   "index.html",
   "manifest.webmanifest",
-  "assets/maintainable-tokens.css?v=17.7.2",
-  "assets/maintainable-site.css?v=17.7.2",
-  "assets/v17-ui-upgrade.css?v=17.7.2",
-  "assets/v17-search.css?v=17.7.2",
-  "assets/v17-tools.css?v=17.7.2",
-  "assets/v17-exam-picker.css?v=17.7.2",
-  "assets/maintainable-data.js?v=17.7.2",
-  "assets/maintainable-major-city.js?v=17.7.2",
-  "assets/maintainable-user-store.js?v=17.7.2",
-  "assets/v17-tools.js?v=17.7.2",
-  "assets/maintainable-site.js?v=17.7.2",
+  "assets/maintainable-tokens.css?v=17.8.5",
+  "assets/maintainable-site.css?v=17.8.5",
+  "assets/v17-ui-upgrade.css?v=17.8.5",
+  "assets/v17-search.css?v=17.8.5",
+  "assets/v17-tools.css?v=17.8.5",
+  "assets/v17-exam-picker.css?v=17.8.5",
+  "assets/maintainable-data.js?v=17.8.5",
+  "assets/maintainable-major-city.js?v=17.8.5",
+  "assets/maintainable-user-store.js?v=17.8.5",
+  "assets/v17-tools.js?v=17.8.5",
+  "assets/maintainable-site.js?v=17.8.5",
   "data/audit/supplement-20260904.json",
-  "assets/wanyu-icon.svg?v=17.7.2",
+  "assets/wanyu-icon.svg?v=17.8.5",
 ];
 
 self.addEventListener("install", (event) => {

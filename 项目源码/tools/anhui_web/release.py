@@ -16,7 +16,8 @@ import zipfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-BUILD_VERSION = "v17.7.1"
+# D(2026-09-05): 版本唯一真源 = 项目源码/release.json
+BUILD_VERSION = json.loads((Path(__file__).resolve().parents[2] / "release.json").read_text(encoding="utf-8"))["release"]
 # Historical release records, including v16.2.1, remain immutable; this
 # entrypoint only advances the current release marker.
 DELIVERABLE_HTML = [
@@ -31,13 +32,16 @@ ZIP_ROOT_FILES = [
 ZIP_DIRS = ["source_docs", "source_data", "design_refs", "docs", "deliverables", "tools/anhui_web", "tests"]
 ZIP_SKIP_PARTS = {"__pycache__", "node_modules", ".pytest_cache"}
 
-MAINTAINABLE_TEMPLATE_ASSETS = (
-    "maintainable-site.js", "maintainable-site.css", "v17-ui-upgrade.css", "maintainable-tokens.css",
-    "maintainable-data.js", "maintainable-major-city.js", "maintainable-user-store.js",
-    "search-history.css", "search-history.js", "share-link.css", "share-link.js",
-    "toast.css", "toast.js", "v17-enhancements.js", "v17-exam-picker.css",
-    "v17-search.css", "v17-tools.css", "v17-tools.js",
-)
+# G1(2026-09-05): 资产清单自动发现——扫描 templates 目录中 maintainable/v17 前缀资产，
+# 幽灵资产（如已退役的 search-history/toast）不再可能混入。
+def _discover_template_assets() -> tuple[str, ...]:
+    tpl = Path(__file__).resolve().parent / "templates"
+    found = sorted(p.name for p in tpl.iterdir()
+                   if p.is_file() and (p.name.startswith("maintainable-") or p.name.startswith("v17-"))
+                   and p.suffix in {".css", ".js"} and p.name not in {"maintainable-sw.js"})
+    return tuple(found)
+
+MAINTAINABLE_TEMPLATE_ASSETS = _discover_template_assets()
 
 
 def verify_template_asset_parity(site_dir: Path) -> dict[str, object]:
@@ -140,15 +144,17 @@ def run_tests() -> None:
     subprocess.run(["node", "--test", "tests/test_major_city_index.cjs"], cwd=ROOT, check=True)
     subprocess.run(["node", "tests/test_datastore_contract.cjs"], cwd=ROOT, check=True)
     subprocess.run(["node", "--test", "tests/test_user_store_contract.cjs"], cwd=ROOT, check=True)
-    run_browser_smoke("tests/browser_smoke_v12.js")
+    run_browser_smoke("tests/browser_smoke_v12.js", require_browser=True)
 
 
-def run_browser_smoke(script: str) -> None:
+def run_browser_smoke(script: str, require_browser: bool = False) -> None:
     # playwright-core does not ship browsers; a package.json probe alone would
     # crash on machines without the Chromium binary. Probe the real executable
     # and degrade to a loud warning so the release still records the gap.
     node_modules = Path.home() / ".cache" / "codex-runtimes" / "codex-primary-runtime" / "dependencies" / "node" / "node_modules"
     if not (node_modules / "playwright-core" / "package.json").is_file():
+        if require_browser:
+            raise RuntimeError(f"G2: 正式发布不允许静默跳过浏览器烟测（{script} 缺 playwright-core）；安装后重试，或显式使用 --allow-missing-browser 并承担人工走查责任。")
         print(f"[警告] 未找到 playwright-core，浏览器烟测 {script} 跳过；需以人工/内置浏览器走查补偿。")
         return
     env = dict(__import__("os").environ)
@@ -229,8 +235,8 @@ def build_and_sync() -> None:
     # The maintainable site emits ten per-cycle modules, two audit indexes,
     # and one shared real-geometry map; the disk verifier and browser smoke are
     # release gates.
-    run_browser_smoke("tests/maintainable_browser_smoke.js")
-    run_browser_smoke("tests/ui_upgrade_browser_smoke.cjs")
+    run_browser_smoke("tests/maintainable_browser_smoke.js", require_browser=True)
+    run_browser_smoke("tests/ui_upgrade_browser_smoke.cjs", require_browser=True)
     print("== 发布记录 ==")
     print("release manifest →", write_release_record(deliverables))
     subprocess.run(
