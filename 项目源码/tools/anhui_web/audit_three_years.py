@@ -212,12 +212,35 @@ def _candidate_key(row: dict[str, Any]) -> tuple[Any, ...]:
     )
 
 
+def _score_resolutions(keyed: dict[str, Any]) -> list[dict[str, Any]]:
+    """Turn keyed ``resolution_<date>`` blocks into resolved-history records."""
+    blocks: list[dict[str, Any]] = []
+    for key, value in keyed.items():
+        if not (isinstance(key, str) and key.startswith("resolution_") and isinstance(value, dict)):
+            continue
+        attributed = int(value.get("attributed") or 0)
+        still = int(value.get("still_ambiguous") or 0)
+        blocks.append(
+            {
+                "kind": "ambiguous_join",
+                "status": "resolved" if attributed and still == 0 else ("partial" if attributed else "open"),
+                "original_count": attributed + still,
+                "resolved_count": attributed,
+                "remaining_count": still,
+                "resolved_at": key.removeprefix("resolution_"),
+                "method": str(value.get("method") or ""),
+            }
+        )
+    return blocks
+
+
 def _score_profile(root: Path, cycle: str) -> dict[str, Any]:
     path = _component_paths(root, cycle)["省考"].parent / "score_lists.json"
     payload = _json(path)
     keyed = payload.get("keyed") or {}
     unresolved = keyed.get("unresolved") or []
     by_key = payload.get("by_key") or {}
+    resolution_blocks = _score_resolutions(keyed if isinstance(keyed, dict) else {})
     return {
         "file": _rel(root, path),
         "cycle": payload.get("cycle"),
@@ -225,6 +248,8 @@ def _score_profile(root: Path, cycle: str) -> dict[str, Any]:
         "bs": len(payload.get("bs") or {}),
         "ms": len(payload.get("ms") or {}),
         "unresolved": len(unresolved) if isinstance(unresolved, list) else 0,
+        "resolved": sum(block["resolved_count"] for block in resolution_blocks),
+        "resolution_blocks": resolution_blocks,
     }
 
 
@@ -378,6 +403,7 @@ def _audit_cycle(root: Path, cycle: str, global_checks: list[dict[str, Any]]) ->
         "missing": {"page": missing_page, "source": {exam: item["missing"] for exam, item in components.items()}},
         "coverage": {**page_coverage, "score_by_key": score["by_key"], "score_unresolved": score["unresolved"]},
         "score_lists": score,
+        "resolution_history": score.get("resolution_blocks") or [],
         "candidate_keys": {"fields": ["exam", "city", "code", "num", "cycle"], "duplicate_key_count": len(duplicate_keys), "duplicate_row_count": sum(count for _, count in duplicate_keys)},
         "statuses": status_counts,
         "evidence_level": evidence_level,

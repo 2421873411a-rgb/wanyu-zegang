@@ -1,0 +1,966 @@
+{
+ "version": 1,
+ "generated_on": "2026-08-31",
+ "status_definitions": {
+  "verified": "源 JSON、页面内嵌数据和聚合口径已对账",
+  "source_bundle": "值来自当前交接包的源文件或明确转换",
+  "unpublished_or_unavailable": "官方暂未发布或本包未取得可复核逐项证据",
+  "ambiguous_join": "存在多个候选岗位且缺少必要匹配键，安全留空"
+ },
+ "evidence_level_definitions": {
+  "verified_source_archive": "可定位的官方或原始档案已归档并通过结构核对",
+  "verified_structured_evidence": "结构化源包、页面载荷与聚合口径已完成内部对账",
+  "partial_evidence": "主数据可复现，但仍有公开缺口、转换口径或未发布字段",
+  "source_not_published": "目标资料在当前周期未发布或本包未取得",
+  "ambiguous_unlinked": "存在候选记录但缺少唯一匹配键，按安全原则留空",
+  "user_flagged_review": "仅作人工复核标记，不能解释为官方结论"
+ },
+ "cycles": [
+  {
+   "cycle": "2024",
+   "label": "2024年度",
+   "generated_on": "2026-08-31",
+   "snapshot_date": "",
+   "posts": 10017,
+   "recruits": 15331,
+   "exams": {
+    "省考": {
+     "posts": 4243,
+     "recruits": 7235
+    },
+    "事业编": {
+     "posts": 5215,
+     "recruits": 6911
+    },
+    "国考": {
+     "posts": 559,
+     "recruits": 1185
+    }
+   },
+   "source_components": {
+    "省考": {
+     "file": "tools/anhui_web/data/cycles/2024/all_majors_2024.json",
+     "source": "安徽省2024年度考试录用公务员官方职位表（省直+16市，报名/分数线经镜像核对）",
+     "rows": 4243,
+     "recruits": 7235,
+     "missing": {
+      "code": 0,
+      "city": 0,
+      "unit": 0
+     },
+     "cycles": []
+    },
+    "国考": {
+     "file": "tools/anhui_web/data/cycles/2024/guokao2024.json",
+     "source": "2024国家公务员考试安徽地区职位表（官方）+ 进面名单汇总 + 报名过审汇编",
+     "rows": 559,
+     "recruits": 1185,
+     "missing": {
+      "code": 0,
+      "city": 0,
+      "unit": 0
+     },
+     "cycles": []
+    },
+    "事业编": {
+     "file": "tools/anhui_web/data/cycles/2024/huatu_syb_2024.json",
+     "source": "安徽事业单位2024联考职位库（华图+官方岗位表汇编）",
+     "rows": 5215,
+     "recruits": 6911,
+     "missing": {
+      "code": 0,
+      "city": 0,
+      "unit": 0
+     },
+     "cycles": [
+      "上半年",
+      "下半年"
+     ]
+    }
+   },
+   "source_totals": {
+    "posts": 10017,
+    "recruits": 15331
+   },
+   "page_adjustment": {
+    "posts": 0,
+    "recruits": 0
+   },
+   "missing": {
+    "page": {
+     "code": 0,
+     "city": 0,
+     "unit": 0,
+     "num": 0,
+     "exam": 0
+    },
+    "source": {
+     "省考": {
+      "code": 0,
+      "city": 0,
+      "unit": 0
+     },
+     "国考": {
+      "code": 0,
+      "city": 0,
+      "unit": 0
+     },
+     "事业编": {
+      "code": 0,
+      "city": 0,
+      "unit": 0
+     }
+    }
+   },
+   "coverage": {
+    "bm": 10016,
+    "hg": 559,
+    "jf": 0,
+    "adv": 8842,
+    "line": 9048,
+    "top": 8797,
+    "hire": 1229,
+    "perExam": {
+     "省考": {
+      "total": 4243,
+      "bm": 4242,
+      "adv": 4082,
+      "line": 4219
+     },
+     "事业编": {
+      "total": 5215,
+      "bm": 5215,
+      "adv": 4209,
+      "line": 4278
+     },
+     "国考": {
+      "total": 559,
+      "bm": 559,
+      "adv": 551,
+      "line": 551
+     }
+    },
+    "score_by_key": 4087,
+    "score_unresolved": 0
+   },
+   "score_lists": {
+    "file": "tools/anhui_web/data/cycles/2024/score_lists.json",
+    "cycle": "2024",
+    "by_key": 4087,
+    "bs": 4082,
+    "ms": 3188,
+    "unresolved": 0
+   },
+   "candidate_keys": {
+    "fields": [
+     "exam",
+     "city",
+     "code",
+     "num",
+     "cycle"
+    ],
+    "duplicate_key_count": 1,
+    "duplicate_row_count": 2
+   },
+   "statuses": {
+    "verified": 18,
+    "source_bundle": 10017,
+    "unpublished_or_unavailable": 3,
+    "ambiguous_join": 0
+   },
+   "evidence_level": "partial_evidence",
+   "known_gaps": [
+    {
+     "kind": "unpublished_or_unavailable",
+     "title": "省考合格/缴费官方无逐岗表（全空）",
+     "detail": "周期清单明确记录该资料未发布、未回收或仅有汇总口径；页面保留空值，不推断为零。",
+     "evidence": "tools/anhui_web/data/cycles/2024/cycle.json",
+     "severity": "medium"
+    },
+    {
+     "kind": "unpublished_or_unavailable",
+     "title": "拟聘用市级批次约 30+ 批未回收",
+     "detail": "周期清单明确记录该资料未发布、未回收或仅有汇总口径；页面保留空值，不推断为零。",
+     "evidence": "tools/anhui_web/data/cycles/2024/cycle.json",
+     "severity": "medium"
+    },
+    {
+     "kind": "unpublished_or_unavailable",
+     "title": "事业编下半年官方原始 xlsx 未逐单位回收",
+     "detail": "周期清单明确记录该资料未发布、未回收或仅有汇总口径；页面保留空值，不推断为零。",
+     "evidence": "tools/anhui_web/data/cycles/2024/cycle.json",
+     "severity": "medium"
+    }
+   ],
+   "resolved_adjustments": [
+    {
+     "kind": "source_bundle",
+     "title": "2024 省考 133 条源包补充行已显式标注",
+     "detail": "133 岗/700 人不属于公开主表的无标记官方行，来自镜像/分数线源补充；每行保留“（镜像源合成）”备注，不冒充官方主表，页面继续展示其来源边界。",
+     "evidence": "source_data/anhui2024/shengkao_master.csv",
+     "severity": "medium"
+    }
+   ],
+   "verified_scope": [
+    "岗位行主键、考试类别、城市、职位代码、单位与招录人数",
+    "源组件行数、招录人数合计、页面 allMajors 行数与聚合元数据",
+    "成绩清单周期字段与可安全匹配数量"
+   ],
+   "unverified_scope": [
+    "省考合格/缴费官方无逐岗表（全空）",
+    "拟聘用市级批次约 30+ 批未回收",
+    "事业编下半年官方原始 xlsx 未逐单位回收"
+   ],
+   "gaps": [
+    {
+     "kind": "unpublished_or_unavailable",
+     "title": "省考合格/缴费官方无逐岗表（全空）",
+     "detail": "周期清单明确记录该资料未发布、未回收或仅有汇总口径；页面保留空值，不推断为零。",
+     "evidence": "tools/anhui_web/data/cycles/2024/cycle.json",
+     "severity": "medium"
+    },
+    {
+     "kind": "unpublished_or_unavailable",
+     "title": "拟聘用市级批次约 30+ 批未回收",
+     "detail": "周期清单明确记录该资料未发布、未回收或仅有汇总口径；页面保留空值，不推断为零。",
+     "evidence": "tools/anhui_web/data/cycles/2024/cycle.json",
+     "severity": "medium"
+    },
+    {
+     "kind": "unpublished_or_unavailable",
+     "title": "事业编下半年官方原始 xlsx 未逐单位回收",
+     "detail": "周期清单明确记录该资料未发布、未回收或仅有汇总口径；页面保留空值，不推断为零。",
+     "evidence": "tools/anhui_web/data/cycles/2024/cycle.json",
+     "severity": "medium"
+    }
+   ],
+   "sources": [
+    "tools/anhui_web/data/cycles/2024/all_majors_2024.json",
+    "tools/anhui_web/data/cycles/2024/guokao2024.json",
+    "tools/anhui_web/data/cycles/2024/huatu_syb_2024.json",
+    "tools/anhui_web/data/cycles/2024/cycle.json",
+    "deliverables/皖域择岗总览.html"
+   ]
+  },
+  {
+   "cycle": "2025",
+   "label": "2025年度",
+   "generated_on": "2026-08-31",
+   "snapshot_date": "",
+   "posts": 10150,
+   "recruits": 14721,
+   "exams": {
+    "省考": {
+     "posts": 4116,
+     "recruits": 6620
+    },
+    "事业编": {
+     "posts": 5491,
+     "recruits": 6956
+    },
+    "国考": {
+     "posts": 543,
+     "recruits": 1145
+    }
+   },
+   "source_components": {
+    "省考": {
+     "file": "tools/anhui_web/data/cycles/2025/all_majors_2025.json",
+     "source": "安徽省2025年度考试录用公务员官方职位表（省直+16市，报名/分数线经镜像核对）",
+     "rows": 4116,
+     "recruits": 6620,
+     "missing": {
+      "code": 0,
+      "city": 0,
+      "unit": 0
+     },
+     "cycles": []
+    },
+    "国考": {
+     "file": "tools/anhui_web/data/cycles/2025/guokao2025.json",
+     "source": "2025国家公务员考试安徽地区职位表（官方）+ 进面名单汇总 + 报名过审汇编",
+     "rows": 543,
+     "recruits": 1145,
+     "missing": {
+      "code": 0,
+      "city": 0,
+      "unit": 0
+     },
+     "cycles": []
+    },
+    "事业编": {
+     "file": "tools/anhui_web/data/cycles/2025/huatu_syb_2025.json",
+     "source": "安徽事业单位2025联考职位库（华图+官方岗位表汇编）",
+     "rows": 5491,
+     "recruits": 6956,
+     "missing": {
+      "code": 0,
+      "city": 0,
+      "unit": 0
+     },
+     "cycles": [
+      "上半年",
+      "下半年"
+     ]
+    }
+   },
+   "source_totals": {
+    "posts": 10150,
+    "recruits": 14721
+   },
+   "page_adjustment": {
+    "posts": 0,
+    "recruits": 0
+   },
+   "missing": {
+    "page": {
+     "code": 0,
+     "city": 0,
+     "unit": 0,
+     "num": 0,
+     "exam": 0
+    },
+    "source": {
+     "省考": {
+      "code": 0,
+      "city": 0,
+      "unit": 0
+     },
+     "国考": {
+      "code": 0,
+      "city": 0,
+      "unit": 0
+     },
+     "事业编": {
+      "code": 0,
+      "city": 0,
+      "unit": 0
+     }
+    }
+   },
+   "coverage": {
+    "bm": 4659,
+    "hg": 543,
+    "jf": 0,
+    "adv": 8952,
+    "line": 8397,
+    "top": 8416,
+    "hire": 1621,
+    "perExam": {
+     "省考": {
+      "total": 4116,
+      "bm": 4116,
+      "adv": 4107,
+      "line": 4111
+     },
+     "事业编": {
+      "total": 5491,
+      "bm": 0,
+      "adv": 4308,
+      "line": 3749
+     },
+     "国考": {
+      "total": 543,
+      "bm": 543,
+      "adv": 537,
+      "line": 537
+     }
+    },
+    "score_by_key": 4107,
+    "score_unresolved": 0
+   },
+   "score_lists": {
+    "file": "tools/anhui_web/data/cycles/2025/score_lists.json",
+    "cycle": "2025",
+    "by_key": 4107,
+    "bs": 4107,
+    "ms": 2454,
+    "unresolved": 0
+   },
+   "candidate_keys": {
+    "fields": [
+     "exam",
+     "city",
+     "code",
+     "num",
+     "cycle"
+    ],
+    "duplicate_key_count": 0,
+    "duplicate_row_count": 0
+   },
+   "statuses": {
+    "verified": 18,
+    "source_bundle": 10150,
+    "unpublished_or_unavailable": 3,
+    "ambiguous_join": 0
+   },
+   "evidence_level": "partial_evidence",
+   "known_gaps": [
+    {
+     "kind": "unpublished_or_unavailable",
+     "title": "省考合格/缴费官方无逐岗表（全空）",
+     "detail": "周期清单明确记录该资料未发布、未回收或仅有汇总口径；页面保留空值，不推断为零。",
+     "evidence": "tools/anhui_web/data/cycles/2025/cycle.json",
+     "severity": "medium"
+    },
+    {
+     "kind": "unpublished_or_unavailable",
+     "title": "事业编逐岗报名人数官方未发布（仅考区汇总）",
+     "detail": "周期清单明确记录该资料未发布、未回收或仅有汇总口径；页面保留空值，不推断为零。",
+     "evidence": "tools/anhui_web/data/cycles/2025/cycle.json",
+     "severity": "medium"
+    },
+    {
+     "kind": "unpublished_or_unavailable",
+     "title": "拟聘用官方附件仍有阜阳批次未回收（蚌埠/池州/铜陵/宣城已补采）",
+     "detail": "周期清单明确记录该资料未发布、未回收或仅有汇总口径；页面保留空值，不推断为零。",
+     "evidence": "tools/anhui_web/data/cycles/2025/cycle.json",
+     "severity": "medium"
+    }
+   ],
+   "resolved_adjustments": [
+    {
+     "kind": "official_archive",
+     "title": "2025 省考拟聘用官方附件已补采 11 批次",
+     "detail": "已直接归档蚌埠 5 批 283 人、池州 3 批 335 人、铜陵 1 批 76 人、宣城 2 批 326 人，共 1020 人；原始附件经表头、岗位代码、准考证号唯一性和 master 代码复核。未取得阜阳官方附件的批次仍不写入。",
+     "evidence": "source_data/anhui2025/raw/nilu_bengbu_b1.xlsx 等 11 个官方附件",
+     "severity": "medium"
+    }
+   ],
+   "verified_scope": [
+    "岗位行主键、考试类别、城市、职位代码、单位与招录人数",
+    "源组件行数、招录人数合计、页面 allMajors 行数与聚合元数据",
+    "成绩清单周期字段与可安全匹配数量"
+   ],
+   "unverified_scope": [
+    "省考合格/缴费官方无逐岗表（全空）",
+    "事业编逐岗报名人数官方未发布（仅考区汇总）",
+    "拟聘用官方附件仍有阜阳批次未回收（蚌埠/池州/铜陵/宣城已补采）"
+   ],
+   "gaps": [
+    {
+     "kind": "unpublished_or_unavailable",
+     "title": "省考合格/缴费官方无逐岗表（全空）",
+     "detail": "周期清单明确记录该资料未发布、未回收或仅有汇总口径；页面保留空值，不推断为零。",
+     "evidence": "tools/anhui_web/data/cycles/2025/cycle.json",
+     "severity": "medium"
+    },
+    {
+     "kind": "unpublished_or_unavailable",
+     "title": "事业编逐岗报名人数官方未发布（仅考区汇总）",
+     "detail": "周期清单明确记录该资料未发布、未回收或仅有汇总口径；页面保留空值，不推断为零。",
+     "evidence": "tools/anhui_web/data/cycles/2025/cycle.json",
+     "severity": "medium"
+    },
+    {
+     "kind": "unpublished_or_unavailable",
+     "title": "拟聘用官方附件仍有阜阳批次未回收（蚌埠/池州/铜陵/宣城已补采）",
+     "detail": "周期清单明确记录该资料未发布、未回收或仅有汇总口径；页面保留空值，不推断为零。",
+     "evidence": "tools/anhui_web/data/cycles/2025/cycle.json",
+     "severity": "medium"
+    }
+   ],
+   "sources": [
+    "tools/anhui_web/data/cycles/2025/all_majors_2025.json",
+    "tools/anhui_web/data/cycles/2025/guokao2025.json",
+    "tools/anhui_web/data/cycles/2025/huatu_syb_2025.json",
+    "tools/anhui_web/data/cycles/2025/cycle.json",
+    "deliverables/皖域择岗总览.html"
+   ]
+  },
+  {
+   "cycle": "2026",
+   "label": "安徽 2026 招考周期（省考 / 事业单位联考 / 国考在皖岗位）",
+   "generated_on": "2026-08-31",
+   "snapshot_date": "2026-08-28",
+   "posts": 8511,
+   "recruits": 12006,
+   "exams": {
+    "省考": {
+     "posts": 3784,
+     "recruits": 5791
+    },
+    "事业编": {
+     "posts": 4176,
+     "recruits": 5065
+    },
+    "国考": {
+     "posts": 551,
+     "recruits": 1150
+    }
+   },
+   "source_components": {
+    "省考": {
+     "file": "tools/anhui_web/data/all_majors_2026.json",
+     "source": "安徽人事考试网官方职位表（华图镜像 xduim_*）",
+     "rows": 3784,
+     "recruits": 5791,
+     "missing": {
+      "code": 0,
+      "city": 0,
+      "unit": 0
+     },
+     "cycles": []
+    },
+    "国考": {
+     "file": "tools/anhui_web/data/guokao2026.json",
+     "source": "2026国家公务员考试安徽地区职位表 + 进面名单汇总",
+     "rows": 551,
+     "recruits": 1150,
+     "missing": {
+      "code": 0,
+      "city": 0,
+      "unit": 0
+     },
+     "cycles": []
+    },
+    "事业编": {
+     "file": "tools/anhui_web/data/huatu_syb_2026.json",
+     "source": "华图职位查询页（ah.huatu.com/zt/syzwb）浏览器快照",
+     "rows": 4122,
+     "recruits": 5010,
+     "missing": {
+      "code": 0,
+      "city": 0,
+      "unit": 0
+     },
+     "cycles": {
+      "下半年": 655,
+      "上半年": 3467
+     }
+    }
+   },
+   "source_totals": {
+    "posts": 8457,
+    "recruits": 11951
+   },
+   "page_adjustment": {
+    "posts": 54,
+    "recruits": 55
+   },
+   "missing": {
+    "page": {
+     "code": 0,
+     "city": 0,
+     "unit": 0,
+     "num": 0,
+     "exam": 0
+    },
+    "source": {
+     "省考": {
+      "code": 0,
+      "city": 0,
+      "unit": 0
+     },
+     "国考": {
+      "code": 0,
+      "city": 0,
+      "unit": 0
+     },
+     "事业编": {
+      "code": 0,
+      "city": 0,
+      "unit": 0
+     }
+    }
+   },
+   "coverage": {
+    "bm": 8379,
+    "hg": 8379,
+    "jf": 3784,
+    "adv": 7455,
+    "line": 7381,
+    "top": 6907,
+    "hire": 795,
+    "perExam": {
+     "省考": {
+      "total": 3784,
+      "bm": 3784,
+      "adv": 3780,
+      "line": 3783
+     },
+     "事业编": {
+      "total": 4176,
+      "bm": 4046,
+      "adv": 3129,
+      "line": 3052
+     },
+     "国考": {
+      "total": 551,
+      "bm": 549,
+      "adv": 546,
+      "line": 546
+     }
+    },
+    "score_by_key": 6521,
+    "score_unresolved": 0
+   },
+   "score_lists": {
+    "file": "tools/anhui_web/data/score_lists.json",
+    "cycle": "2026",
+    "by_key": 6521,
+    "bs": 6763,
+    "ms": 2422,
+    "unresolved": 0,
+    "resolved": 116,
+    "resolution_method": "公告来源定市（raw 附件 pid → scan 标题城市）",
+    "resolution_evidence": [
+     "tools/anhui_web/data/score_lists.json keyed.resolution_20260905",
+     "tools/anhui_web/d2_resolution_report_20260905.txt"
+    ]
+   },
+   "candidate_keys": {
+    "fields": [
+     "exam",
+     "city",
+     "code",
+     "num",
+     "cycle"
+    ],
+    "duplicate_key_count": 0,
+    "duplicate_row_count": 0
+   },
+   "statuses": {
+    "verified": 18,
+    "source_bundle": 8457,
+    "unpublished_or_unavailable": 1,
+    "ambiguous_join": 0
+   },
+   "evidence_level": "partial_evidence",
+   "known_gaps": [
+    {
+     "kind": "unpublished_or_unavailable",
+     "title": "2026 事业编成绩收割边界",
+     "detail": "东至县下半年批次 30 岗（笔试8/22）成绩公告未发布（预计9月中旬，届时 harvest_gov_page.py 收割）；省直除粮食局8岗外 564 岗实证不可得",
+     "evidence": "tools/anhui_web/data/manifest.json",
+     "severity": "high"
+    }
+   ],
+   "resolved_adjustments": [
+    {
+     "kind": "source_bundle",
+     "title": "2026 事业编页面含源包外加表行",
+     "detail": "华图职位库快照为 4122 岗，页面口径为 4176 岗，增加 54 岗/55 人；增量来自现有构建器明确接入的源表，不视为缺失。",
+     "evidence": "docs/核验报告_v10.md",
+     "severity": "medium"
+    }
+   ],
+   "verified_scope": [
+    "岗位行主键、考试类别、城市、职位代码、单位与招录人数",
+    "源组件行数、招录人数合计、页面 allMajors 行数与聚合元数据",
+    "成绩清单周期字段与可安全匹配数量"
+   ],
+   "unverified_scope": [
+    "2026 事业编成绩收割边界"
+   ],
+   "gaps": [
+    {
+     "kind": "unpublished_or_unavailable",
+     "title": "2026 事业编成绩收割边界",
+     "detail": "东至县下半年批次 30 岗（笔试8/22）成绩公告未发布（预计9月中旬，届时 harvest_gov_page.py 收割）；省直除粮食局8岗外 564 岗实证不可得",
+     "evidence": "tools/anhui_web/data/manifest.json",
+     "severity": "high"
+    }
+   ],
+   "sources": [
+    "tools/anhui_web/data/all_majors_2026.json",
+    "tools/anhui_web/data/guokao2026.json",
+    "tools/anhui_web/data/huatu_syb_2026.json",
+    "tools/anhui_web/data/manifest.json",
+    "deliverables/皖域择岗总览.html"
+   ],
+   "resolution_history": [
+    {
+     "kind": "ambiguous_join",
+     "status": "resolved",
+     "original_count": 116,
+     "resolved_count": 116,
+     "remaining_count": 0,
+     "resolved_at": "2026-09-05",
+     "method": "公告来源定市（raw 附件 pid → scan 标题城市）；其中 110 组实为华图源跨市重复收录，幽灵行已标记 record_status=duplicate",
+     "evidence": [
+      "tools/anhui_web/data/score_lists.json keyed.resolution_20260905",
+      "tools/anhui_web/d2_resolution_report_20260905.txt"
+     ]
+    }
+   ]
+  }
+ ],
+ "checks": {
+  "passed": 54,
+  "failed": 0,
+  "details": [
+   {
+    "name": "2024 省考 源文件行数",
+    "passed": true,
+    "detail": "declared=4243, rows=4243, file=tools/anhui_web/data/cycles/2024/all_majors_2024.json"
+   },
+   {
+    "name": "2024 省考 源文件关键字段",
+    "passed": true,
+    "detail": "missing={'code': 0, 'city': 0, 'unit': 0}"
+   },
+   {
+    "name": "2024 国考 源文件行数",
+    "passed": true,
+    "detail": "declared=559, rows=559, file=tools/anhui_web/data/cycles/2024/guokao2024.json"
+   },
+   {
+    "name": "2024 国考 源文件招录人数",
+    "passed": true,
+    "detail": "declared=1185, sum(num)=1185"
+   },
+   {
+    "name": "2024 国考 源文件关键字段",
+    "passed": true,
+    "detail": "missing={'code': 0, 'city': 0, 'unit': 0}"
+   },
+   {
+    "name": "2024 事业编 源文件行数",
+    "passed": true,
+    "detail": "declared=5215, rows=5215, file=tools/anhui_web/data/cycles/2024/huatu_syb_2024.json"
+   },
+   {
+    "name": "2024 事业编 源文件招录人数",
+    "passed": true,
+    "detail": "declared=6911, sum(num)=6911"
+   },
+   {
+    "name": "2024 事业编 源文件关键字段",
+    "passed": true,
+    "detail": "missing={'code': 0, 'city': 0, 'unit': 0}"
+   },
+   {
+    "name": "2024 页面岗位总数",
+    "passed": true,
+    "detail": "page=10017, baseline=10017"
+   },
+   {
+    "name": "2024 页面招录人数",
+    "passed": true,
+    "detail": "page=15331, baseline=15331"
+   },
+   {
+    "name": "2024 页面 meta 总数",
+    "passed": true,
+    "detail": "meta=10017, rows=10017"
+   },
+   {
+    "name": "2024 页面 meta 招录人数",
+    "passed": true,
+    "detail": "meta=15331, sum=15331"
+   },
+   {
+    "name": "2024 页面考试分类",
+    "passed": true,
+    "detail": "meta={'事业编': 5215, '国考': 559, '省考': 4243}, rows={'省考': 4243, '国考': 559, '事业编': 5215}"
+   },
+   {
+    "name": "2024 组件到页面岗位增量",
+    "passed": true,
+    "detail": "source=10017, page=10017, syb_adjustment=0, expected=0"
+   },
+   {
+    "name": "2024 组件到页面招录增量",
+    "passed": true,
+    "detail": "source=15331, page=15331, adjustment=0, expected=0"
+   },
+   {
+    "name": "2024 页面关键字段",
+    "passed": true,
+    "detail": "missing={'code': 0, 'city': 0, 'unit': 0, 'num': 0, 'exam': 0}"
+   },
+   {
+    "name": "2024 页面成绩覆盖",
+    "passed": true,
+    "detail": "derived coverage equals page meta"
+   },
+   {
+    "name": "2024 成绩清单周期",
+    "passed": true,
+    "detail": "score_lists.cycle=2024"
+   },
+   {
+    "name": "2025 省考 源文件行数",
+    "passed": true,
+    "detail": "declared=4116, rows=4116, file=tools/anhui_web/data/cycles/2025/all_majors_2025.json"
+   },
+   {
+    "name": "2025 省考 源文件关键字段",
+    "passed": true,
+    "detail": "missing={'code': 0, 'city': 0, 'unit': 0}"
+   },
+   {
+    "name": "2025 国考 源文件行数",
+    "passed": true,
+    "detail": "declared=543, rows=543, file=tools/anhui_web/data/cycles/2025/guokao2025.json"
+   },
+   {
+    "name": "2025 国考 源文件招录人数",
+    "passed": true,
+    "detail": "declared=1145, sum(num)=1145"
+   },
+   {
+    "name": "2025 国考 源文件关键字段",
+    "passed": true,
+    "detail": "missing={'code': 0, 'city': 0, 'unit': 0}"
+   },
+   {
+    "name": "2025 事业编 源文件行数",
+    "passed": true,
+    "detail": "declared=5491, rows=5491, file=tools/anhui_web/data/cycles/2025/huatu_syb_2025.json"
+   },
+   {
+    "name": "2025 事业编 源文件招录人数",
+    "passed": true,
+    "detail": "declared=6956, sum(num)=6956"
+   },
+   {
+    "name": "2025 事业编 源文件关键字段",
+    "passed": true,
+    "detail": "missing={'code': 0, 'city': 0, 'unit': 0}"
+   },
+   {
+    "name": "2025 页面岗位总数",
+    "passed": true,
+    "detail": "page=10150, baseline=10150"
+   },
+   {
+    "name": "2025 页面招录人数",
+    "passed": true,
+    "detail": "page=14721, baseline=14721"
+   },
+   {
+    "name": "2025 页面 meta 总数",
+    "passed": true,
+    "detail": "meta=10150, rows=10150"
+   },
+   {
+    "name": "2025 页面 meta 招录人数",
+    "passed": true,
+    "detail": "meta=14721, sum=14721"
+   },
+   {
+    "name": "2025 页面考试分类",
+    "passed": true,
+    "detail": "meta={'事业编': 5491, '国考': 543, '省考': 4116}, rows={'省考': 4116, '国考': 543, '事业编': 5491}"
+   },
+   {
+    "name": "2025 组件到页面岗位增量",
+    "passed": true,
+    "detail": "source=10150, page=10150, syb_adjustment=0, expected=0"
+   },
+   {
+    "name": "2025 组件到页面招录增量",
+    "passed": true,
+    "detail": "source=14721, page=14721, adjustment=0, expected=0"
+   },
+   {
+    "name": "2025 页面关键字段",
+    "passed": true,
+    "detail": "missing={'code': 0, 'city': 0, 'unit': 0, 'num': 0, 'exam': 0}"
+   },
+   {
+    "name": "2025 页面成绩覆盖",
+    "passed": true,
+    "detail": "derived coverage equals page meta"
+   },
+   {
+    "name": "2025 成绩清单周期",
+    "passed": true,
+    "detail": "score_lists.cycle=2025"
+   },
+   {
+    "name": "2026 省考 源文件行数",
+    "passed": true,
+    "detail": "declared=3784, rows=3784, file=tools/anhui_web/data/all_majors_2026.json"
+   },
+   {
+    "name": "2026 省考 源文件关键字段",
+    "passed": true,
+    "detail": "missing={'code': 0, 'city': 0, 'unit': 0}"
+   },
+   {
+    "name": "2026 国考 源文件行数",
+    "passed": true,
+    "detail": "declared=551, rows=551, file=tools/anhui_web/data/guokao2026.json"
+   },
+   {
+    "name": "2026 国考 源文件招录人数",
+    "passed": true,
+    "detail": "declared=1150, sum(num)=1150"
+   },
+   {
+    "name": "2026 国考 源文件关键字段",
+    "passed": true,
+    "detail": "missing={'code': 0, 'city': 0, 'unit': 0}"
+   },
+   {
+    "name": "2026 事业编 源文件行数",
+    "passed": true,
+    "detail": "declared=4122, rows=4122, file=tools/anhui_web/data/huatu_syb_2026.json"
+   },
+   {
+    "name": "2026 事业编 源文件招录人数",
+    "passed": true,
+    "detail": "declared=5010, sum(num)=5010"
+   },
+   {
+    "name": "2026 事业编 源文件关键字段",
+    "passed": true,
+    "detail": "missing={'code': 0, 'city': 0, 'unit': 0}"
+   },
+   {
+    "name": "2026 页面岗位总数",
+    "passed": true,
+    "detail": "page=8511, baseline=8511"
+   },
+   {
+    "name": "2026 页面招录人数",
+    "passed": true,
+    "detail": "page=12006, baseline=12006"
+   },
+   {
+    "name": "2026 页面 meta 总数",
+    "passed": true,
+    "detail": "meta=8511, rows=8511"
+   },
+   {
+    "name": "2026 页面 meta 招录人数",
+    "passed": true,
+    "detail": "meta=12006, sum=12006"
+   },
+   {
+    "name": "2026 页面考试分类",
+    "passed": true,
+    "detail": "meta={'事业编': 4176, '国考': 551, '省考': 3784}, rows={'省考': 3784, '事业编': 4176, '国考': 551}"
+   },
+   {
+    "name": "2026 组件到页面岗位增量",
+    "passed": true,
+    "detail": "source=8457, page=8511, syb_adjustment=54, expected=54"
+   },
+   {
+    "name": "2026 组件到页面招录增量",
+    "passed": true,
+    "detail": "source=11951, page=12006, adjustment=55, expected=55"
+   },
+   {
+    "name": "2026 页面关键字段",
+    "passed": true,
+    "detail": "missing={'code': 0, 'city': 0, 'unit': 0, 'num': 0, 'exam': 0}"
+   },
+   {
+    "name": "2026 页面成绩覆盖",
+    "passed": true,
+    "detail": "derived coverage equals page meta"
+   },
+   {
+    "name": "2026 成绩清单周期",
+    "passed": true,
+    "detail": "score_lists.cycle=2026"
+   }
+  ]
+ },
+ "conclusion": "三年源包、标准 JSON 与已生成页面在本报告列出的聚合层面已完成内部对账；这不等同于所有外部官方逐项资料均已发布或取得。"
+}

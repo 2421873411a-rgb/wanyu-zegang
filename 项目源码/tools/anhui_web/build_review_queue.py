@@ -98,8 +98,45 @@ def summarize_review_queue(queue: dict[str, Any]) -> dict[str, int]:
     }
 
 
+def _resolved_events(audit_index: dict[str, Any]) -> list[dict[str, Any]]:
+    """Resolved-history events recorded on cycle audits (never counted as open risk)."""
+    events: list[dict[str, Any]] = []
+    cycle_items = audit_index.get("cycles") if isinstance(audit_index, dict) else []
+    for item in cycle_items if isinstance(cycle_items, list) else []:
+        if not isinstance(item, dict):
+            continue
+        cycle = str(item.get("cycle") or "")
+        history = item.get("resolution_history") or []
+        for record in history if isinstance(history, list) else []:
+            if not isinstance(record, dict):
+                continue
+            kind = str(record.get("kind") or "ambiguous_join")
+            original = int(record.get("original_count") or 0)
+            resolved = int(record.get("resolved_count") or 0)
+            remaining = int(record.get("remaining_count") or 0)
+            status = str(record.get("status") or ("resolved" if remaining == 0 else "partial"))
+            events.append(
+                {
+                    "cycle": cycle,
+                    "kind": kind,
+                    "status": status,
+                    "title": f"{cycle} 成绩附件 {original} 个撞码项已归属 {resolved} 个（{record.get('method') or '公告来源定市'}）",
+                    "scope": f"cycle:{cycle}:{kind}",
+                    "severity": "resolved",
+                    "detail": str(record.get("method") or "已全部归属，剩余 0"),
+                    "original_count": original,
+                    "resolved_count": resolved,
+                    "remaining_count": remaining,
+                    "resolved_at": str(record.get("resolved_at") or ""),
+                    "evidence": "tools/anhui_web/data/score_lists.json keyed.resolution_*；tools/anhui_web/d2_resolution_report_20260905.txt",
+                }
+            )
+    return events
+
+
 def build_review_queue(bundles: dict[str, Any], audit_index: dict[str, Any]) -> dict[str, Any]:
     events = dedupe_audit_events(_cycle_events(audit_index, bundles))
+    resolved_events = dedupe_audit_events(_resolved_events(audit_index))
     declared = audit_index.get("summary") if isinstance(audit_index, dict) else {}
     declared = declared if isinstance(declared, dict) else {}
     unresolved = declared.get("unresolved_score_count")
@@ -108,11 +145,20 @@ def build_review_queue(bundles: dict[str, Any], audit_index: dict[str, Any]) -> 
     public_boundaries = declared.get("gap_count")
     if public_boundaries is None:
         public_boundaries = len(events)
-    queue = {"schema": "wanyu-maintainable-review-queue/v1", "items": events}
+    queue = {"schema": "wanyu-maintainable-review-queue/v1", "items": events, "resolved_history": resolved_events}
     queue_summary = summarize_review_queue(queue)
+    resolved_score_count = sum(
+        int(item.get("resolved_count") or 0)
+        for item in resolved_events
+        if isinstance(item, dict) and item.get("kind") == "ambiguous_join"
+    )
     queue["summary"] = {
         **queue_summary,
         "public_boundary_count": int(public_boundaries or 0),
         "unresolved_score_count": int(unresolved or 0),
+        "resolved_score_count": int(resolved_score_count or 0),
+        "open_event_count": int(queue_summary["event_count"] or 0),
+        "open_high_risk_count": int(queue_summary["high_risk_count"] or 0),
+        "resolved_event_count": len(resolved_events),
     }
     return queue
