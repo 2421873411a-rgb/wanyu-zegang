@@ -17,6 +17,7 @@
     if (module === 'changes' && (!Array.isArray(payload.changes) || !payload.summary || !payload.target_cycle)) throw new Error(`${cycle} changes.json 缺少跨周期变化摘要`);
     if (module === 'scores' && (!payload.summary || !payload.keyed)) throw new Error(`${cycle} scores.json 缺少成绩索引摘要`);
     if (module === 'audit' && !payload.audit) throw new Error(`${cycle} audit.json 缺少周期审计`);
+    if (module === 'major_index' && (!payload.postings?.explicit || !Array.isArray(payload.majors))) throw new Error(`${cycle} major-index.json 缺少倒排索引`);
     if (module === 'major_city' && (payload.schema !== 'wanyu-maintainable-major-city/v1' || !payload.keywords || typeof payload.keywords !== 'object' || !Number.isFinite(Number(payload.rows_total)))) throw new Error(`${cycle} major_city.json 缺少专业城市索引`);
     return payload;
   };
