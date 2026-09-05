@@ -36,8 +36,14 @@ class LifecycleSemanticsTests(unittest.TestCase):
             self.assertFalse(is_active_record({"record_status": status}), status)
         self.assertTrue(EXCLUDED_STATUSES == {"duplicate", "invalid_source", "withdrawn", "superseded", "needs_review"})
 
-    def test_unknown_status_is_excluded(self):
-        self.assertFalse(is_active_record({"record_status": "mystery"}))
+    def test_unknown_status_is_rejected(self):
+        # RC3-C：未知值（含拼写错误）必须抛 RecordLifecycleError，禁止静默排除。
+        from tools.anhui_web.invariants import RecordLifecycleError
+
+        with self.assertRaises(RecordLifecycleError):
+            is_active_record({"record_status": "mystery"})
+        with self.assertRaises(RecordLifecycleError):
+            is_active_record({"record_status": "duplciate"})
 
     def test_split_records(self):
         raw = [{"job_id": "a"}, {"job_id": "b", "record_status": "duplicate"}, {"job_id": "c", "record_status": "active"}]

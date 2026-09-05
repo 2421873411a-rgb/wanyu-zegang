@@ -25,29 +25,35 @@ if str(ROOT) not in sys.path:
 try:
     from .build_catalog import build_catalog, extract_major_keywords
     from .build_changes import build_change_payload
+    from .build_major_index import build as build_major_index_index
     from .build_map import build_map_payload
     from .build_position_index import build_position_index
     from .build_review_queue import build_review_queue
     from .build_scores import build_scores
     from .build_supplement_evidence import build_supplement_evidence
+    from .invariants import BuildInvariantError, require_int
     from .record_lifecycle import RECORD_STATUS_MODEL, apply_overrides, load_overrides, split_records
     from .single_file_site import _payload_for
     from .unified_cycle_bundle import SUPPORTED_CYCLES, build_unified_bundles
 except ImportError:  # pragma: no cover - supports direct script execution
     from tools.anhui_web.build_catalog import build_catalog, extract_major_keywords
     from tools.anhui_web.build_changes import build_change_payload
+    from tools.anhui_web.build_major_index import build as build_major_index_index
     from tools.anhui_web.build_map import build_map_payload
     from tools.anhui_web.build_position_index import build_position_index
     from tools.anhui_web.build_review_queue import build_review_queue
     from tools.anhui_web.build_scores import build_scores
     from tools.anhui_web.build_supplement_evidence import build_supplement_evidence
+    from tools.anhui_web.invariants import BuildInvariantError, require_int
     from tools.anhui_web.record_lifecycle import RECORD_STATUS_MODEL, apply_overrides, load_overrides, split_records
     from tools.anhui_web.single_file_site import _payload_for
     from tools.anhui_web.unified_cycle_bundle import SUPPORTED_CYCLES, build_unified_bundles
 
 
 TEMPLATE_DIR = Path(__file__).resolve().parent / "templates"
-DEFAULT_OUTPUT = ROOT / "deliverables" / "maintainable"
+# RC3：builder 的默认输出=部署树（OUTPUT 侧，O-ALLOWED-OUTPUT 标记豁免）；
+# 正式发布走 release.py 显式传参。
+DEFAULT_OUTPUT = ROOT.parent / "网站"  # O:OUTPUT-SIDE
 SCHEMA = "wanyu-maintainable-site/v3"
 # D(2026-09-05)+RC2(H): 版本唯一真源 = 项目源码/release.json，三字段各用各的，
 # 禁止从 release 推导 asset 版本（不得 RELEASE.lstrip("v")）。
@@ -133,21 +139,29 @@ def _summary_meta(meta: object) -> dict[str, object]:
 
 
 def _unresolved_score_count(bundle: Any, payload: dict[str, object] | None = None) -> int:
-    """Read the authoritative unresolved score count without binding rows."""
+    """Read the authoritative unresolved score count without binding rows.
+
+    v17.8.5-RC3(B3)：fail-closed。scoreLists.keyed.unresolved 缺失时才允许回退
+    bundle.audit.coverage.score_unresolved；两条路径都缺失或值非法 → 直接抛错，
+    绝不静默回退成 0。
+    """
     source = payload if isinstance(payload, dict) else getattr(bundle, "payload", {})
     score_lists = source.get("scoreLists") if isinstance(source, dict) else {}
     keyed = score_lists.get("keyed") if isinstance(score_lists, dict) else {}
     unresolved = keyed.get("unresolved") if isinstance(keyed, dict) else None
+    fallback_path = "scoreLists.keyed.unresolved"
     if unresolved is None:
         audit = getattr(bundle, "audit", {})
         coverage = audit.get("coverage") if isinstance(audit, dict) else {}
-        unresolved = coverage.get("score_unresolved") if isinstance(coverage, dict) else 0
+        unresolved = coverage.get("score_unresolved")
+        fallback_path = "audit.coverage.score_unresolved"
+    if unresolved is None:
+        raise BuildInvariantError(
+            f"{getattr(bundle, 'cycle', '?')}: unresolved 成绩计数缺失（{fallback_path} 与审计覆盖层都无值），拒绝构建"
+        )
     if isinstance(unresolved, list):
         return len(unresolved)
-    try:
-        return int(unresolved or 0)
-    except (TypeError, ValueError):
-        return 0
+    return require_int(unresolved, f"{getattr(bundle, 'cycle', '?')} {fallback_path}")
 
 
 def _score_resolution_total(bundle: Any) -> int:
@@ -225,17 +239,26 @@ def _lifecycle_meta(
     if calibration_meta is not None:
         raw_meta = _compute_cycle_meta(raw_rows)
         for key in _LIFECYCLE_CALIBRATION_KEYS:
-            assert raw_meta[key] == calibration_meta.get(key), (
-                f"生命周期标定失败：{key} 公式在全量行上未能复现 bundle 原始 meta "
-                f"({raw_meta[key]!r} != {calibration_meta.get(key)!r})"
-            )
+            if raw_meta[key] != calibration_meta.get(key):
+                raise BuildInvariantError(
+                    f"生命周期标定失败：{key} 公式在全量行上未能复现 bundle 原始 meta "
+                    f"({raw_meta[key]!r} != {calibration_meta.get(key)!r})"
+                )
         raw_cov = raw_meta["scoreCoverage"]
         base_cov = calibration_meta.get("scoreCoverage") or {}
         for key in ("adv", "bm", "hg", "jf"):
-            assert raw_cov[key] == base_cov.get(key), (key, raw_cov[key], base_cov.get(key))
+            if raw_cov[key] != base_cov.get(key):
+                raise BuildInvariantError(
+                    f"生命周期标定失败：scoreCoverage.{key} 在全量行上不符 "
+                    f"({raw_cov[key]!r} != {base_cov.get(key)!r})"
+                )
         for exam in _LIFECYCLE_EXAMS:
             expected = (base_cov.get("perExam") or {}).get(exam, {}).get("total")
-            assert raw_cov["perExam"][exam]["total"] == expected, (exam, raw_cov["perExam"][exam]["total"], expected)
+            if raw_cov["perExam"][exam]["total"] != expected:
+                raise BuildInvariantError(
+                    f"生命周期标定失败：perExam[{exam}].total 在全量行上不符 "
+                    f"({raw_cov['perExam'][exam]['total']!r} != {expected!r})"
+                )
     active_meta = _compute_cycle_meta(active_rows)
     hire_source = (calibration_meta or carryover_meta).get("scoreCoverage") or {}
     # hire 是构建期录用名单投影（行级无此字段），排除集不改变它：保留现值并留痕。
@@ -265,10 +288,10 @@ def _module_payloads(bundle: Any) -> dict[str, dict[str, object]]:
     raw_rows, active_rows, excluded_rows = split_records(rows)
     meta = _lifecycle_meta(raw_rows, active_rows, excluded_rows, base_meta, calibration_meta=base_meta if excluded_rows else None)
     runtime = copy.deepcopy(payload.get("cycleRuntime") or {})
-    if excluded_rows:
-        runtime["row_count"] = len(active_rows)
-        runtime["raw_row_count"] = len(raw_rows)
-        runtime["score_unresolved"] = int(_unresolved_score_count(bundle, payload) or 0)
+    # RC3-L：三周期统一行数结构（2024: 10017/10017、2025: 10150/10150、2026: 8401/8511）。
+    runtime["row_count"] = len(active_rows)
+    runtime["raw_row_count"] = len(raw_rows)
+    runtime["score_unresolved"] = _unresolved_score_count(bundle, payload)
     cycle_info = copy.deepcopy(payload.get("cycleInfo") or {})
     audit_cycle = copy.deepcopy(bundle.audit) if isinstance(bundle.audit, dict) else {}
     unresolved = _unresolved_score_count(bundle, payload)
@@ -720,6 +743,41 @@ def assemble_maintainable_site(
     """Assemble the site from cycle bundles (shared by full build and RC2 regen)."""
     root = Path(root).resolve()
     output_dir = Path(output_dir).resolve()
+    # RC3(N)：job_history 由 builder 原生构建（行源=canonical；绑定 canonical sha）
+    from .gen_job_history import build_payload as build_job_history_payload
+
+    job_history_payload = build_job_history_payload()
+    job_history_path = output_dir / "data" / "job_history.json"
+    job_history_encoded = _write_json(job_history_path, job_history_payload)
+    # RC3(N)：精选静态输入（curated）从 canonical 复制进产物并登记
+    curated_specs = (
+        ("req_fields", "canonical/curated/req-fields-2026.json", "data/req-fields-2026.json", "2026"),
+        ("calendar", "canonical/curated/calendar.json", "data/calendar.json", None),
+    )
+    curated_payloads: dict[str, dict[str, object]] = {
+        "job_history": {
+            "data": "data/job_history.json",
+            "bytes": len(job_history_encoded),
+            "sha256": hashlib.sha256(job_history_encoded).hexdigest(),
+            "schema": job_history_payload.get("schema"),
+        },
+    }
+    for name, source_rel, output_rel, only_cycle in curated_specs:
+        source_path = root / source_rel
+        if not source_path.is_file():
+            raise BuildInvariantError(f"精选输入缺失：{source_path}")
+        target = output_dir / output_rel
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source_path, target)
+        payload_doc = json.loads(target.read_text(encoding="utf-8"))
+        curated_payloads[name] = {
+            "data": output_rel,
+            "bytes": target.stat().st_size,
+            "sha256": hashlib.sha256(target.read_bytes()).hexdigest(),
+            "schema": payload_doc.get("schema"),
+            **({"cycle": only_cycle} if only_cycle else {}),
+        }
+
     data_entries: list[dict[str, object]] = []
     snapshot_date = _stable_snapshot_date(bundles)
     previous_cycle: str | None = None
@@ -792,15 +850,7 @@ def assemble_maintainable_site(
             "sha256": hashlib.sha256(derived_encoded).hexdigest(),
             "schema": derived.get("schema"),
         }
-        palette = _palette_payload(cycle, rows_by_cycle[cycle])
-        palette_path = output_dir / "data" / "cycles" / cycle / "palette.json"
-        palette_encoded = _write_json(palette_path, palette)
-        cycle_entries_by_cycle[cycle]["modules"]["palette"] = {
-            "data": f"data/cycles/{cycle}/palette.json",
-            "bytes": len(palette_encoded),
-            "sha256": hashlib.sha256(palette_encoded).hexdigest(),
-            "schema": palette.get("schema"),
-        }
+        # palette 已退役（v17.7.1）：命令面板由 jobs_lite 内存派生，builder 不再产出/登记。
         lite = _lite_payload(cycle, rows_by_cycle[cycle], meta_by_cycle.get(cycle, {}))
         lite_path = output_dir / "data" / "cycles" / cycle / "jobs_lite.json"
         lite_encoded = _write_json(lite_path, lite)
@@ -810,6 +860,26 @@ def assemble_maintainable_site(
             "sha256": hashlib.sha256(lite_encoded).hexdigest(),
             "schema": lite.get("schema"),
         }
+        # RC3(N)：major_index 由 builder 原生构建（行源=canonical active 行，输入图零产物）
+        major_catalog_path = root / "tools" / "anhui_web" / "data" / "major_catalog.json"
+        major_catalog = json.loads(major_catalog_path.read_text(encoding="utf-8"))
+        major_index = build_major_index_index(major_catalog.get("map") or {}, rows_by_cycle[cycle])
+        major_index["cycle"] = str(cycle)
+        canonical_file = root / "canonical" / "cycles" / f"{cycle}.json"
+        major_index["computed_from"] = {
+            "jobs_sha256": hashlib.sha256(canonical_file.read_bytes()).hexdigest(),
+            "source": "canonical/cycles",
+        }
+        major_index_path = output_dir / "data" / "cycles" / cycle / "major-index.json"
+        major_index_encoded = _write_json(major_index_path, major_index)
+        cycle_entries_by_cycle[cycle]["modules"]["major_index"] = {
+            "data": f"data/cycles/{cycle}/major-index.json",
+            "bytes": len(major_index_encoded),
+            "sha256": hashlib.sha256(major_index_encoded).hexdigest(),
+            "schema": major_index.get("schema"),
+        }
+        if str(cycle) == "2026":
+            cycle_entries_by_cycle[cycle]["modules"]["req_fields"] = curated_payloads["req_fields"]
 
     audit_path = output_dir / "data" / "audit" / "three-year.json"
     audit_payload = _global_audit_payload(
@@ -828,6 +898,7 @@ def assemble_maintainable_site(
     salary_path = output_dir / "data" / "salary" / "anhui.json"
     salary_payload = _salary_payload()
     salary_encoded = _write_json(salary_path, salary_payload)
+
     supplement_payload: dict[str, Any] | None = None
     supplement_encoded: bytes | None = None
     supplement_dir = root / "source_data" / "supplement_20260904"
@@ -868,6 +939,8 @@ def assemble_maintainable_site(
             "schema": map_payload.get("schema"),
             "source": map_payload.get("source_module"),
         },
+        "job_history": curated_payloads["job_history"],
+        "calendar": curated_payloads["calendar"],
         "salary": {
             "data": "data/salary/anhui.json",
             "bytes": len(salary_encoded),

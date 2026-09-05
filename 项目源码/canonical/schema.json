@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "wanyu-cycle-bundle/v1",
+  "title": "皖域择岗 canonical cycle bundle",
+  "description": "周期数据事实的唯一正式输入：rows/meta/cycle_info/score_state/audit_ref/metrics/city_dimension/provenance。禁止包含任何页面 UI（HTML/CSS/JS/模板）。构建产物（lite/catalog/manifest 等）永远不得回写本结构。",
+  "type": "object",
+  "required": ["schema", "cycle", "label", "migration_origin", "seeded_on", "seed_baseline_commit", "cycle_info", "all_majors", "score_state", "audit_ref", "metrics", "city_dimension", "provenance"],
+  "additionalProperties": false,
+  "properties": {
+    "schema": {"const": "wanyu-cycle-bundle/v1"},
+    "cycle": {"type": "string", "enum": ["2024", "2025", "2026"]},
+    "label": {"type": "string", "minLength": 1},
+    "migration_origin": {"const": "audited_production_snapshot", "description": "种子来源声明；legacy 恢复对账后允许 'legacy_v11_recovered'（需先修订本 schema 枚举与迁移文档）"},
+    "seeded_on": {"type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$"},
+    "seed_baseline_commit": {"type": "string", "minLength": 7},
+    "cycle_info": {"type": "object"},
+    "all_majors": {
+      "type": "object",
+      "required": ["meta", "rows"],
+      "additionalProperties": false,
+      "properties": {
+        "meta": {"type": "object", "description": "bundle 原始（raw）口径 meta；行级公式必须可复现（builder 标定断言）"},
+        "rows": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["job_id", "code", "city", "exam", "num"],
+            "properties": {
+              "record_status": {"enum": [null, "active", "duplicate", "invalid_source", "withdrawn", "superseded", "needs_review"]},
+              "exclusion_reason": {"type": ["string", "null"]},
+              "exclusion_evidence": {"type": ["string", "null"]},
+              "excluded_at": {"type": ["string", "null"]},
+              "source_city": {"type": ["string", "null"], "description": "地市维度审计保留字段；未回填为 null"}
+            }
+          }
+        }
+      }
+    },
+    "score_state": {
+      "type": "object",
+      "required": ["mode", "file", "sha256", "cycle"],
+      "additionalProperties": false,
+      "properties": {
+        "mode": {"const": "reference"},
+        "file": {"type": "string"},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "cycle": {"type": ["string", "null"]}
+      }
+    },
+    "audit_ref": {
+      "type": "object",
+      "required": ["file", "cycle_entry"],
+      "additionalProperties": false,
+      "properties": {
+        "file": {"type": "string"},
+        "cycle_entry": {"type": "string"}
+      }
+    },
+    "metrics": {
+      "type": "object",
+      "required": ["raw_posts", "active_posts", "excluded_posts", "raw_recruits", "recruits"],
+      "additionalProperties": false,
+      "properties": {
+        "raw_posts": {"type": "integer", "minimum": 0},
+        "active_posts": {"type": "integer", "minimum": 0},
+        "excluded_posts": {"type": "integer", "minimum": 0},
+        "raw_recruits": {"type": "integer", "minimum": 0},
+        "recruits": {"type": "integer", "minimum": 0}
+      }
+    },
+    "city_dimension": {
+      "type": "object",
+      "required": ["canonical_cities", "user_scope", "audit_scope"],
+      "properties": {
+        "canonical_cities": {"type": "array", "items": {"type": "string"}},
+        "user_scope": {"type": "string"},
+        "audit_scope": {"type": "string"},
+        "off_dimension_source_values": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "required": ["seed_inputs", "job_id_set_sha256", "recovery_attempted", "verified_facts", "unverifiable_without_legacy"],
+      "properties": {
+        "seed_inputs": {"type": "array", "items": {"type": "object", "required": ["path", "role", "sha256"], "properties": {"path": {"type": "string"}, "role": {"type": "string"}, "sha256": {"type": "string"}}}},
+        "job_id_set_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "recovery_attempted": {"type": "string"},
+        "verified_facts": {"type": "array", "items": {"type": "string"}},
+        "unverifiable_without_legacy": {"type": "array", "items": {"type": "string"}}
+      }
+    }
+  }
+}

@@ -11,8 +11,12 @@ import argparse
 import hashlib
 import json
 import re
+import sys
 from pathlib import Path
 from typing import Any
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from tools.anhui_web.record_lifecycle import ALLOWED_STATUSES  # noqa: E402
 
 
 CYCLES = ("2024", "2025", "2026")
@@ -59,16 +63,25 @@ def _check(checks: list[dict[str, Any]], check_id: str, expected: Any, actual: A
     })
 
 
-def _unresolved(audit_payload: dict[str, Any]) -> int:
+def _unresolved(audit_payload: dict[str, Any]) -> int | str:
+    """Unresolved 计数读取（RC3-B4 fail-closed）。
+
+    返回 int 或 ``"ILLEGAL:<repr>"``——非法值绝不能静默变成 0（那会让
+    expected==0 的检查假绿）。列表取长度；缺失直接抛错（上游调用处会捕获并
+    记 FAIL）。
+    """
     value = ((audit_payload.get("scoreLists") or {}).get("keyed") or {}).get("unresolved")
     if isinstance(value, list):
         return len(value)
     if value is None:
         raise ValueError("audit.scoreLists.keyed.unresolved missing (E1: no silent default to 0)")
-    try:
-        return int(value)
-    except (TypeError, ValueError):
-        return 0
+    if isinstance(value, bool):
+        return f"ILLEGAL:{value!r}"
+    if isinstance(value, int):
+        return value
+    if isinstance(value, str) and value.strip().isdigit():
+        return int(value.strip())
+    return f"ILLEGAL:{value!r}"
 
 
 def verify_maintainable_site(site_dir: Path) -> dict[str, Any]:
@@ -149,13 +162,14 @@ def verify_maintainable_site(site_dir: Path) -> dict[str, Any]:
         history_jobs = history_payload.get("jobs") if isinstance(history_payload.get("jobs"), dict) else {}
         _check(checks, "job_history.coverage", True, len(history_jobs) >= 500, "job history covers a meaningful number of job families")
         sources = history_payload.get("sources") if isinstance(history_payload.get("sources"), dict) else {}
+        # RC3(O)：绑定对象=canonical 周期包（行源真源）；生成物 jobs.json 不再是输入。
+        canonical_root = Path(__file__).resolve().parents[2]
         provenance_ok = True
         for cycle, source in sources.items():
-            cycle_entry = next((item for item in cycle_entries if str(item.get("cycle")) == str(cycle)), {})
-            lite_entry = (cycle_entry.get("modules") or {}).get("jobs") if isinstance(cycle_entry.get("modules"), dict) else {}
-            if not source or lite_entry.get("sha256") != source.get("sha256"):
+            canonical_file = canonical_root / "canonical" / "cycles" / f"{cycle}.json"
+            if not source or not canonical_file.is_file() or _sha256(canonical_file) != source.get("sha256"):
                 provenance_ok = False
-        _check(checks, "job_history.provenance", True, provenance_ok and len(sources) >= 2, "job history binds to jobs.json sha256 per cycle")
+        _check(checks, "job_history.provenance", True, provenance_ok and len(sources) >= 2, "job history binds to canonical cycle sha256 per row source")
     for cycle_entry in cycle_entries:
         cycle = str(cycle_entry.get("cycle"))
         modules = cycle_entry.get("modules") if isinstance(cycle_entry.get("modules"), dict) else {}
@@ -224,7 +238,16 @@ def verify_maintainable_site(site_dir: Path) -> dict[str, Any]:
         _check(checks, f"{cycle}.audit.no_rows", False, audit_has_rows, f"{cycle} audit has no job rows")
         audit_cycle = audit_module.get("audit") if isinstance(audit_module.get("audit"), dict) else {}
         _check(checks, f"{cycle}.audit.cycle", cycle, str(audit_cycle.get("cycle")), f"{cycle} audit cycle matches")
-        _check(checks, f"{cycle}.audit.unresolved", int(cycle_entry.get("score_unresolved") or 0), _unresolved(audit_module), f"{cycle} unresolved score count")
+        # RC3-B4：期望侧同样 fail-closed——manifest 缺 score_unresolved 不得被 `or 0` 吞掉。
+        expected_unresolved = cycle_entry.get("score_unresolved")
+        if expected_unresolved is None:
+            _check(checks, f"{cycle}.audit.unresolved", "present", None, f"{cycle} manifest score_unresolved missing (fail-closed)")
+        else:
+            try:
+                unresolved_actual = _unresolved(audit_module)
+            except ValueError as error:
+                unresolved_actual = f"ILLEGAL:{error}"
+            _check(checks, f"{cycle}.audit.unresolved", expected_unresolved, unresolved_actual, f"{cycle} unresolved score count")
         catalog = loaded.get("catalog") or {}
         _check(checks, f"{cycle}.catalog.no_rows", False, "rows" in catalog, f"{cycle} catalog has no full rows")
         _check(checks, f"{cycle}.catalog.readable_majors", True, all(bool(re.search(r"[A-Za-z\u4e00-\u9fff]", str(value))) for value in (catalog.get("majors") or [])), f"{cycle} catalog majors are readable")
@@ -347,6 +370,18 @@ def verify_maintainable_site(site_dir: Path) -> dict[str, Any]:
         excluded = sum(1 for r in rows_c if str(r.get("record_status") or "") not in ("", "active"))
         active = raw_posts - excluded
         _check(checks, f"{cycle}.records.raw_eq_active_plus_excluded", raw_posts, active + excluded, f"raw_posts = active + excluded ({raw_posts} = {active} + {excluded})")
+        # C1：record_status 严格枚举——未知值（含拼写错误）必须 FAIL，不得静默按排除处理。
+        declared_statuses = sorted({str(row.get("record_status")) for row in rows_c if row.get("record_status") not in (None, "")})
+        unknown_statuses = [status for status in declared_statuses if status not in ALLOWED_STATUSES]
+        _check(checks, f"{cycle}.records.status_enum", [], unknown_statuses, f"{cycle} record_status values must be in the allowed enum {sorted(ALLOWED_STATUSES)}")
+        # C2：排除行必须携带完整证据三字段。
+        missing_evidence = [
+            str(row.get("job_id") or row.get("code") or "?")
+            for row in rows_c
+            if str(row.get("record_status") or "") not in ("", "active")
+            and not (row.get("exclusion_reason") and row.get("exclusion_evidence") and row.get("excluded_at"))
+        ]
+        _check(checks, f"{cycle}.records.exclusion_evidence", [], missing_evidence[:5], f"{cycle} every excluded row must carry reason/evidence/excluded_at ({len(missing_evidence)} missing)")
         mp_raw = int(cycle_entry.get("raw_posts") or 0)
         mp_act = int(cycle_entry.get("active_posts") or 0)
         mp_exc = int(cycle_entry.get("excluded_posts") or 0)

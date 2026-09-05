@@ -35,9 +35,12 @@ def norm_key(*parts: str) -> str:
 
 
 def build() -> dict:
+    from tools.anhui_web.unified_cycle_bundle import load_canonical_doc  # RC3(O)：行源=canonical
+
+    project_root = Path(__file__).resolve().parents[2]
     families: dict[str, dict] = defaultdict(lambda: {"cycles": {}})
     for cycle in CYCLES:
-        rows = json.loads((SITE / "data" / "cycles" / cycle / "jobs.json").read_text(encoding="utf-8"))["allMajors"]["rows"]
+        rows = load_canonical_doc(project_root, cycle)["all_majors"]["rows"]
         grouped: dict[str, list] = defaultdict(list)
         # wanyu-record-status/v1：跨年同岗走势是用户口径，排除行不进入聚合
         for row in rows:
@@ -65,6 +68,23 @@ def build() -> dict:
     return jobs
 
 
+def build_payload() -> dict:
+    """部署形态信封（RC3-N：builder 原生构建用；schema 与 verifier 期望一致）。"""
+    jobs = build()
+    canonical_dir = Path(__file__).resolve().parents[2] / "canonical" / "cycles"
+    payload = {
+        "schema": "wanyu-maintainable-job-history/v1",
+        "jobs_total": len(jobs),
+        "jobs": jobs,
+        "key_semantics": "city|unit|zw 去空白小写；聚合同键多岗：posts/num/bm 求和，入围线取可复核值区间",
+        "sources": {},
+    }
+    for cycle in CYCLES:
+        cp = canonical_dir / f"{cycle}.json"
+        payload["sources"][cycle] = {"data": f"canonical/cycles/{cycle}.json", "sha256": sha256(cp)}
+    return payload
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="重建 job_history.json")
     parser.add_argument("--write", action="store_true", help="落盘并重绑 sources 哈希")
@@ -78,9 +98,10 @@ def main() -> int:
         "key_semantics": "city|unit|zw 去空白小写；聚合同键多岗：posts/num/bm 求和，入围线取可复核值区间",
         "sources": {},
     }
+    canonical_dir = Path(__file__).resolve().parents[2] / "canonical" / "cycles"
     for cycle in CYCLES:
-        jp = SITE / "data" / "cycles" / cycle / "jobs.json"
-        payload["sources"][cycle] = {"data": f"data/cycles/{cycle}/jobs.json", "sha256": sha256(jp)}
+        cp = canonical_dir / f"{cycle}.json"
+        payload["sources"][cycle] = {"data": f"canonical/cycles/{cycle}.json", "sha256": sha256(cp)}
 
     current_path = SITE / "data" / "job_history.json"
     current = json.loads(current_path.read_text(encoding="utf-8"))

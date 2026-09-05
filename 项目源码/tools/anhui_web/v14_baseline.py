@@ -34,8 +34,9 @@ def load_baseline(path: Path) -> dict[str, Any]:
 def snapshot_site(root: Path) -> dict[str, Any]:
     """Return current maintainable-site facts for a deterministic pre-upgrade diff."""
     root = Path(root)
-    manifest_path = root / "deliverables" / "maintainable" / "data" / "site-manifest.json"
-    audit_path = root / "deliverables" / "maintainable" / "data" / "audit" / "three-year.json"
+    # RC3：快照读取部署树（deliverables 镜像随构建图退役）
+    manifest_path = root.parent / "网站" / "data" / "site-manifest.json"
+    audit_path = root.parent / "网站" / "data" / "audit" / "three-year.json"
     manifest = _read_json(manifest_path)
     audit = _read_json(audit_path)
     cycles: dict[str, Any] = {}

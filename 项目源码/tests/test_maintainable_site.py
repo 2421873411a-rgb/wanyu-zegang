@@ -11,10 +11,11 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class MaintainableSiteContractTests(unittest.TestCase):
+    # RC3：overview meta = active 口径（wanyu-metrics/v1）；raw 事实由 verifier 单独把守
     CYCLE_EXPECT = {
         "2024": (10017, 15331),
         "2025": (10150, 14721),
-        "2026": (8511, 12006),
+        "2026": (8401, 11883),
     }
 
     def test_external_build_keeps_job_rows_out_of_html_and_versions_each_cycle(self) -> None:
@@ -59,16 +60,22 @@ class MaintainableSiteContractTests(unittest.TestCase):
             audit = json.loads(audit_path.read_text(encoding="utf-8"))
             self.assertEqual(audit["schema"], "wanyu-maintainable-audit/v1")
             self.assertEqual([item["cycle"] for item in audit["cycles"]], ["2024", "2025", "2026"])
+            # RC3：审计 summary=raw 口径；116 已进 resolution_history（open=0）
             self.assertEqual(audit["summary"]["post_count"], 28678)
             self.assertEqual(audit["summary"]["recruit_count"], 42058)
-            self.assertEqual(audit["summary"]["gap_count"], 8)
-            self.assertEqual(audit["summary"]["unresolved_score_count"], 116)
+            self.assertEqual(audit["summary"]["gap_count"], 7)
+            self.assertEqual(audit["summary"]["unresolved_score_count"], 0)
+            self.assertEqual(audit["summary"]["active_post_count"], 28568)
             self.assertEqual(
                 hashlib.sha256(audit_path.read_bytes()).hexdigest(),
                 manifest["audit"]["sha256"],
             )
             for item in manifest["cycles"]:
-                self.assertEqual(set(item["modules"]), {"overview", "jobs", "jobs_lite", "catalog", "positions", "changes", "audit", "derived", "palette", "major_city"})
+                # RC3：palette 退役；major_index 三周期原生；req_fields 2026 精选输入
+                expected_modules = {"overview", "jobs", "jobs_lite", "catalog", "positions", "changes", "audit", "derived", "major_city", "major_index"}
+                if str(item["cycle"]) == "2026":
+                    expected_modules.add("req_fields")
+                self.assertEqual(set(item["modules"]), expected_modules)
                 self.assertEqual(item["data"], item["modules"]["jobs"]["data"])
                 module_payloads = {
                     name: json.loads((output / entry["data"]).read_text(encoding="utf-8"))
@@ -78,7 +85,9 @@ class MaintainableSiteContractTests(unittest.TestCase):
                     path = output / entry["data"]
                     self.assertEqual(hashlib.sha256(path.read_bytes()).hexdigest(), entry["sha256"], name)
                 self.assertIn("allMajors", module_payloads["jobs"])
-                self.assertEqual(len(module_payloads["jobs"]["allMajors"]["rows"]), item["posts"])
+                # RC3：jobs.json 保留 raw 行（审计真源）→ 行数=raw_posts；positions/lite 等用户模块=active。
+                self.assertEqual(len(module_payloads["jobs"]["allMajors"]["rows"]), item["raw_posts"])
+                self.assertEqual(len(module_payloads["jobs_lite"]["allMajors"]["rows"]), item["active_posts"])
                 self.assertNotIn("rows", module_payloads["overview"].get("allMajors", {}))
                 self.assertNotIn("rows", module_payloads["audit"].get("allMajors", {}))
                 self.assertIn("known_gaps", module_payloads["audit"]["audit"])
@@ -103,7 +112,8 @@ class MaintainableSiteContractTests(unittest.TestCase):
     def test_disk_verifier_reconciles_every_external_module(self) -> None:
         from tools.anhui_web.verify_maintainable_site import verify_maintainable_site
 
-        report = verify_maintainable_site(ROOT / "deliverables" / "maintainable")
+        # RC3：磁盘校验器对齐部署树（deliverables 镜像随 RC3 构建图退役）
+        report = verify_maintainable_site(ROOT.parent / "网站")
         self.assertEqual(report["status"], "pass")
         self.assertEqual(report["failed"], 0)
         self.assertGreaterEqual(report["passed"], 20)
@@ -135,9 +145,11 @@ class MaintainableSiteContractTests(unittest.TestCase):
             queue_path = output / manifest["review_queue"]["data"]
             queue = json.loads(queue_path.read_text(encoding="utf-8"))
             self.assertEqual(queue["schema"], "wanyu-maintainable-review-queue/v1")
-            self.assertEqual(queue["summary"]["public_boundary_count"], 8)
-            self.assertEqual(queue["summary"]["unresolved_score_count"], 116)
-            self.assertGreaterEqual(queue["summary"]["event_count"], 8)
+            self.assertEqual(queue["summary"]["public_boundary_count"], 7)  # RC3：116 迁 resolved_history，公开边界 8→7
+            # RC3：116 全部归属 → open unresolved=0；resolved_history 记 116/116/0。
+            self.assertEqual(queue["summary"]["unresolved_score_count"], 0)
+            self.assertEqual(queue["summary"]["resolved_score_count"], 116)
+            self.assertGreaterEqual(queue["summary"]["event_count"], 7)
 
     def test_jobs_ranking_markup_exposes_major_filter_hooks(self) -> None:
         from tools.anhui_web import build_pages

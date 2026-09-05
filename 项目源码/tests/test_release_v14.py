@@ -29,9 +29,12 @@ class ReleaseV14ContractTests(unittest.TestCase):
     def test_manifest_has_v14_release_and_split_modules(self) -> None:
         import json
 
-        manifest = json.loads((ROOT / "deliverables" / "maintainable" / "data" / "site-manifest.json").read_text(encoding="utf-8"))
-        self.assertEqual(manifest["release"], "v17.6.4")
+        manifest = json.loads((ROOT.parent / "网站" / "data" / "site-manifest.json").read_text(encoding="utf-8"))
+        # RC3-D1：release 单一真源=release.json（本测试改为“manifest 与真源一致”）。
+        release_doc = json.loads((ROOT / "release.json").read_text(encoding="utf-8"))
+        self.assertEqual(manifest["release"], release_doc["release"])
         self.assertEqual(manifest["schema"], "wanyu-maintainable-site/v3")
+        self.assertIn("metrics_contract", manifest)
         self.assertIn("review_queue", manifest)
         self.assertTrue(all("scores" not in item["modules"] and "changes" in item["modules"] for item in manifest["cycles"]))
 

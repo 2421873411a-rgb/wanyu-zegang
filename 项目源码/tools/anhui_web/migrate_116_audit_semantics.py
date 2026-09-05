@@ -43,12 +43,15 @@ def main() -> int:
         for key, block in keyed.items()
         if isinstance(key, str) and key.startswith("resolution_") and isinstance(block, dict)
     )
-    assert attributed == 116 and still == 0, (attributed, still)
+    if attributed != 116 or still != 0:
+        raise SystemExit(f"keyed.resolution_20260905 与预期不符：attributed={attributed} still={still}，拒绝迁移")
     unresolved_list = keyed.get("unresolved") or []
-    assert isinstance(unresolved_list, list) and len(unresolved_list) == 0, len(unresolved_list)
+    if not (isinstance(unresolved_list, list) and len(unresolved_list) == 0):
+        raise SystemExit(f"keyed.unresolved 非空列表（len={len(unresolved_list) if isinstance(unresolved_list, list) else type(unresolved_list).__name__}），拒绝迁移")
 
     cycle_entry = next((c for c in audit.get("cycles", []) if str(c.get("cycle")) == "2026"), None)
-    assert cycle_entry is not None, "three_year_audit 缺少 2026 周期"
+    if cycle_entry is None:
+        raise SystemExit("three_year_audit 缺少 2026 周期，拒绝迁移")
     stale = [
         cycle_entry.get("score_lists", {}).get("unresolved") == 116,
         (cycle_entry.get("coverage") or {}).get("score_unresolved") == 116,
@@ -65,7 +68,8 @@ def main() -> int:
 
     # E1：score_lists 归零 + resolved 记录
     sl = cycle_entry.setdefault("score_lists", {})
-    assert sl.get("unresolved") == 116, sl.get("unresolved")
+    if sl.get("unresolved") != 116:
+        raise SystemExit(f"score_lists.unresolved 预期 116（过期态），实际 {sl.get('unresolved')!r}，拒绝迁移")
     sl["unresolved"] = 0
     sl["resolved"] = attributed
     sl["resolution_method"] = "公告来源定市（raw 附件 pid → scan 标题城市）"
@@ -73,7 +77,8 @@ def main() -> int:
 
     # E4：coverage 同步
     coverage = cycle_entry.setdefault("coverage", {})
-    assert coverage.get("score_unresolved") == 116, coverage.get("score_unresolved")
+    if coverage.get("score_unresolved") != 116:
+        raise SystemExit(f"coverage.score_unresolved 预期 116（过期态），实际 {coverage.get('score_unresolved')!r}，拒绝迁移")
     coverage["score_unresolved"] = 0
 
     # E2：active gap / known_gaps / unverified_scope 移除已解决项

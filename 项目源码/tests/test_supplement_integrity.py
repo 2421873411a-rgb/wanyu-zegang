@@ -67,15 +67,16 @@ class SupplementIntegrityTests(unittest.TestCase):
         )
 
     def test_canonical_baseline_unchanged_and_outputs_registered(self):
-        expected = {"2024": (10017, 15331), "2025": (10150, 14721), "2026": (8511, 12006)}
+        # RC3：overview/jobs meta=active 口径（raw=8511 仅审计层）。
+        expected = {"2024": (10017, 15331), "2025": (10150, 14721), "2026": (8401, 11883)}
         for cycle, (posts, recruits) in expected.items():
-            path = ROOT / "deliverables" / "maintainable" / "data" / "cycles" / cycle / "jobs.json"
+            path = ROOT.parent / "网站" / "data" / "cycles" / cycle / "jobs.json"
             payload = json.loads(path.read_text(encoding="utf-8"))
             meta = payload["allMajors"]["meta"]
             self.assertEqual((meta["total"], meta["recruits"]), (posts, recruits), cycle)
         expected_sha = self.payload["summary"]
         for output_dir in (
-            ROOT / "deliverables" / "maintainable",
+            ROOT.parent / "网站",
             ROOT.parent / "网站",
             ROOT.parent / "网站-lite",
         ):

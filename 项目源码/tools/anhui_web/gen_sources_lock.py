@@ -25,9 +25,15 @@ KEY_FILES = [
     DATA / "syb2026_daxian_all.pre_fix.json",
     DATA / ".zhaokao_syb_scan.json",
     DATA / "ahsk2026_hire.json",
-    DATA / "phantom_codes_2026.json",
+    # RC3-K：phantom_codes_2026.json 退役——生命周期唯一输入 = record_status_overrides.json
+    # （v2 证据链见 gen_record_status_overrides.py），双真源清零。历史文件归档说明见
+    # docs/audit/v17.8.5-rc3-final-acceptance.md。
     DATA / "three_year_audit.json",
     DATA / "record_status_overrides.json",
+    # RC3-E/F：canonical 周期包（正式数据输入，wanyu-cycle-bundle/v1）
+    ROOT / "项目源码" / "canonical" / "cycles" / "2024.json",
+    ROOT / "项目源码" / "canonical" / "cycles" / "2025.json",
+    ROOT / "项目源码" / "canonical" / "cycles" / "2026.json",
 ]
 
 ROLLUP_ALGO = "sha256(relpath\\0file_sha256\\0bytes\\n sorted by relpath)"

@@ -11,7 +11,10 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 TPL = ROOT / "tools" / "anhui_web" / "templates"
-SITE = ROOT.parent / "site"
+# RC3-D2：设备特定路径清零——统一指向标准部署树 网站/（存在性校验，两设备布局兼容）
+SITE = ROOT.parent / "网站"
+if not SITE.is_dir():
+    SITE = ROOT.parent / "site"
 
 
 class V17SalaryViewTests(unittest.TestCase):
@@ -31,8 +34,9 @@ class V17SalaryViewTests(unittest.TestCase):
 
     def test_salary_view_is_dedicated_nav_and_rendered(self) -> None:
         # 独立视图：路由集合、渲染函数、命令面板条目、身份/工龄子切换、排行、曲线
+        # RC3-D3：'SALARY RANKING' 文案已在后续批次考生化为「待遇排行」。
         for marker in ("'salary_map'", "const renderSalaryMap", "data-maint-salary-type",
-                       "data-maint-salary-stage", "SALARY RANKING", "maint-salary-curve"):
+                       "data-maint-salary-stage", "待遇排行", "maint-salary-curve"):
             self.assertIn(marker, self.js, marker)
         self.assertIn("data-maintain-view=\"salary_map\"", self.builder)
         self.assertIn(".maint-salary-curve", self.css)
@@ -108,15 +112,25 @@ class V17PerfBudgetTests(unittest.TestCase):
         self.assertIn("perf_budget.py", release)
 
     def test_release_version_is_canonical(self) -> None:
+        # RC3-D1：release 版本必须来自 release.json 单一真源，禁止硬编码任何具体版本号。
+        import re as _re
+
         release = (ROOT / "tools" / "anhui_web" / "release.py").read_text(encoding="utf-8")
-        self.assertIn('BUILD_VERSION = "v17.6.4"', release)
+        self.assertIn('release.json', release)
+        self.assertIsNone(_re.search(r'BUILD_VERSION\s*=\s*"v\d', release), "release.py 不得硬编码版本号")
+        release_doc = json.loads((ROOT / "release.json").read_text(encoding="utf-8"))
+        self.assertEqual(release_doc["release"], "v17.8.5")
 
     def test_release_checks_template_asset_parity_and_view_smoke(self) -> None:
+        import sys as _sys
+
+        _sys.path.insert(0, str(ROOT))
         from tools.anhui_web.release import verify_template_asset_parity
 
         report = verify_template_asset_parity(SITE)
         self.assertEqual(report["status"], "pass")
-        self.assertGreaterEqual(report["checked"], 18)
+        # RC3-D3：palette 退役后模板资产清单变化，parity 全集=13（11 资产 + webmanifest + sw）。
+        self.assertGreaterEqual(report["checked"], 13)
         self.assertEqual(report["mismatches"], [])
 
 

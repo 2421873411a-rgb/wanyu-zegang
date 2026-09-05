@@ -4,9 +4,9 @@
 规则（与 docs/data-contract/record-status.md 及前端 isActiveRow 防御层一致）：
 - 行缺失 record_status 或等于 "active" => active（进入所有用户口径模块）。
 - duplicate / invalid_source / withdrawn / superseded / needs_review => 排除出用户口径。
-- 排除行保留在 jobs.json（raw 审计真源），只从用户模块消失。
+- 排除行保留在 jobs raw 层（canonical 行源，审计真源），只从用户模块消失。
 - 生命周期标记来自构建输入 record_status_overrides.json（证据外置），builder 在进入
-  业务派生前统一应用；禁止对网站产物做外科手术（v17.8.5-RC2 纪律）。
+  业务派生前统一应用；禁止对站点产物做外科手术（v17.8.5-RC2 纪律）。
 """
 from __future__ import annotations
 
@@ -14,9 +14,15 @@ import json
 from pathlib import Path
 from typing import Any
 
+try:
+    from .invariants import RecordLifecycleError
+except ImportError:  # pragma: no cover - supports direct script imports
+    from invariants import RecordLifecycleError
+
 RECORD_STATUS_MODEL = "wanyu-record-status/v1"
 STATUS_ACTIVE = "active"
 EXCLUDED_STATUSES = frozenset({"duplicate", "invalid_source", "withdrawn", "superseded", "needs_review"})
+ALLOWED_STATUSES = frozenset({STATUS_ACTIVE, *EXCLUDED_STATUSES})
 OVERRIDES_SCHEMA = "wanyu-record-status-overrides/v1"
 
 _EXCLUSION_FIELDS = ("record_status", "exclusion_reason", "exclusion_evidence", "excluded_at")
@@ -42,10 +48,24 @@ def load_overrides(root: Path | None = None) -> dict[str, Any]:
 
 
 def record_status_of(row: Any) -> str:
+    """生命周期状态读取（RC3-C：严格枚举）。
+
+    缺失/空 => active；已知值原样返回；**未知值（含拼写错误）抛
+    RecordLifecycleError**——禁止拼错的状态被静默当作排除处理。
+    扩展枚举必须先改 docs/data-contract/record-status.md 与 ALLOWED_STATUSES。
+    """
     if not isinstance(row, dict):
         raise TypeError("record_status_of 需要 dict 行")
     status = row.get("record_status")
-    return STATUS_ACTIVE if not status else str(status)
+    if not status:
+        return STATUS_ACTIVE
+    status = str(status)
+    if status not in ALLOWED_STATUSES:
+        raise RecordLifecycleError(
+            f"未知 record_status {status!r}（job_id={row.get('job_id') or '?'}）；"
+            f"允许值 {sorted(ALLOWED_STATUSES)}。扩展前必须先修订生命周期契约。"
+        )
+    return status
 
 
 def is_active_record(row: Any) -> bool:

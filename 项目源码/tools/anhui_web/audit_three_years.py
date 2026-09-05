@@ -7,6 +7,13 @@
 
 from __future__ import annotations
 
+import sys as _sys
+from pathlib import Path as _Path
+
+if str(_Path(__file__).resolve().parents[2]) not in _sys.path:
+    _sys.path.insert(0, str(_Path(__file__).resolve().parents[2]))
+
+
 import argparse
 import datetime as dt
 import html
@@ -87,6 +94,11 @@ def _component_paths(root: Path, cycle: str) -> dict[str, Path]:
     }
 
 
+def _canonical_ref(root: Path, cycle: str) -> Path:
+    """审计行的引用路径 = canonical 周期包（不再指向 legacy 页面工件）。"""
+    return Path(root).resolve() / "canonical" / "cycles" / f"{cycle}.json"
+
+
 def _page_path(root: Path, cycle: str) -> Path:
     # v12 has one page for all cycles. Keep the historical fallback so the
     # pre-migration audit can still inspect a recoverable v11 snapshot.
@@ -104,26 +116,15 @@ def _manifest_path(root: Path, cycle: str) -> Path:
 
 
 def _read_page(path: Path, cycle: str | None = None) -> dict[str, Any]:
-    text = path.read_text(encoding="utf-8")
-    # The v12 single-file artifact contains one payload per cycle.  A generic
-    # ``page-data`` block may still be present in an older scaffold, and it is
-    # always the default/current payload; selecting it first silently audits
-    # the same cycle three times.  Prefer the exact cycle marker whenever the
-    # caller knows which cycle is being checked.
-    match = None
-    if cycle:
-        match = re.search(
-            rf'<script[^>]*data-cycle-payload=["\']{re.escape(str(cycle))}["\'][^>]*>(.*?)</script>',
-            text,
-            flags=re.IGNORECASE | re.DOTALL,
-        )
-    if not match:
-        match = PAGE_DATA_RE.search(text)
-    if not match:
-        if not cycle:
-            raise ValueError(f"page-data marker missing and cycle not supplied: {path}")
-        raise ValueError(f"v12 cycle payload marker missing: {path} ({cycle})")
-    return json.loads(html.unescape(match.group(1)))
+    """RC3(G)：页面读取已退役——行源改为 canonical 周期包（HTML 永远只是 OUTPUT）。
+
+    保留函数签名以兼容旧调用；``path`` 忽略，改为按 cycle 读 canonical。
+    """
+    from tools.anhui_web.unified_cycle_bundle import load_canonical_doc
+
+    target_cycle = str(cycle or "2026")
+    doc = load_canonical_doc(Path(__file__).resolve().parents[2], target_cycle)
+    return {"allMajors": doc.get("all_majors") or {}, "cycleInfo": doc.get("cycle_info") or {}}
 
 
 def _page_rows(payload: dict[str, Any]) -> tuple[list[dict[str, Any]], dict[str, Any]]:
@@ -317,7 +318,7 @@ def _audit_cycle(root: Path, cycle: str, global_checks: list[dict[str, Any]]) ->
     components = _component_profile(root, cycle, global_checks)
     manifest_path = _manifest_path(root, cycle)
     manifest = _json(manifest_path)
-    page_path = _page_path(root, cycle)
+    page_path = _canonical_ref(root, cycle)
     page_payload = _read_page(page_path, cycle)
     page_rows, page_meta = _page_rows(page_payload)
     score = _score_profile(root, cycle)
@@ -345,7 +346,28 @@ def _audit_cycle(root: Path, cycle: str, global_checks: list[dict[str, Any]]) ->
 
     page_coverage = _coverage(page_rows)
     meta_coverage = page_meta.get("scoreCoverage") or {}
-    check(global_checks, f"{cycle} 页面成绩覆盖", page_coverage == meta_coverage, "derived coverage equals page meta")
+    # RC3：meta.scoreCoverage 是 builder 口径（adv=官方报名观测、line>0、perExam.total），
+    # 与行字段口径（_coverage）本就不同源；一致性门改为「meta 与 canonical 行按 builder
+    # 口径复算相符」，hire 为构建期投影（行级无字段）单独豁免。
+    builder_coverage = {
+        "bm": sum(1 for row in page_rows if row.get("bm") is not None),
+        "hg": sum(1 for row in page_rows if row.get("hg") is not None),
+        "jf": sum(1 for row in page_rows if row.get("jf") is not None),
+        "adv": sum(1 for row in page_rows if (row.get("competition_observations") or {}).get("examinees", {}).get("value") is not None),
+        "line": sum(1 for row in page_rows if isinstance(row.get("line"), (int, float)) and row.get("line", 0) > 0),
+        "perExam": {
+            exam: sum(1 for row in page_rows if row.get("exam") == exam)
+            for exam in ("省考", "事业编", "国考")
+        },
+    }
+    meta_matches_builder = all(
+        meta_coverage.get(key) == builder_coverage[key]
+        for key in ("bm", "hg", "jf", "adv", "line")
+    ) and all(
+        (meta_coverage.get("perExam") or {}).get(exam, {}).get("total") == builder_coverage["perExam"][exam]
+        for exam in ("省考", "事业编", "国考")
+    )
+    check(global_checks, f"{cycle} 页面成绩覆盖", meta_matches_builder, "meta scoreCoverage matches builder-scope row recompute (field-scope coverage recorded separately)")
     check(global_checks, f"{cycle} 成绩清单周期", score["cycle"] == cycle, f"score_lists.cycle={score['cycle']}")
 
     candidate_counter = Counter(_candidate_key(row) for row in page_rows)

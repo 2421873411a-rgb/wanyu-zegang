@@ -16,6 +16,7 @@ import collections
 import hashlib
 import json
 import re
+import sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -144,13 +145,18 @@ def main() -> int:
     args = parser.parse_args()
 
     catalog = load_json(HERE / "data" / "major_catalog.json")
-    jobs_path = SITE / "data" / "cycles" / str(args.cycle) / "jobs.json"
-    rows = load_json(jobs_path)["allMajors"]["rows"]
-    # D2 幽灵重复行剔除口径与前端 rowsFor 一致（马鞍山 110 行，见 d2_resolution_report_20260905.txt）
-    rows = [r for r in rows if not r.get("record_status") or r.get("record_status") == "active"]  # record_status 生命周期口径
+    # RC3(O) 输入图纯化：行源=canonical 周期包（生成物 jobs.json 不得作为正式输入）
+    sys.path.insert(0, str(HERE.parents[1]))
+    from tools.anhui_web.unified_cycle_bundle import load_canonical_doc
+
+    jobs_path = HERE.parents[1] / "canonical" / "cycles" / f"{args.cycle}.json"
+    doc = load_canonical_doc(HERE.parents[1], str(args.cycle))
+    rows = doc["all_majors"]["rows"]
+    # 生命周期口径：只有 active 行进入用户索引（与前端 rowsFor 一致）
+    rows = [r for r in rows if not r.get("record_status") or r.get("record_status") == "active"]
     index = build(catalog["map"], rows)
     index["cycle"] = str(args.cycle)
-    index["computed_from"] = {"jobs_sha256": sha256(jobs_path)}
+    index["computed_from"] = {"jobs_sha256": sha256(jobs_path), "source": "canonical/cycles"}
 
     out_path = SITE / "data" / "cycles" / str(args.cycle) / "major-index.json"
     out_path.write_text(json.dumps(index, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")

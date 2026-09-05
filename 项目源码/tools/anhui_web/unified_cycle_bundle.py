@@ -67,108 +67,6 @@ def global_record_id(cycle: str, record_id: str) -> str:
     return f"{cycle_text}:{record_text}"
 
 
-def _page_data(html_text: str, source_file: Path) -> dict[str, Any]:
-    match = re.search(
-        r"<script[^>]*\bid=[\"']page-data[\"'][^>]*>(.*?)</script>",
-        html_text,
-        flags=re.IGNORECASE | re.DOTALL,
-    )
-    if not match:
-        raise ValueError(f"{source_file}: missing application/json #page-data")
-    try:
-        value = json.loads(match.group(1))
-    except json.JSONDecodeError as exc:
-        raise ValueError(f"{source_file}: invalid #page-data JSON: {exc}") from exc
-    if not isinstance(value, dict):
-        raise ValueError(f"{source_file}: #page-data must be an object")
-    return value
-
-
-def _v12_page_data(html_text: str, cycle: str, source_file: Path) -> dict[str, Any] | None:
-    """Read a cycle from an already-built v12 file when the v11 source is gone."""
-    match = re.search(
-        rf'<script[^>]*data-cycle-payload=["\']{re.escape(str(cycle))}["\'][^>]*>(.*?)</script>',
-        html_text,
-        flags=re.IGNORECASE | re.DOTALL,
-    )
-    if not match:
-        return None
-    try:
-        value = json.loads(match.group(1))
-    except json.JSONDecodeError as exc:
-        raise CycleBundleError(f"{source_file}: invalid v12 payload for {cycle}: {exc}") from exc
-    if not isinstance(value, dict):
-        raise CycleBundleError(f"{source_file}: v12 payload for {cycle} is not an object")
-    return value
-
-
-def _score_lists(html_text: str, source_file: Path) -> dict[str, Any]:
-    match = re.search(
-        r"<script[^>]*>\s*window\.__SCORE_LISTS__\s*=\s*(.*?);\s*</script>",
-        html_text,
-        flags=re.IGNORECASE | re.DOTALL,
-    )
-    if not match:
-        return {}
-    try:
-        value = json.loads(match.group(1))
-    except json.JSONDecodeError as exc:
-        raise ValueError(f"{source_file}: invalid __SCORE_LISTS__ JSON: {exc}") from exc
-    if not isinstance(value, dict):
-        raise ValueError(f"{source_file}: __SCORE_LISTS__ must be an object")
-    return value
-
-
-def _main_content(html_text: str, source_file: Path) -> str:
-    match = re.search(
-        r"<main\b(?=[^>]*\bid=[\"']main-content[\"'])[^>]*>(.*?)</main>",
-        html_text,
-        flags=re.IGNORECASE | re.DOTALL,
-    )
-    if not match:
-        raise ValueError(f"{source_file}: missing #main-content")
-    content = match.group(1).strip()
-    if not content:
-        raise ValueError(f"{source_file}: #main-content is empty")
-    return content
-
-
-def _v12_template_content(html_text: str, cycle: str, source_file: Path) -> str | None:
-    match = re.search(
-        rf'<template[^>]*data-cycle-template=["\']{re.escape(str(cycle))}["\'][^>]*>(.*?)</template>',
-        html_text,
-        flags=re.IGNORECASE | re.DOTALL,
-    )
-    if not match:
-        return None
-    content = match.group(1).strip()
-    if not content:
-        raise CycleBundleError(f"{source_file}: v12 template for {cycle} is empty")
-    return content
-
-
-def _candidate_files(root: Path, cycle: str) -> tuple[Path, ...]:
-    deliverables = root / "deliverables"
-    if cycle == "2026":
-        return (
-            deliverables / "legacy_v11" / MASTER_NAME,
-            root / "安徽公考数据网页" / MASTER_NAME,
-            deliverables / MASTER_NAME,
-        )
-    return (
-        deliverables / "legacy_v11" / cycle / MASTER_NAME,
-        deliverables / cycle / MASTER_NAME,
-        deliverables / MASTER_NAME,
-    )
-
-
-def _find_source(root: Path, cycle: str) -> Path:
-    for candidate in _candidate_files(root, cycle):
-        if candidate.is_file():
-            return candidate
-    searched = "、".join(str(path) for path in _candidate_files(root, cycle))
-    raise CycleBundleError(f"{cycle}: no audited page artifact found; searched {searched}")
-
 
 def _load_audit(root: Path) -> dict[str, Any]:
     path = root / "tools" / "anhui_web" / "data" / AUDIT_NAME
@@ -325,91 +223,116 @@ def _enrich_job_rollups(payload: dict[str, Any]) -> None:
                     competition[str(city_item.get("city") or "")] = copy.deepcopy(city_item["competition"])
 
 
-def _refresh_historical_cycle_fields(root: Path, payload: dict[str, Any], cycle: str) -> None:
-    """Refresh generated historical sidecar fields before embedding the page.
 
-    The archived v11 HTML remains the large rendering scaffold, but its older
-    hire coverage can lag behind newly archived official attachments.  Apply
-    only the generated cycle sidecars here: update cycle stats/gaps and join
-    the safe ``(省考, 职位代码)`` hire reference fields.  Position rows and
-    source text are otherwise left untouched.
-    """
-    cycle_dir = root / "tools" / "anhui_web" / "data" / "cycles" / cycle
-    cycle_info_path = cycle_dir / "cycle.json"
-    cycle_info: dict[str, Any] = {}
-    try:
-        raw_info = json.loads(cycle_info_path.read_text(encoding="utf-8"))
-        if isinstance(raw_info, dict):
-            cycle_info = raw_info
-    except (OSError, ValueError):
-        cycle_info = {}
-    if cycle_info:
-        info = payload.setdefault("cycleInfo", {})
-        if isinstance(info, dict):
-            if isinstance(cycle_info.get("stats"), dict):
-                info["stats"] = copy.deepcopy(cycle_info["stats"])
-            for key in ("cycle", "label", "status", "generated_on", "title_suffix", "snapshot_note", "gaps", "resolved_adjustments"):
-                if key in cycle_info:
-                    info[key] = copy.deepcopy(cycle_info[key])
+# ============ v17.8.5-RC3 阶段 G/H：canonical 正式数据源 ============
+# HTML 永远只是 OUTPUT。旧 HTML 反向读取已整体移至 archive/legacy_html_loader.py，
+# 仅限迁移与回归对照，正式 release 禁止调用。
 
-    hire_path = cycle_dir / f"ahsk{cycle}_hire.json"
-    if not hire_path.is_file():
-        return
-    try:
-        hire_payload = json.loads(hire_path.read_text(encoding="utf-8"))
-    except (OSError, ValueError):
-        return
-    hire_map: dict[str, list[dict[str, Any]]] = {}
-    for item in hire_payload.get("positions", []) if isinstance(hire_payload, dict) else []:
-        if isinstance(item, dict) and item.get("code") is not None:
-            hire_map.setdefault(str(item["code"]), []).append(item)
-    all_majors = payload.get("allMajors")
+CANONICAL_SCHEMA = "wanyu-cycle-bundle/v1"
+_CANONICAL_COLUMNS = ("job_id", "code", "city", "exam", "num")
+
+
+def canonical_path(root: Path, cycle: str) -> Path:
+    return Path(root).resolve() / "canonical" / "cycles" / f"{cycle}.json"
+
+
+def load_canonical_doc(root: Path, cycle: str) -> dict[str, Any]:
+    """读取并结构化校验 canonical 周期包（fail-closed，禁止静默降级）。"""
+    from .invariants import BuildInvariantError, require_int
+    from .record_lifecycle import record_status_of
+
+    path = canonical_path(root, cycle)
+    if not path.is_file():
+        raise CycleBundleError(f"{path}: canonical 周期包缺失；先运行 tools/anhui_web/gen_canonical_bundles.py")
+    doc = json.loads(path.read_text(encoding="utf-8"))
+    if doc.get("schema") != CANONICAL_SCHEMA:
+        raise BuildInvariantError(f"{path}: schema 必须是 {CANONICAL_SCHEMA}（got {doc.get('schema')!r}）")
+    if str(doc.get("cycle")) != str(cycle):
+        raise BuildInvariantError(f"{path}: cycle 字段 {doc.get('cycle')!r} 与文件名不符")
+    all_majors = doc.get("all_majors")
     if not isinstance(all_majors, dict) or not isinstance(all_majors.get("rows"), list):
-        return
+        raise BuildInvariantError(f"{path}: all_majors.rows 缺失")
     rows = all_majors["rows"]
     for row in rows:
-        if not isinstance(row, dict) or str(row.get("exam") or "") != "省考":
-            continue
-        entries = hire_map.get(str(row.get("code") or ""), [])
-        hs_values = [item.get("hs") for item in entries if item.get("hs") is not None]
-        ht_values = [item.get("ht") for item in entries if item.get("ht") is not None]
-        if hs_values:
-            row["hq"] = min(hs_values)
-        if ht_values:
-            row["ht"] = min(ht_values)
-    meta = all_majors.setdefault("meta", {})
-    if isinstance(meta, dict):
-        score_coverage = meta.setdefault("scoreCoverage", {})
-        if isinstance(score_coverage, dict):
-            score_coverage["hire"] = sum(1 for row in rows if isinstance(row, dict) and row.get("hq") is not None)
+        if not isinstance(row, dict):
+            raise BuildInvariantError(f"{path}: rows 存在非对象行")
+        record_status_of(row)  # 严格枚举：未知状态直接抛错
+        missing = [key for key in _CANONICAL_COLUMNS if row.get(key) is None]
+        if missing:
+            raise BuildInvariantError(f"{path}: 行 {row.get('job_id') or '?'} 缺少必填列 {missing}")
+    ids = [str(row.get("job_id") or "") for row in rows]
+    if len(ids) != len(set(ids)):
+        raise BuildInvariantError(f"{path}: job_id 存在重复")
+    metrics = doc.get("metrics") or {}
+    excluded = sum(1 for row in rows if str(row.get("record_status") or "") not in ("", "active"))
+    if require_int(metrics.get("raw_posts"), "metrics.raw_posts") != len(rows):
+        raise BuildInvariantError(f"{path}: metrics.raw_posts != len(rows)")
+    if require_int(metrics.get("excluded_posts"), "metrics.excluded_posts") != excluded:
+        raise BuildInvariantError(f"{path}: metrics.excluded_posts != 行内排除数")
+    if require_int(metrics.get("active_posts"), "metrics.active_posts") != len(rows) - excluded:
+        raise BuildInvariantError(f"{path}: metrics.active_posts != active 行数")
+    score_state = doc.get("score_state") or {}
+    score_file = Path(root).resolve() / str(score_state.get("file") or "")
+    if not score_file.is_file():
+        raise BuildInvariantError(f"{path}: score_state 文件缺失 {score_file}")
+    return doc
 
 
-def _validate_bundle(
-    bundle: CycleBundle,
-    baseline: dict[str, Any],
-    audit: dict[str, Any],
-) -> None:
+def _score_lists_for(root: Path, doc: dict[str, Any]) -> dict[str, Any]:
+    """按 canonical score_state 引用加载分数清单，并校验冻结 sha256。"""
+    import hashlib
+
+    from .invariants import BuildInvariantError
+
+    score_state = doc.get("score_state") or {}
+    path = Path(root).resolve() / str(score_state.get("file") or "")
+    digest = hashlib.sha256(path.read_bytes()).hexdigest()
+    if digest != str(score_state.get("sha256") or ""):
+        raise BuildInvariantError(
+            f"{path}: 分数清单 sha256 与 canonical 冻结值不符"
+            f"（{digest[:12]} != {str(score_state.get('sha256'))[:12]}）——先重锁 sources"
+        )
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _audit_envelope(audit: dict[str, Any]) -> dict[str, Any]:
+    """三年审计的顶层信封（builder 只需要定义与生成日期，cycles 走 bundle.audit）。"""
+    keys = ("version", "generated_on", "status_definitions", "evidence_level_definitions")
+    return {key: copy.deepcopy(audit.get(key)) for key in keys if audit.get(key) is not None}
+
+
+def _validate_canonical_bundle(bundle: CycleBundle, baseline: dict[str, Any]) -> None:
+    from .invariants import BuildInvariantError
+
     expected = (baseline.get("cycles") or {}).get(bundle.cycle)
     if not isinstance(expected, dict):
-        raise ValueError(f"{bundle.cycle}: missing frozen baseline")
-    meta = bundle.payload["allMajors"]["meta"]
+        raise BuildInvariantError(f"{bundle.cycle}: 冻结基线缺少该周期")
+    meta = bundle.all_majors.get("meta") or {}
     if int(meta.get("total", -1)) != int(expected["posts"]):
-        raise ValueError(f"{bundle.cycle}: page total does not match frozen baseline")
+        raise BuildInvariantError(
+            f"{bundle.cycle}: canonical meta.total 与冻结基线不符（{meta.get('total')} != {expected['posts']}）"
+        )
     if int(meta.get("recruits", -1)) != int(expected["recruits"]):
-        raise ValueError(f"{bundle.cycle}: page recruits does not match frozen baseline")
-    rows = bundle.payload["allMajors"]["rows"]
-    if len(rows) != int(expected["posts"]):
-        raise ValueError(f"{bundle.cycle}: row count does not match frozen baseline")
+        raise BuildInvariantError(
+            f"{bundle.cycle}: canonical meta.recruits 与冻结基线不符（{meta.get('recruits')} != {expected['recruits']}）"
+        )
+    if len(bundle.records) != int(expected["posts"]):
+        raise BuildInvariantError(
+            f"{bundle.cycle}: canonical 行数与冻结基线不符（{len(bundle.records)} != {expected['posts']}）"
+        )
     if bundle.score_lists and str(bundle.score_lists.get("cycle")) != bundle.cycle:
-        raise ValueError(f"{bundle.cycle}: score-list cycle mismatch")
-    if bundle.audit_cycle.get("cycle") != bundle.cycle:
-        raise ValueError(f"{bundle.cycle}: audit cycle mismatch")
-    if not bundle.page_content.startswith("<"):
-        raise ValueError(f"{bundle.cycle}: rendered page content is not HTML")
+        raise BuildInvariantError(f"{bundle.cycle}: score-list cycle mismatch")
+    if bundle.audit.get("cycle") != bundle.cycle:
+        raise BuildInvariantError(f"{bundle.cycle}: audit cycle mismatch")
 
 
 def build_unified_bundles(root: Path) -> dict[str, CycleBundle]:
-    """Load and validate 2024/2025/2026 without changing process-wide state."""
+    """从 canonical 周期包加载三年数据（RC3 起为唯一正式入口）。
+
+    与 legacy 版本的关键差异：rows 已是归一化+注记后的审计事实，不再重复
+    _normalise_payload；page_content 恒为空串（HTML 只是输出，单文件重建引擎
+    列入 v17.9）；分数清单按 canonical 引用加载并校验冻结 sha。
+    """
     root = Path(root).resolve()
     baseline = _load_baseline(root)
     audit = _load_audit(root)
@@ -418,34 +341,33 @@ def build_unified_bundles(root: Path) -> dict[str, CycleBundle]:
         for item in audit.get("cycles", [])
         if isinstance(item, dict) and item.get("cycle")
     }
+    audit_envelope = _audit_envelope(audit)
     bundles: dict[str, CycleBundle] = {}
     for cycle in SUPPORTED_CYCLES:
-        source_file = _find_source(root, cycle)
-        html_text = source_file.read_text(encoding="utf-8")
-        payload = _v12_page_data(html_text, cycle, source_file) or _page_data(html_text, source_file)
-        payload = _normalise_payload(payload, cycle)
-        if cycle in ("2024", "2025"):
-            _refresh_historical_cycle_fields(root, payload, cycle)
-        # Refresh the audit envelope from the current read-only audit source;
-        # embedded legacy page data must not freeze an older truth boundary.
-        payload["threeYearAudit"] = copy.deepcopy(audit)
-        score_lists = _score_lists(html_text, source_file) or (payload.get("scoreLists") if isinstance(payload.get("scoreLists"), dict) else {})
+        doc = load_canonical_doc(root, cycle)
+        score_lists = _score_lists_for(root, doc)
         audit_cycle = audit_by_cycle.get(cycle)
         if audit_cycle is None:
-            raise ValueError(f"{cycle}: audit entry missing")
+            raise CycleBundleError(f"{cycle}: audit entry missing")
+        source_file = canonical_path(root, cycle)
+        payload = {
+            "allMajors": copy.deepcopy(doc.get("all_majors") or {}),
+            "cycleInfo": copy.deepcopy(doc.get("cycle_info") or {}),
+            "threeYearAudit": copy.deepcopy(audit_envelope),
+        }
         bundle = CycleBundle(
             cycle=cycle,
-            label=str((payload.get("cycleInfo") or {}).get("label") or (payload["allMajors"].get("meta") or {}).get("cycle") or f"{cycle}年度"),
+            label=str(doc.get("label") or f"{cycle}年度"),
             source_file=source_file,
             all_majors=payload["allMajors"],
-            jobs=payload.get("jobs") or {},
-            records=payload["allMajors"]["rows"],
+            jobs={},
+            records=copy.deepcopy(payload["allMajors"].get("rows") or []),
             payload=payload,
             score_lists=score_lists,
             cycle_info=payload.get("cycleInfo") or {},
             audit=audit_cycle,
-            page_content=_v12_template_content(html_text, cycle, source_file) or _main_content(html_text, source_file),
+            page_content="",
         )
-        _validate_bundle(bundle, baseline, audit)
+        _validate_canonical_bundle(bundle, baseline)
         bundles[cycle] = bundle
     return bundles

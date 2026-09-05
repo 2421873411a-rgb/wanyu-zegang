@@ -52,24 +52,38 @@
    "required": true
   },
   {
-   "id": "phantom_codes_2026.json",
-   "path": "项目源码\\tools\\anhui_web\\data\\phantom_codes_2026.json",
-   "sha256": "e09605026e703827e811a43d7b8a4d77f441af04048e1d99804a63fa1f88a9f2",
-   "bytes": 1433,
-   "required": true
-  },
-  {
    "id": "three_year_audit.json",
    "path": "项目源码\\tools\\anhui_web\\data\\three_year_audit.json",
-   "sha256": "41daa19509328bd6c394cf7ed1c9cf90a8db9c700e2e7a5bc8a2705b8ea08c75",
-   "bytes": 27275,
+   "sha256": "e5d030346c3438f5575b48e82fcdfc27b2707a80cabc65f32472234111520784",
+   "bytes": 32404,
    "required": true
   },
   {
    "id": "record_status_overrides.json",
    "path": "项目源码\\tools\\anhui_web\\data\\record_status_overrides.json",
-   "sha256": "0a8a76cae54204f5f449d4bf2fd01a84ce23d83417a42bf151c06b663d2a7b94",
-   "bytes": 4690,
+   "sha256": "19eb6f7b51ab3c14c4965b3916187bc1ff3e093ee6afd6e3dbe9122258b077c3",
+   "bytes": 4948,
+   "required": true
+  },
+  {
+   "id": "2024.json",
+   "path": "项目源码\\canonical\\cycles\\2024.json",
+   "sha256": "e2774daecb82880ad6a7fad26b054a9be219e0271e02024c7cdb8a47c99a4c50",
+   "bytes": 12060159,
+   "required": true
+  },
+  {
+   "id": "2025.json",
+   "path": "项目源码\\canonical\\cycles\\2025.json",
+   "sha256": "b5507bebfb8e6169290768a20ace09c70c4014d0a7e29ed83a1f1e573e158f5b",
+   "bytes": 12989106,
+   "required": true
+  },
+  {
+   "id": "2026.json",
+   "path": "项目源码\\canonical\\cycles\\2026.json",
+   "sha256": "733abcc8d417a0af6d7f4828b20dc3b7d4494f5e9cb870e6d96db0a63d3711b7",
+   "bytes": 11057786,
    "required": true
   },
   {
