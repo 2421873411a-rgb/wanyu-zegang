@@ -1,0 +1,177 @@
+{
+ "regen_modules": [
+  "audit",
+  "catalog",
+  "changes",
+  "derived",
+  "jobs",
+  "jobs_lite",
+  "major_city",
+  "overview",
+  "positions"
+ ],
+ "cycles": {
+  "2026": {
+   "facts": {
+    "raw_posts": 8511,
+    "active_posts": 8401,
+    "excluded_posts": 110,
+    "raw_recruits": 12006,
+    "recruits": 11883,
+    "lite_rows": 8401,
+    "lite_excluded": 0,
+    "score_unresolved": 0,
+    "resolved": 116,
+    "major_city_rows_total": 8401,
+    "catalog_row_count": 8401
+   },
+   "expected": {
+    "raw_posts": 8511,
+    "active_posts": 8401,
+    "excluded_posts": 110,
+    "raw_recruits": 12006,
+    "recruits": 11883,
+    "lite_rows": 8401,
+    "lite_excluded": 0,
+    "score_unresolved": 0,
+    "resolved": 116,
+    "major_city_rows_total": 8401,
+    "catalog_row_count": 8401
+   },
+   "ok": true
+  }
+ },
+ "equivalence": {
+  "2024": {
+   "byte_equal": false,
+   "diffs": {
+    "jobs": [
+     [
+      "/allMajors/meta/excluded",
+      "missing_in_new",
+      "0"
+     ],
+     [
+      "/allMajors/meta/raw_total",
+      "missing_in_new",
+      "10017"
+     ],
+     [
+      "/allMajors/meta/record_status_model",
+      "missing_in_new",
+      "wanyu-record-status/v1"
+     ]
+    ],
+    "jobs_lite": [
+     [
+      "/allMajors/meta/excluded",
+      "missing_in_new",
+      "0"
+     ],
+     [
+      "/allMajors/meta/raw_total",
+      "missing_in_new",
+      "10017"
+     ],
+     [
+      "/allMajors/meta/record_status_model",
+      "missing_in_new",
+      "wanyu-record-status/v1"
+     ]
+    ],
+    "major_city": [
+     [
+      "/source_sha256",
+      "value",
+      "fb48db32070847b2d8d65457be9ec1171cebf450ae175e554c vs 8630984295f9379cb98b354a3c8a1e38d5cd268a63219b9270"
+     ]
+    ],
+    "overview": [
+     [
+      "/allMajors/meta/excluded",
+      "missing_in_new",
+      "0"
+     ],
+     [
+      "/allMajors/meta/raw_total",
+      "missing_in_new",
+      "10017"
+     ],
+     [
+      "/allMajors/meta/record_status_model",
+      "missing_in_new",
+      "wanyu-record-status/v1"
+     ]
+    ]
+   }
+  },
+  "2025": {
+   "byte_equal": false,
+   "diffs": {
+    "jobs": [
+     [
+      "/allMajors/meta/excluded",
+      "missing_in_new",
+      "0"
+     ],
+     [
+      "/allMajors/meta/raw_total",
+      "missing_in_new",
+      "10150"
+     ],
+     [
+      "/allMajors/meta/record_status_model",
+      "missing_in_new",
+      "wanyu-record-status/v1"
+     ]
+    ],
+    "jobs_lite": [
+     [
+      "/allMajors/meta/excluded",
+      "missing_in_new",
+      "0"
+     ],
+     [
+      "/allMajors/meta/raw_total",
+      "missing_in_new",
+      "10150"
+     ],
+     [
+      "/allMajors/meta/record_status_model",
+      "missing_in_new",
+      "wanyu-record-status/v1"
+     ]
+    ],
+    "major_city": [
+     [
+      "/source_sha256",
+      "value",
+      "05b5ea1ae2d554575ec189ecdb6ab8d6c39ac72cd1ada4e459 vs 7dacb96692b8edafc22d5dc244fd2cb5eb1ba45f5cb970f9f1"
+     ]
+    ],
+    "overview": [
+     [
+      "/allMajors/meta/excluded",
+      "missing_in_new",
+      "0"
+     ],
+     [
+      "/allMajors/meta/raw_total",
+      "missing_in_new",
+      "10150"
+     ],
+     [
+      "/allMajors/meta/record_status_model",
+      "missing_in_new",
+      "wanyu-record-status/v1"
+     ]
+    ]
+   }
+  }
+ },
+ "merge": {
+  "manifest": "merged(metrics_contract + per-cycle counts + regen modules)",
+  "scratch_dir": "C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\wanyu-rc2-kvimw08q"
+ },
+ "status": "PASS"
+}

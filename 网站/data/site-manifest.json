@@ -1,14 +1,22 @@
 {
  "audit": {
-  "bytes": 20358,
+  "bytes": 14911,
   "data": "data/audit/three-year.json",
-  "sha256": "ecd1f637ed5dd1fed05e1d0f9fa4b985cef24f2af80cfab849956997404b9265"
+  "sha256": "b97e4a83061772d086c985af23e40a9ecb0cf6aac1a8d5f991f11239514bc766"
+ },
+ "calendar": {
+  "bytes": 1307,
+  "data": "data/calendar.json",
+  "schema": "wanyu-calendar/v1",
+  "sha256": "1defdd8b0332123c8bd8ac66f4b51c9377e7573d2c67376f26aa329a13fe3a65"
  },
  "cycles": [
   {
-   "bytes": 16721309,
+   "active_posts": 10017,
+   "bytes": 12056936,
    "cycle": "2024",
    "data": "data/cycles/2024/jobs.json",
+   "excluded_posts": 0,
    "gaps": 3,
    "label": "2024年度",
    "modules": {
@@ -19,10 +27,10 @@
      "sha256": "65ffa02bbd64dee062de5fe5c587255472edacede3bd4be982a2a39b6202458d"
     },
     "catalog": {
-     "bytes": 4123660,
+     "bytes": 4122556,
      "data": "data/cycles/2024/catalog.json",
      "schema": "wanyu-maintainable-catalog/v1",
-     "sha256": "99677fa51a109c0a770b9abc28a0a2882dafe2378b37d7a7ce3d7ee534672014"
+     "sha256": "dbc73ba8221a3bcbee276c285f074b66a787d0228991f553e7178b1a1bb35827"
     },
     "changes": {
      "bytes": 282,
@@ -34,58 +42,59 @@
      "bytes": 2441,
      "data": "data/cycles/2024/derived.json",
      "schema": "wanyu-maintainable-derived/v1",
-     "sha256": "1715af3e88a83c763b7c1d8bbf944475167f04d1830d2d884dc860d00b270de8"
+     "sha256": "8a84da3bc0300ec7c35d156c1390c0e42be8c46c17b99c918548311cc7d7d2f0"
     },
     "jobs": {
-     "bytes": 16721309,
+     "bytes": 12056936,
      "data": "data/cycles/2024/jobs.json",
      "schema": "wanyu-maintainable-jobs/v1",
-     "sha256": "77bb05ba75482fe8e1916488e3d6fffa4729928a519383401b36417b481b3971"
+     "sha256": "bb02d6397471222a775d703189e45fcab2034a0d2d26b356cacf25e224c7d1f8"
     },
     "jobs_lite": {
-     "bytes": 7278201,
+     "bytes": 5357702,
      "data": "data/cycles/2024/jobs_lite.json",
      "schema": "wanyu-maintainable-jobs-lite/v1",
-     "sha256": "9e06e11a627b80bfdf4b8ce435e68b5603148786dbf8af3bd97a55ea410d2a3b"
+     "sha256": "8630984295f9379cb98b354a3c8a1e38d5cd268a63219b92705b4f09da77836e"
     },
     "major_city": {
-     "bytes": 903876,
+     "bytes": 543883,
      "data": "data/cycles/2024/major_city.json",
      "schema": "wanyu-maintainable-major-city/v1",
-     "sha256": "83bd75e4a63c29c706b212a111957768708758b1e11d7c8cf4667ccc5eec93f6"
-    },
-    "overview": {
-     "bytes": 5977,
-     "data": "data/cycles/2024/overview.json",
-     "schema": "wanyu-maintainable-overview/v1",
-     "sha256": "c2cafe1688b7474f038975bb303efa4b30b7b95fe9e349f13f22c01b14906607"
-    },
-    "positions": {
-     "bytes": 6107289,
-     "data": "data/cycles/2024/positions.json",
-     "schema": "wanyu-maintainable-position-index/v1",
-     "sha256": "dec3b1f3edc651003a6adf5b5cdaeae7cb9bdbfd30c07ef0a9542fac4a8b6df2"
+     "sha256": "606cedb8bc390c55de17e71149e9e504559bf0b80249f839f3129b425ceb982a"
     },
     "major_index": {
      "bytes": 1230343,
      "data": "data/cycles/2024/major-index.json",
      "schema": "wanyu-major-index/v1",
      "sha256": "503a7dd8ffc30d610ba39d6b908d0478aee90fc57ed5b25b848cc14bcb787843"
+    },
+    "overview": {
+     "bytes": 4538,
+     "data": "data/cycles/2024/overview.json",
+     "schema": "wanyu-maintainable-overview/v1",
+     "sha256": "a96789b1acb8c63ea14a8dacbb2cd14f8e08ed8b427d8ef7a57b68a944ea747f"
+    },
+    "positions": {
+     "bytes": 6080178,
+     "data": "data/cycles/2024/positions.json",
+     "schema": "wanyu-maintainable-position-index/v1",
+     "sha256": "5a32742efb8d6e1589e26fa4d754a5d8fedd6fe9ed005e57b2910ba78865ea1b"
     }
    },
    "posts": 10017,
+   "raw_posts": 10017,
+   "raw_recruits": 15331,
    "recruits": 15331,
    "score_unresolved": 0,
-   "sha256": "77bb05ba75482fe8e1916488e3d6fffa4729928a519383401b36417b481b3971",
-   "status": "verified",
-   "raw_posts": 10017,
-   "active_posts": 10017,
-   "excluded_posts": 0
+   "sha256": "bb02d6397471222a775d703189e45fcab2034a0d2d26b356cacf25e224c7d1f8",
+   "status": "verified"
   },
   {
-   "bytes": 12984489,
+   "active_posts": 10150,
+   "bytes": 12984567,
    "cycle": "2025",
    "data": "data/cycles/2025/jobs.json",
+   "excluded_posts": 0,
    "gaps": 3,
    "label": "2025年度",
    "modules": {
@@ -102,129 +111,130 @@
      "sha256": "b5b528e6eb249e8b01e85b637dda6f414c1a3697b128b34d79a3ff589dd34572"
     },
     "changes": {
-     "bytes": 2756864,
+     "bytes": 2539769,
      "data": "data/cycles/2025/changes.json",
      "schema": "wanyu-maintainable-changes/v1",
-     "sha256": "25a2fe990bb7c4913ca32c0cc5b6ffe56f9d784cd1009afee11323532e955a81"
+     "sha256": "06133f974631c134e19191b85e720533a54cbdc0718c4857d06e682746f6514a"
     },
     "derived": {
      "bytes": 2443,
      "data": "data/cycles/2025/derived.json",
      "schema": "wanyu-maintainable-derived/v1",
-     "sha256": "ffa6984b94c905578cd5ed8dbff5eb0f4fec59f47eb6282f8fa715faf7dbacbf"
+     "sha256": "abe52b438031a2c119245f6b10381ca9f74e70985f18f3cb2feff86a8e4ebb19"
     },
     "jobs": {
-     "bytes": 12984489,
+     "bytes": 12984567,
      "data": "data/cycles/2025/jobs.json",
      "schema": "wanyu-maintainable-jobs/v1",
-     "sha256": "63a98ed2bcc8253e8bfde46277c8841b9ae8429a81d55e7276fdb576e25f32ce"
+     "sha256": "bc74938447eb437b3f14dcf0a5f3c8e1452c9f8be5d099fa3bc29d2868efbc0a"
     },
     "jobs_lite": {
-     "bytes": 5679784,
+     "bytes": 5679862,
      "data": "data/cycles/2025/jobs_lite.json",
      "schema": "wanyu-maintainable-jobs-lite/v1",
-     "sha256": "05b5ea1ae2d554575ec189ecdb6ab8d6c39ac72cd1ada4e459f1e52ed3f49abc"
+     "sha256": "7dacb96692b8edafc22d5dc244fd2cb5eb1ba45f5cb970f9f1d310da4f728370"
     },
     "major_city": {
      "bytes": 547845,
      "data": "data/cycles/2025/major_city.json",
      "schema": "wanyu-maintainable-major-city/v1",
-     "sha256": "c5f368a7582efa36d0d8a8470be503a608bb81d1f0e88946dd7f449e284515eb"
-    },
-    "overview": {
-     "bytes": 5665,
-     "data": "data/cycles/2025/overview.json",
-     "schema": "wanyu-maintainable-overview/v1",
-     "sha256": "3de6104789a56db331d419a6675cb9c6d92493ef84009cdedaa30ecbdcbfa753"
-    },
-    "positions": {
-     "bytes": 6226428,
-     "data": "data/cycles/2025/positions.json",
-     "schema": "wanyu-maintainable-position-index/v1",
-     "sha256": "07692710b472ca89b3e8a38132d507ead3b584c485f50cddeaeefd01ccf4bf35"
+     "sha256": "4665d6378b8dae1eaa72355ccaf3f6855bee7d9c17e0b25a2c2938c3c9fc6401"
     },
     "major_index": {
      "bytes": 1282112,
      "data": "data/cycles/2025/major-index.json",
      "schema": "wanyu-major-index/v1",
      "sha256": "bb980bea658a90394731ea7f7aa215d16712e897de1b8616845381a288488055"
+    },
+    "overview": {
+     "bytes": 4502,
+     "data": "data/cycles/2025/overview.json",
+     "schema": "wanyu-maintainable-overview/v1",
+     "sha256": "a65a4b30d4dc3116c25bf326be529b38b893b96583022992e1e37ae7cf19dc40"
+    },
+    "positions": {
+     "bytes": 6226428,
+     "data": "data/cycles/2025/positions.json",
+     "schema": "wanyu-maintainable-position-index/v1",
+     "sha256": "07692710b472ca89b3e8a38132d507ead3b584c485f50cddeaeefd01ccf4bf35"
     }
    },
    "posts": 10150,
+   "raw_posts": 10150,
+   "raw_recruits": 14721,
    "recruits": 14721,
    "score_unresolved": 0,
-   "sha256": "63a98ed2bcc8253e8bfde46277c8841b9ae8429a81d55e7276fdb576e25f32ce",
-   "status": "verified",
-   "raw_posts": 10150,
-   "active_posts": 10150,
-   "excluded_posts": 0
+   "sha256": "bc74938447eb437b3f14dcf0a5f3c8e1452c9f8be5d099fa3bc29d2868efbc0a",
+   "status": "verified"
   },
   {
-   "bytes": 15089505,
+   "active_posts": 8401,
+   "bytes": 11055687,
    "cycle": "2026",
    "data": "data/cycles/2026/jobs.json",
-   "gaps": 2,
+   "excluded_posts": 110,
+   "gaps": 1,
    "label": "2026 · 快照 2026-08-28",
    "modules": {
     "audit": {
-     "bytes": 6899,
+     "bytes": 4592,
      "data": "data/cycles/2026/audit.json",
      "schema": "wanyu-maintainable-audit/v1",
-     "sha256": "21f4830996ea612c1d71750023898106e690289bb36c14f7bfa57efba65c58be"
+     "sha256": "aec815d268ccc9a38c4900e8d4e47e250c85fa296c3fd1405f34a89489a92fca"
     },
     "catalog": {
-     "bytes": 3959668,
+     "bytes": 3959658,
      "data": "data/cycles/2026/catalog.json",
      "schema": "wanyu-maintainable-catalog/v1",
-     "sha256": "e60136ec49abcdf435a0ea65bdf1744ddb776455f0b3fd579cb03b2847ea26b8"
+     "sha256": "a76b2875d2a656b257281b6f5e8c8a96ded5c164f30f82f7ff39cc53df01abc3"
     },
     "changes": {
-     "bytes": 2316621,
+     "bytes": 2299681,
      "data": "data/cycles/2026/changes.json",
      "schema": "wanyu-maintainable-changes/v1",
-     "sha256": "daed0af0e9da768bf59a0bf72d35f862c3cacf0952ab31ed37775e2dc9333f01"
+     "sha256": "e1b5da6dceb498b074eab8a30aee8bd05deea6a572e294f6d834ebc64c721a92"
     },
     "derived": {
-     "bytes": 3900,
+     "bytes": 2448,
      "data": "data/cycles/2026/derived.json",
      "schema": "wanyu-maintainable-derived/v1",
-     "sha256": "d272459781f0eddde19fcb827791c5c602c9dbd68518e628f2fc8ab95260e5e9"
+     "sha256": "f864a6fec7be7ba5b4137c69622c5edf5be9ec5d6a416c415be45b4dd4636ecf"
     },
     "jobs": {
-     "bytes": 15089505,
+     "bytes": 11055687,
      "data": "data/cycles/2026/jobs.json",
      "schema": "wanyu-maintainable-jobs/v1",
-     "sha256": "9e8344f6b9970de68979d6285fcb6c061d305c654a68a6a8202c051618496ee0"
+     "sha256": "adc38573f9c5f5681249a67b6fce52aeafb6dabde78444df152b9e3d6e07ed6c"
     },
     "jobs_lite": {
-     "bytes": 6522593,
+     "bytes": 4806847,
      "data": "data/cycles/2026/jobs_lite.json",
      "schema": "wanyu-maintainable-jobs-lite/v1",
-     "sha256": "a98e838a4159ca9c2ab5d988bc97c2eb6ba8293526a6b316ec3966a8e76fc61b"
+     "sha256": "ab15ed1198216ac8fdbf513c7996d542b3eb9cbc4cd37e61f5ed0bcd37207830"
     },
     "major_city": {
-     "bytes": 827110,
+     "bytes": 487851,
      "data": "data/cycles/2026/major_city.json",
      "schema": "wanyu-maintainable-major-city/v1",
-     "sha256": "1c6fea5e6528c8f8f456ca1c87283b6dc19e34e3c0af63174f082f355841edfd"
-    },
-    "overview": {
-     "bytes": 2230,
-     "data": "data/cycles/2026/overview.json",
-     "schema": "wanyu-maintainable-overview/v1",
-     "sha256": "2f512aabd09aecede7f33a87049209d4d76e2480dafbcdb87384d2c4312d992f"
-    },
-    "positions": {
-     "bytes": 5287859,
-     "data": "data/cycles/2026/positions.json",
-     "schema": "wanyu-maintainable-position-index/v1",
-     "sha256": "11945eb90b11c7c05e6e31a63904d4ffecd8827014e6da28eced4f58f22913cd"
+     "sha256": "c56defad20d304101d04ba4f5a7dc9a7b53db528c259b2eaa4ec78d7fc6c71ce"
     },
     "major_index": {
      "bytes": 1136529,
      "data": "data/cycles/2026/major-index.json",
      "schema": "wanyu-major-index/v1",
      "sha256": "b1ea352a65152db9f531d668b4120deb5f5d869d65085ca9f3dbd8acb66b3969"
+    },
+    "overview": {
+     "bytes": 1591,
+     "data": "data/cycles/2026/overview.json",
+     "schema": "wanyu-maintainable-overview/v1",
+     "sha256": "2a00e9dc0f8e22d6746858cb4437e9dc238d5168d6fa76d49644a40f98ce42ad"
+    },
+    "positions": {
+     "bytes": 5215743,
+     "data": "data/cycles/2026/positions.json",
+     "schema": "wanyu-maintainable-position-index/v1",
+     "sha256": "e59d45501d04335d7545de17b8c3f7944465d7dd0654a9e3064c3fd82ed1cccd"
     },
     "req_fields": {
      "bytes": 2759264,
@@ -233,22 +243,21 @@
      "sha256": "259283928605bc79d3614ba8a012c560aa8db9770b864c96558c4000681b5159"
     }
    },
-   "posts": 8511,
-   "recruits": 12006,
-   "score_unresolved": 0,
-   "sha256": "9e8344f6b9970de68979d6285fcb6c061d305c654a68a6a8202c051618496ee0",
-   "status": "verified",
+   "posts": 8401,
    "raw_posts": 8511,
-   "active_posts": 8401,
-   "excluded_posts": 110
+   "raw_recruits": 12006,
+   "recruits": 11883,
+   "score_unresolved": 0,
+   "sha256": "adc38573f9c5f5681249a67b6fce52aeafb6dabde78444df152b9e3d6e07ed6c",
+   "status": "verified"
   }
  ],
  "default_cycle": "2026",
  "job_history": {
-  "bytes": 715622,
+  "bytes": 660022,
   "data": "data/job_history.json",
   "schema": "wanyu-maintainable-job-history/v1",
-  "sha256": "6aa77efab7ccf46d3669b613b68b3d63f805268e00ceca48128639135e32042c"
+  "sha256": "2cd77df449b23d52b6854b158047067098896f1fbd3b48a157bc2f2be79c2f79"
  },
  "maintenance": {
   "data_is_external": true,
@@ -263,11 +272,20 @@
   "sha256": "d98fb053398facec707a3c842c138b82118990bf3b173ce8ecb9348caa9fbc77",
   "source": "tools/anhui_web/data/anhui_340000_full.json"
  },
+ "metrics_contract": {
+  "active_posts": "排除 record_status≠active 后的用户口径岗位数",
+  "excluded_posts": "被生命周期排除的行数（raw_posts = active_posts + excluded_posts）",
+  "name": "wanyu-metrics/v1",
+  "posts": "deprecated：active_posts 的兼容别名，禁止按 raw 语义解读",
+  "raw_posts": "含排除行的原始收录行数",
+  "raw_recruits": "含排除行的招录人数",
+  "recruits": "active（有效岗位）招录人数"
+ },
  "release": "v17.8.5",
  "review_queue": {
-  "bytes": 5235,
+  "bytes": 4632,
   "data": "data/audit/review-queue.json",
-  "sha256": "05c78299c669b8ae5c2bd2c929ee339b971978d4f1a2a3b88caf64d0af90660e"
+  "sha256": "1988b04133f73158f09827ae0e2630fc48ad81ad0abfd606dee534f794c641a8"
  },
  "salary": {
   "bytes": 3232,
@@ -291,11 +309,5 @@
   "schema": "wanyu-supplement-evidence/v1",
   "sha256": "11da6cfd0f7dba0b4f683f727ecaeb28482444776b13305905c3e01efce8b915",
   "source": "source_data/supplement_20260904"
- },
- "calendar": {
-  "bytes": 1307,
-  "data": "data/calendar.json",
-  "schema": "wanyu-calendar/v1",
-  "sha256": "1defdd8b0332123c8bd8ac66f4b51c9377e7573d2c67376f26aa329a13fe3a65"
  }
 }
