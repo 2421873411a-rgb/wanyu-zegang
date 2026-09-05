@@ -7,6 +7,9 @@ const { chromium } = require('playwright-core');
 const root = path.resolve(__dirname, '..');
 const port = 8765;
 const baseUrl = `http://127.0.0.1:${port}/index.html`;
+const siteDir = fs.existsSync(path.resolve(root, '..', '网站'))
+  ? path.resolve(root, '..', '网站')
+  : path.resolve(root, 'deliverables', 'maintainable');
 const artifacts = path.join(root, 'tests', 'artifacts', 'maintainable');
 
 async function waitForServer(url) {
@@ -21,7 +24,7 @@ async function waitForServer(url) {
 }
 
 (async () => {
-  const server = spawn('python', ['tools/anhui_web/serve_maintainable.py', '--port', String(port)], {
+  const server = spawn('python', ['tools/anhui_web/serve_maintainable.py', '--directory', siteDir, '--port', String(port)], {
     cwd: root,
     windowsHide: true,
     stdio: 'ignore',

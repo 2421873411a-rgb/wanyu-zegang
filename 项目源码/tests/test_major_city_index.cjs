@@ -3,8 +3,8 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 
-const helper = require(path.join(__dirname, '..', '..', 'site', 'assets', 'maintainable-major-city.js'));
-const index = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', 'site', 'data', 'cycles', '2026', 'major_city.json'), 'utf8'));
+const helper = require(path.join(__dirname, '..', '..', '网站', 'assets', 'maintainable-major-city.js'));
+const index = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', '网站', 'data', 'cycles', '2026', 'major_city.json'), 'utf8'));
 
 test('exact readable major keys use the indexed city summary', () => {
   const key = helper.majorIndexKey(index, ' 法学类 ');

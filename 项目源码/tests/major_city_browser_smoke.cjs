@@ -1,10 +1,12 @@
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
 const path = require('node:path');
 const { spawn } = require('node:child_process');
 const { chromium } = require('playwright-core');
 
 const projectRoot = path.resolve(__dirname, '..');
-const siteDir = path.resolve(projectRoot, '..', 'site');
+let siteDir = path.resolve(projectRoot, '..', '网站');
+if (!fs.existsSync(siteDir)) siteDir = path.resolve(projectRoot, '..', 'site');
 const serveScript = path.join(projectRoot, 'tools', 'anhui_web', 'serve_maintainable.py');
 const port = 18765;
 const base = `http://127.0.0.1:${port}/index.html?cycle=2026&major=${encodeURIComponent('法学类')}`;

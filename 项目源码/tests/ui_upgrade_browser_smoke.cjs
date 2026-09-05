@@ -8,7 +8,7 @@ const projectRoot = path.resolve(__dirname, '..');
 const generatedSiteDir = path.join(projectRoot, 'deliverables', 'maintainable');
 const siteDir = fs.existsSync(path.join(generatedSiteDir, 'index.html'))
   ? generatedSiteDir
-  : path.resolve(projectRoot, '..', 'site');
+  : (fs.existsSync(path.resolve(projectRoot, '..', '网站')) ? path.resolve(projectRoot, '..', '网站') : path.resolve(projectRoot, '..', 'site'));
 const serveScript = path.join(projectRoot, 'tools', 'anhui_web', 'serve_maintainable.py');
 const port = 18767;
 const base = `http://127.0.0.1:${port}/index.html?cycle=2026#jobs_search`;
