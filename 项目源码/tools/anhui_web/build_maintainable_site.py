@@ -8,6 +8,7 @@ cycle, so data refreshes do not require hand-editing the application shell.
 from __future__ import annotations
 
 import argparse
+import collections
 import copy
 import hashlib
 import json
@@ -29,6 +30,7 @@ try:
     from .build_review_queue import build_review_queue
     from .build_scores import build_scores
     from .build_supplement_evidence import build_supplement_evidence
+    from .record_lifecycle import RECORD_STATUS_MODEL, apply_overrides, load_overrides, split_records
     from .single_file_site import _payload_for
     from .unified_cycle_bundle import SUPPORTED_CYCLES, build_unified_bundles
 except ImportError:  # pragma: no cover - supports direct script execution
@@ -39,6 +41,7 @@ except ImportError:  # pragma: no cover - supports direct script execution
     from tools.anhui_web.build_review_queue import build_review_queue
     from tools.anhui_web.build_scores import build_scores
     from tools.anhui_web.build_supplement_evidence import build_supplement_evidence
+    from tools.anhui_web.record_lifecycle import RECORD_STATUS_MODEL, apply_overrides, load_overrides, split_records
     from tools.anhui_web.single_file_site import _payload_for
     from tools.anhui_web.unified_cycle_bundle import SUPPORTED_CYCLES, build_unified_bundles
 
@@ -143,64 +146,174 @@ def _unresolved_score_count(bundle: Any, payload: dict[str, object] | None = Non
         return 0
 
 
+def _score_resolution_total(bundle: Any) -> int:
+    """Total resolved score collisions recorded in the cycle's keyed score lists.
+
+    Resolution blocks are written as ``resolution_<date>`` entries by the D2
+    resolution pipeline; each carries ``attributed``/``still_ambiguous`` counts.
+    """
+    keyed = (getattr(bundle, "score_lists", {}) or {}).get("keyed") or {}
+    total = 0
+    for key, value in keyed.items():
+        if isinstance(key, str) and key.startswith("resolution_") and isinstance(value, dict):
+            total += int(value.get("attributed") or 0)
+    return total
+
+
+def _compute_cycle_meta(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    """Row-derived cycle meta (single source of the projection formulas).
+
+    标定纪律（v17.8.5-RC2）：这些公式必须先在「含排除行的全量行」上复现 bundle
+    原始 meta，才允许切换 active 口径（见 _lifecycle_meta 的断言）。
+    """
+    return {
+        "total": len(rows),
+        "recruits": sum(int(r.get("num") or 0) for r in rows),
+        "examCounts": dict(collections.Counter(str(r.get("exam")) for r in rows)),
+        "compJoined": sum(1 for r in rows if r.get("jf") is not None),
+        "directed": sum(1 for r in rows if (r.get("dir") or r.get("dirText"))),
+        "hukou": sum(1 for r in rows if r.get("hukou")),
+        "scoreCoverage": {
+            "adv": sum(1 for r in rows if (r.get("competition_observations") or {}).get("examinees", {}).get("value") is not None),
+            "bm": sum(1 for r in rows if r.get("bm") is not None),
+            "hg": sum(1 for r in rows if r.get("hg") is not None),
+            "jf": sum(1 for r in rows if r.get("jf") is not None),
+            "hire": sum(1 for r in rows if r.get("hire") is not None),
+            "line": sum(1 for r in rows if isinstance(r.get("line"), (int, float)) and r.get("line", 0) > 0),
+            "perExam": {
+                exam: {
+                    "total": sum(1 for r in rows if str(r.get("exam")) == exam),
+                    "adv": sum(1 for r in rows if str(r.get("exam")) == exam and (r.get("competition_observations") or {}).get("examinees", {}).get("value") is not None),
+                    "bm": sum(1 for r in rows if str(r.get("exam")) == exam and r.get("bm") is not None),
+                    "line": sum(1 for r in rows if str(r.get("exam")) == exam and isinstance(r.get("line"), (int, float)) and r.get("line", 0) > 0),
+                } for exam in ("省考", "国考", "事业编")
+            },
+        },
+    }
+
+
+_LIFECYCLE_CALIBRATION_KEYS = ("examCounts", "directed", "hukou", "recruits", "compJoined")
+_LIFECYCLE_EXAMS = ("省考", "国考", "事业编")
+
+
+def _lifecycle_meta(
+    raw_rows: list[dict[str, Any]],
+    active_rows: list[dict[str, Any]],
+    excluded_rows: list[dict[str, Any]],
+    carryover_meta: dict[str, Any],
+    calibration_meta: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Active-scope meta derived from rows; pass-through when a cycle has no exclusions.
+
+    - carryover_meta：cities/categories/cycle/scoreSources 等非行级字段的来源
+      （builder 路径 = bundle 原始 meta；再生路径 = 现库 jobs meta）。
+    - calibration_meta：bundle 原始 meta。排除集非空时，行级公式必须先在 raw
+      全量行上复现它（否则中止构建），再切换 active 口径。
+    """
+    if not excluded_rows:
+        return _summary_meta(carryover_meta)
+    if calibration_meta is not None:
+        raw_meta = _compute_cycle_meta(raw_rows)
+        for key in _LIFECYCLE_CALIBRATION_KEYS:
+            assert raw_meta[key] == calibration_meta.get(key), (
+                f"生命周期标定失败：{key} 公式在全量行上未能复现 bundle 原始 meta "
+                f"({raw_meta[key]!r} != {calibration_meta.get(key)!r})"
+            )
+        raw_cov = raw_meta["scoreCoverage"]
+        base_cov = calibration_meta.get("scoreCoverage") or {}
+        for key in ("adv", "bm", "hg", "jf"):
+            assert raw_cov[key] == base_cov.get(key), (key, raw_cov[key], base_cov.get(key))
+        for exam in _LIFECYCLE_EXAMS:
+            expected = (base_cov.get("perExam") or {}).get(exam, {}).get("total")
+            assert raw_cov["perExam"][exam]["total"] == expected, (exam, raw_cov["perExam"][exam]["total"], expected)
+    active_meta = _compute_cycle_meta(active_rows)
+    hire_source = (calibration_meta or carryover_meta).get("scoreCoverage") or {}
+    # hire 是构建期录用名单投影（行级无此字段），排除集不改变它：保留现值并留痕。
+    active_meta["scoreCoverage"]["hire"] = hire_source.get("hire")
+    active_meta["raw_total"] = len(raw_rows)
+    active_meta["excluded"] = len(excluded_rows)
+    active_meta["record_status_model"] = RECORD_STATUS_MODEL
+    merged = dict(active_meta)
+    for key, value in (carryover_meta or {}).items():
+        if key not in merged:
+            merged[key] = copy.deepcopy(value)
+    return merged
+
+
 def _module_payloads(bundle: Any) -> dict[str, dict[str, object]]:
-    """Project one audited bundle into independently replaceable data modules."""
+    """Project one audited bundle into independently replaceable data modules.
+
+    v17.8.5-RC2 纪律：进入业务派生前先完成 record_status 生命周期应用与
+    raw/active/excluded 三分；**所有用户口径模块一律只吃 active_rows**，
+    jobs.json 保留 raw 行（审计真源，含排除行）。
+    """
     payload = _payload_for(bundle)
     all_majors = payload.get("allMajors") if isinstance(payload.get("allMajors"), dict) else {}
-    meta = all_majors.get("meta") if isinstance(all_majors, dict) else {}
-    rows = all_majors.get("rows") if isinstance(all_majors, dict) else []
+    base_meta = all_majors.get("meta") if isinstance(all_majors.get("meta"), dict) else {}
+    raw_rows = [row for row in (all_majors.get("rows") if isinstance(all_majors.get("rows"), list) else []) if isinstance(row, dict)]
+    rows = apply_overrides(raw_rows, load_overrides(ROOT), bundle.cycle)
+    raw_rows, active_rows, excluded_rows = split_records(rows)
+    meta = _lifecycle_meta(raw_rows, active_rows, excluded_rows, base_meta, calibration_meta=base_meta if excluded_rows else None)
     runtime = copy.deepcopy(payload.get("cycleRuntime") or {})
+    if excluded_rows:
+        runtime["row_count"] = len(active_rows)
+        runtime["raw_row_count"] = len(raw_rows)
+        runtime["score_unresolved"] = int(_unresolved_score_count(bundle, payload) or 0)
     cycle_info = copy.deepcopy(payload.get("cycleInfo") or {})
     audit_cycle = copy.deepcopy(bundle.audit) if isinstance(bundle.audit, dict) else {}
     unresolved = _unresolved_score_count(bundle, payload)
+    audit_summary = {
+        "status": audit_cycle.get("status") or audit_cycle.get("dominant_status") or "verified",
+        "evidence_level": audit_cycle.get("evidence_level") or "partial_evidence",
+        "gap_count": len(audit_cycle.get("gaps") or []),
+        "score_unresolved": int(unresolved or 0),
+    }
+    resolved_total = _score_resolution_total(bundle)
+    if resolved_total:
+        audit_summary["resolved_score_count"] = resolved_total
     overview = {
         "schema": "wanyu-maintainable-overview/v1",
         "cycle": bundle.cycle,
         "label": bundle.label,
         "cycleRuntime": runtime,
         "cycleInfo": cycle_info,
-        "allMajors": {"meta": _summary_meta(meta)},
-        "auditSummary": {
-            "status": audit_cycle.get("status") or audit_cycle.get("dominant_status") or "verified",
-            "evidence_level": audit_cycle.get("evidence_level") or "partial_evidence",
-            "gap_count": len(audit_cycle.get("gaps") or []),
-            "score_unresolved": int(unresolved or 0),
-        },
+        "allMajors": {"meta": copy.deepcopy(meta)},
+        "auditSummary": audit_summary,
     }
     jobs = {
         "schema": "wanyu-maintainable-jobs/v1",
         "cycle": bundle.cycle,
         "label": bundle.label,
-        "cycleRuntime": runtime,
+        "cycleRuntime": copy.deepcopy(runtime),
         "allMajors": {
-            "meta": _summary_meta(meta),
-            "rows": copy.deepcopy(rows if isinstance(rows, list) else []),
+            "meta": copy.deepcopy(meta),
+            "rows": raw_rows,
         },
     }
     audit = {
         "schema": "wanyu-maintainable-audit/v1",
         "cycle": bundle.cycle,
         "label": bundle.label,
-        "cycleRuntime": runtime,
+        "cycleRuntime": copy.deepcopy(runtime),
         "cycleInfo": cycle_info,
         "audit": audit_cycle,
         "scoreLists": {"keyed": {"unresolved": int(unresolved or 0)}},
     }
-    catalog = build_catalog(jobs, bundle.cycle)
+    catalog = build_catalog({"allMajors": {"meta": meta, "rows": active_rows}}, bundle.cycle)
     catalog["source_module"] = "jobs.json"
     source_candidates = audit_cycle.get("sources") if isinstance(audit_cycle.get("sources"), list) else []
     source_ref = next((str(value) for value in source_candidates if str(value).strip()), f"cycle-{bundle.cycle}-jobs.json")
     observed_at_value = audit_cycle.get("snapshot_date") or cycle_info.get("snapshot_date")
     observed_at = str(observed_at_value).strip() if observed_at_value else None
     positions = build_position_index(
-        rows if isinstance(rows, list) else [],
+        active_rows,
         {"cycle": bundle.cycle, "source_ref": source_ref, "observed_at": observed_at},
     )
     scores = build_scores(bundle.score_lists, bundle.cycle)
-    lite_source = _lite_payload(bundle.cycle, rows if isinstance(rows, list) else [], meta if isinstance(meta, dict) else {})
+    lite_source = _lite_payload(bundle.cycle, active_rows, meta)
     major_city = _major_city_payload(
         bundle.cycle,
-        rows if isinstance(rows, list) else [],
+        active_rows,
         hashlib.sha256(_json_bytes(lite_source)).hexdigest(),
     )
     return {
@@ -400,9 +513,16 @@ _LITE_META_KEYS = ("cycle", "total", "recruits", "examCounts", "cities", "catego
 
 
 def _lite_payload(cycle: str, rows: list[dict[str, Any]], source_meta: dict[str, Any]) -> dict[str, object]:
-    """Build the compact search/ranking index; heavy evidence fields stay in jobs.json."""
+    """Build the compact search/ranking index; heavy evidence fields stay in jobs.json.
+
+    v17.8.5-RC2：调用方必须传 active 行（jobs_lite 天然 active-only）；
+    生命周期元数据（raw_total/excluded/record_status_model）随源 meta 透传。
+    """
     lite_rows = [{key: row[key] for key in _LITE_ROW_KEYS if key in row} for row in rows]
     meta = {key: source_meta[key] for key in _LITE_META_KEYS if key in source_meta}
+    for key in ("raw_total", "excluded", "record_status_model"):
+        if key in source_meta:
+            meta[key] = source_meta[key]
     return {
         "schema": "wanyu-maintainable-jobs-lite/v1",
         "source_module": "jobs.json",
@@ -563,8 +683,12 @@ def build_maintainable_site(root: Path = ROOT, output_dir: Path = DEFAULT_OUTPUT
         modules = _module_payloads(bundle)
         score_payload = modules.pop("scores", None)
         current_rows = modules["jobs"].get("allMajors", {}).get("rows", []) if isinstance(modules["jobs"].get("allMajors"), dict) else []
-        rows_by_cycle[cycle] = [row for row in current_rows if isinstance(row, dict)]
-        modules["changes"] = build_change_payload(previous_cycle, cycle, previous_rows, current_rows if isinstance(current_rows, list) else [])
+        current_rows = [row for row in current_rows if isinstance(row, dict)]
+        # 用户口径模块（changes/trend/palette/lite/derived）一律只吃 active 行；
+        # jobs 模块自身保留 raw 行（含排除行，审计真源）。
+        _, active_rows_cycle, excluded_rows_cycle = split_records(current_rows)
+        rows_by_cycle[cycle] = active_rows_cycle
+        modules["changes"] = build_change_payload(previous_cycle, cycle, previous_rows, active_rows_cycle)
         if isinstance(score_payload, dict):
             score_path = output_dir / "archive" / "scores" / f"{cycle}.json"
             _write_json(score_path, score_payload)
@@ -591,8 +715,14 @@ def build_maintainable_site(root: Path = ROOT, output_dir: Path = DEFAULT_OUTPUT
             "label": bundle.label,
             "data": module_entries["jobs"]["data"],
             "modules": module_entries,
-            "posts": int(meta.get("total") or 0),
+            # wanyu-metrics/v1：recruits=有效（active）招录数；raw_* 为含排除行口径；
+            # posts 仅作 active_posts 的兼容别名保留。
+            "raw_posts": len(current_rows),
+            "active_posts": len(active_rows_cycle),
+            "excluded_posts": len(excluded_rows_cycle),
+            "raw_recruits": sum(int(row.get("num") or 0) for row in current_rows),
             "recruits": int(meta.get("recruits") or 0),
+            "posts": int(meta.get("total") or 0),
             "status": audit_cycle.get("dominant_status") or audit_cycle.get("status") or "verified",
             "gaps": len(audit_cycle.get("gaps") or []),
             "score_unresolved": int(unresolved or 0),
@@ -600,7 +730,7 @@ def build_maintainable_site(root: Path = ROOT, output_dir: Path = DEFAULT_OUTPUT
             "sha256": module_entries["jobs"]["sha256"],
         })
         previous_cycle = cycle
-        previous_rows = current_rows if isinstance(current_rows, list) else []
+        previous_rows = active_rows_cycle
 
     cycle_entries_by_cycle = {str(entry.get("cycle")): entry for entry in data_entries}
     trend, unmapped = _city_trend(rows_by_cycle)
@@ -657,6 +787,15 @@ def build_maintainable_site(root: Path = ROOT, output_dir: Path = DEFAULT_OUTPUT
         "release": RELEASE,
         "snapshot_date": snapshot_date,
         "default_cycle": "2026",
+        "metrics_contract": {
+            "name": "wanyu-metrics/v1",
+            "recruits": "active（有效岗位）招录人数",
+            "raw_posts": "含排除行的原始收录行数",
+            "active_posts": "排除 record_status≠active 后的用户口径岗位数",
+            "excluded_posts": "被生命周期排除的行数（raw_posts = active_posts + excluded_posts）",
+            "raw_recruits": "含排除行的招录人数",
+            "posts": "deprecated：active_posts 的兼容别名，禁止按 raw 语义解读",
+        },
         "cycles": data_entries,
         "audit": {
             "data": "data/audit/three-year.json",
