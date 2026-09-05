@@ -1,3 +1,19 @@
+皖域择岗交接包 v17.8.6 · 2026-09-06（正式发布态）
+主入口：交接说明_v17.8.6_20260906.md（取代本清单成为交接入口；本清单保留作修订史）
+产品入口：网站\index.html
+
+包体统计（解压后）：4,584 files / 903,551,842 bytes（约 904 MB）
+  其中 source_data 458MB / tools(含受锁 data) 161MB / 网站 144MB / .git 87MB / canonical 39MB / archive 46MB
+排除：网站.previous（回滚点）、网站-lite（遗留分叉副本，删除待站长决策）、node_modules、__pycache__、.pytest_cache、*.pyc、*.db。
+
+v17.8.6（2026-09-05 发布 · Release Integrity Hotfix）：
+1. RB-01：正式发布链退役单文件 HTML（方案 A）；release.py 重写为共享流水线 release_pipeline.py（staging→验证→三烟测→发布资料 manifest→原子提升+回滚）；真实全链运行 RELEASE-EXIT=0。
+2. RB-02：clean_rebuild 锁只读（verify_sources 最先、零 gen_sources_lock、audit --check、受锁输入 9 文件零漂移）。
+3. 新增 validate_canonical.py（jsonschema + 守恒 + job_id/证据/溯源/score_state + 2026 回归锁定）与负向套件 test_release_integrity.py。
+4. 单文件遗留测试重分类 test_single_file_legacy.py；正式套件 27 模块 222/0/0；版本 v17.8.6/17.8.6/wanyu-shell-v49。
+5. 数据事实变化：无（110/116 证据链与三年 metrics 逐字节未动）。
+详见 docs/audit/v17.8.6-final-acceptance.md。
+
 皖域择岗交接包 v17.6.5 · 2026-09-04（含本地修订 17.6.5）
 桌面目录：C:\Users\24218\Desktop\皖域择岗交接包_v17.6.4_20260904_换设备
 主入口：网站\index.html
