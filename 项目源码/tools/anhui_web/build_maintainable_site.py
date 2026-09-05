@@ -30,6 +30,7 @@ try:
     from .build_review_queue import build_review_queue
     from .build_scores import build_scores
     from .build_supplement_evidence import build_supplement_evidence
+    from .invariants import BuildInvariantError, require_int
     from .record_lifecycle import RECORD_STATUS_MODEL, apply_overrides, load_overrides, split_records
     from .single_file_site import _payload_for
     from .unified_cycle_bundle import SUPPORTED_CYCLES, build_unified_bundles
@@ -41,6 +42,7 @@ except ImportError:  # pragma: no cover - supports direct script execution
     from tools.anhui_web.build_review_queue import build_review_queue
     from tools.anhui_web.build_scores import build_scores
     from tools.anhui_web.build_supplement_evidence import build_supplement_evidence
+    from tools.anhui_web.invariants import BuildInvariantError, require_int
     from tools.anhui_web.record_lifecycle import RECORD_STATUS_MODEL, apply_overrides, load_overrides, split_records
     from tools.anhui_web.single_file_site import _payload_for
     from tools.anhui_web.unified_cycle_bundle import SUPPORTED_CYCLES, build_unified_bundles
@@ -133,21 +135,29 @@ def _summary_meta(meta: object) -> dict[str, object]:
 
 
 def _unresolved_score_count(bundle: Any, payload: dict[str, object] | None = None) -> int:
-    """Read the authoritative unresolved score count without binding rows."""
+    """Read the authoritative unresolved score count without binding rows.
+
+    v17.8.5-RC3(B3)：fail-closed。scoreLists.keyed.unresolved 缺失时才允许回退
+    bundle.audit.coverage.score_unresolved；两条路径都缺失或值非法 → 直接抛错，
+    绝不静默回退成 0。
+    """
     source = payload if isinstance(payload, dict) else getattr(bundle, "payload", {})
     score_lists = source.get("scoreLists") if isinstance(source, dict) else {}
     keyed = score_lists.get("keyed") if isinstance(score_lists, dict) else {}
     unresolved = keyed.get("unresolved") if isinstance(keyed, dict) else None
+    fallback_path = "scoreLists.keyed.unresolved"
     if unresolved is None:
         audit = getattr(bundle, "audit", {})
         coverage = audit.get("coverage") if isinstance(audit, dict) else {}
-        unresolved = coverage.get("score_unresolved") if isinstance(coverage, dict) else 0
+        unresolved = coverage.get("score_unresolved")
+        fallback_path = "audit.coverage.score_unresolved"
+    if unresolved is None:
+        raise BuildInvariantError(
+            f"{getattr(bundle, 'cycle', '?')}: unresolved 成绩计数缺失（{fallback_path} 与审计覆盖层都无值），拒绝构建"
+        )
     if isinstance(unresolved, list):
         return len(unresolved)
-    try:
-        return int(unresolved or 0)
-    except (TypeError, ValueError):
-        return 0
+    return require_int(unresolved, f"{getattr(bundle, 'cycle', '?')} {fallback_path}")
 
 
 def _score_resolution_total(bundle: Any) -> int:
@@ -225,17 +235,26 @@ def _lifecycle_meta(
     if calibration_meta is not None:
         raw_meta = _compute_cycle_meta(raw_rows)
         for key in _LIFECYCLE_CALIBRATION_KEYS:
-            assert raw_meta[key] == calibration_meta.get(key), (
-                f"生命周期标定失败：{key} 公式在全量行上未能复现 bundle 原始 meta "
-                f"({raw_meta[key]!r} != {calibration_meta.get(key)!r})"
-            )
+            if raw_meta[key] != calibration_meta.get(key):
+                raise BuildInvariantError(
+                    f"生命周期标定失败：{key} 公式在全量行上未能复现 bundle 原始 meta "
+                    f"({raw_meta[key]!r} != {calibration_meta.get(key)!r})"
+                )
         raw_cov = raw_meta["scoreCoverage"]
         base_cov = calibration_meta.get("scoreCoverage") or {}
         for key in ("adv", "bm", "hg", "jf"):
-            assert raw_cov[key] == base_cov.get(key), (key, raw_cov[key], base_cov.get(key))
+            if raw_cov[key] != base_cov.get(key):
+                raise BuildInvariantError(
+                    f"生命周期标定失败：scoreCoverage.{key} 在全量行上不符 "
+                    f"({raw_cov[key]!r} != {base_cov.get(key)!r})"
+                )
         for exam in _LIFECYCLE_EXAMS:
             expected = (base_cov.get("perExam") or {}).get(exam, {}).get("total")
-            assert raw_cov["perExam"][exam]["total"] == expected, (exam, raw_cov["perExam"][exam]["total"], expected)
+            if raw_cov["perExam"][exam]["total"] != expected:
+                raise BuildInvariantError(
+                    f"生命周期标定失败：perExam[{exam}].total 在全量行上不符 "
+                    f"({raw_cov['perExam'][exam]['total']!r} != {expected!r})"
+                )
     active_meta = _compute_cycle_meta(active_rows)
     hire_source = (calibration_meta or carryover_meta).get("scoreCoverage") or {}
     # hire 是构建期录用名单投影（行级无此字段），排除集不改变它：保留现值并留痕。
@@ -265,10 +284,10 @@ def _module_payloads(bundle: Any) -> dict[str, dict[str, object]]:
     raw_rows, active_rows, excluded_rows = split_records(rows)
     meta = _lifecycle_meta(raw_rows, active_rows, excluded_rows, base_meta, calibration_meta=base_meta if excluded_rows else None)
     runtime = copy.deepcopy(payload.get("cycleRuntime") or {})
-    if excluded_rows:
-        runtime["row_count"] = len(active_rows)
-        runtime["raw_row_count"] = len(raw_rows)
-        runtime["score_unresolved"] = int(_unresolved_score_count(bundle, payload) or 0)
+    # RC3-L：三周期统一行数结构（2024: 10017/10017、2025: 10150/10150、2026: 8401/8511）。
+    runtime["row_count"] = len(active_rows)
+    runtime["raw_row_count"] = len(raw_rows)
+    runtime["score_unresolved"] = _unresolved_score_count(bundle, payload)
     cycle_info = copy.deepcopy(payload.get("cycleInfo") or {})
     audit_cycle = copy.deepcopy(bundle.audit) if isinstance(bundle.audit, dict) else {}
     unresolved = _unresolved_score_count(bundle, payload)
