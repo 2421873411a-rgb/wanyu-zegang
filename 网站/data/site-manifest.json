@@ -65,6 +65,12 @@
      "data": "data/cycles/2024/positions.json",
      "schema": "wanyu-maintainable-position-index/v1",
      "sha256": "dec3b1f3edc651003a6adf5b5cdaeae7cb9bdbfd30c07ef0a9542fac4a8b6df2"
+    },
+    "major_index": {
+     "bytes": 1230343,
+     "data": "data/cycles/2024/major-index.json",
+     "schema": "wanyu-major-index/v1",
+     "sha256": "503a7dd8ffc30d610ba39d6b908d0478aee90fc57ed5b25b848cc14bcb787843"
     }
    },
    "posts": 10017,
@@ -133,6 +139,12 @@
      "data": "data/cycles/2025/positions.json",
      "schema": "wanyu-maintainable-position-index/v1",
      "sha256": "07692710b472ca89b3e8a38132d507ead3b584c485f50cddeaeefd01ccf4bf35"
+    },
+    "major_index": {
+     "bytes": 1282112,
+     "data": "data/cycles/2025/major-index.json",
+     "schema": "wanyu-major-index/v1",
+     "sha256": "bb980bea658a90394731ea7f7aa215d16712e897de1b8616845381a288488055"
     }
    },
    "posts": 10150,
@@ -201,6 +213,12 @@
      "data": "data/cycles/2026/positions.json",
      "schema": "wanyu-maintainable-position-index/v1",
      "sha256": "11945eb90b11c7c05e6e31a63904d4ffecd8827014e6da28eced4f58f22913cd"
+    },
+    "major_index": {
+     "bytes": 1150284,
+     "data": "data/cycles/2026/major-index.json",
+     "schema": "wanyu-major-index/v1",
+     "sha256": "7c2eb594f688a17a5104d2ed017fce054758792ef1f2b0d900b19c65a68d65ad"
     }
    },
    "posts": 8511,
