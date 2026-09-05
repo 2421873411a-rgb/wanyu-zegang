@@ -119,7 +119,7 @@ class V17PerfBudgetTests(unittest.TestCase):
         self.assertIn('release.json', release)
         self.assertIsNone(_re.search(r'BUILD_VERSION\s*=\s*"v\d', release), "release.py 不得硬编码版本号")
         release_doc = json.loads((ROOT / "release.json").read_text(encoding="utf-8"))
-        self.assertEqual(release_doc["release"], "v17.8.5")
+        self.assertEqual(release_doc["release"], "v17.8.6")
 
     def test_release_checks_template_asset_parity_and_view_smoke(self) -> None:
         import sys as _sys
