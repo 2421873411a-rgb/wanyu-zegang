@@ -6,9 +6,12 @@ const { chromium } = require('playwright-core');
 
 const projectRoot = path.resolve(__dirname, '..');
 const generatedSiteDir = path.join(projectRoot, 'deliverables', 'maintainable');
-const siteDir = fs.existsSync(path.join(generatedSiteDir, 'index.html'))
-  ? generatedSiteDir
-  : (fs.existsSync(path.resolve(projectRoot, '..', '网站')) ? path.resolve(projectRoot, '..', '网站') : path.resolve(projectRoot, '..', 'site'));
+// v17.8.6-K：WANYU_SITE_DIR 环境变量最高优先（发布流水线用它把烟测指向 staging）。
+const siteDir = (process.env.WANYU_SITE_DIR && fs.existsSync(path.resolve(process.env.WANYU_SITE_DIR)))
+  ? path.resolve(process.env.WANYU_SITE_DIR)
+  : fs.existsSync(path.join(generatedSiteDir, 'index.html'))
+    ? generatedSiteDir
+    : (fs.existsSync(path.resolve(projectRoot, '..', '网站')) ? path.resolve(projectRoot, '..', '网站') : path.resolve(projectRoot, '..', 'site'));
 const serveScript = path.join(projectRoot, 'tools', 'anhui_web', 'serve_maintainable.py');
 const port = 18767;
 const base = `http://127.0.0.1:${port}/index.html?cycle=2026#jobs_search`;

@@ -5,7 +5,10 @@ const { spawn } = require('node:child_process');
 const { chromium } = require('playwright-core');
 
 const projectRoot = path.resolve(__dirname, '..');
-let siteDir = path.resolve(projectRoot, '..', '网站');
+// v17.8.6-K：WANYU_SITE_DIR 环境变量最高优先（发布流水线用它把烟测指向 staging）。
+let siteDir = (process.env.WANYU_SITE_DIR && fs.existsSync(path.resolve(process.env.WANYU_SITE_DIR)))
+  ? path.resolve(process.env.WANYU_SITE_DIR)
+  : path.resolve(projectRoot, '..', '网站');
 if (!fs.existsSync(siteDir)) siteDir = path.resolve(projectRoot, '..', 'site');
 const serveScript = path.join(projectRoot, 'tools', 'anhui_web', 'serve_maintainable.py');
 const port = 18765;

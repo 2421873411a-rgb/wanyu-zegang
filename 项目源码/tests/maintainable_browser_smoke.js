@@ -7,9 +7,12 @@ const { chromium } = require('playwright-core');
 const root = path.resolve(__dirname, '..');
 const port = 8765;
 const baseUrl = `http://127.0.0.1:${port}/index.html`;
-const siteDir = fs.existsSync(path.resolve(root, '..', '网站'))
-  ? path.resolve(root, '..', '网站')
-  : path.resolve(root, 'deliverables', 'maintainable');
+// v17.8.6-K：WANYU_SITE_DIR 环境变量最高优先（发布流水线用它把烟测指向 staging）。
+const siteDir = (process.env.WANYU_SITE_DIR && fs.existsSync(path.resolve(process.env.WANYU_SITE_DIR)))
+  ? path.resolve(process.env.WANYU_SITE_DIR)
+  : fs.existsSync(path.resolve(root, '..', '网站'))
+    ? path.resolve(root, '..', '网站')
+    : path.resolve(root, 'deliverables', 'maintainable');
 const artifacts = path.join(root, 'tests', 'artifacts', 'maintainable');
 
 async function waitForServer(url) {
