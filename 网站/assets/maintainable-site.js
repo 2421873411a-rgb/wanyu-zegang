@@ -996,7 +996,10 @@
       delete document.body.dataset.scrollLock;
     }
   };
+  let detailInflight = null;
   const openDetail = async (recordId, options = {}) => {
+    if (detailInflight) return detailInflight;
+    detailInflight = (async () => {
     const jobs = state.modules.get(`${state.cycle}:jobs`) || await loadModule(state.cycle, 'jobs'); const positions = state.modules.get(`${state.cycle}:positions`) || await loadModule(state.cycle, 'positions');
     const row = rowsFor(jobs).find((item) => String(item.job_id || item.row_id || item.code) === String(recordId));
     if (!row) { setStatus('岗位详情不存在', 'error'); return; }
@@ -1014,6 +1017,8 @@
     main.insertAdjacentHTML('beforeend', renderDetailDrawer(row, indexRow, historyEntry));
     setStatus(`${state.cycle} · 岗位详情已打开`, 'ready');
     document.querySelector('[data-maint-detail-close]')?.focus();
+    })();
+    try { await detailInflight; } finally { detailInflight = null; }
   };
   const closeDetail = () => {
     const recordId = state.detail?.recordId;
