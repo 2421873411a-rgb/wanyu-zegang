@@ -1,7 +1,7 @@
 {
   "release": "v17.8.6",
-  "created_on": "2026-09-05T14:00:24.695626+00:00",
-  "git_commit": "cff83b32d33f325d93b230319e91226db993190a",
+  "created_on": "2026-09-05T14:16:33.175937+00:00",
+  "git_commit": "98f8cdf3a2759bdc5fd64ad0c4fad846247ab988",
   "git_dirty": false,
   "canonical_schema": "wanyu-cycle-bundle/v1",
   "metrics_contract": {

@@ -411,6 +411,8 @@ def run_pipeline(output_dir: Path, *, promote: bool, allow_dirty: bool, tests_su
         shutil.rmtree(output_dir)
     output_dir.parent.mkdir(parents=True, exist_ok=True)
     build_site(output_dir)
+    # nginx gzip_static 预压缩产物随站走（RC3 手工步骤收编进流水线，幂等）
+    run_step([sys.executable, "tools/anhui_web/build_gz.py", str(output_dir)])
     after = verify_inputs_unchanged()
     drifted = [rel for rel in before if before[rel] != after.get(rel)]
     if drifted:
