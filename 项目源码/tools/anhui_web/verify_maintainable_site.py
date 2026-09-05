@@ -63,8 +63,10 @@ def _unresolved(audit_payload: dict[str, Any]) -> int:
     value = ((audit_payload.get("scoreLists") or {}).get("keyed") or {}).get("unresolved")
     if isinstance(value, list):
         return len(value)
+    if value is None:
+        raise ValueError("audit.scoreLists.keyed.unresolved missing (E1: no silent default to 0)")
     try:
-        return int(value or 0)
+        return int(value)
     except (TypeError, ValueError):
         return 0
 
@@ -98,7 +100,8 @@ def verify_maintainable_site(site_dir: Path) -> dict[str, Any]:
         _check(checks, "review_queue.schema", "wanyu-maintainable-review-queue/v1", review_queue.get("schema"), "review queue schema")
         review_summary = review_queue.get("summary") if isinstance(review_queue.get("summary"), dict) else {}
         _check(checks, "review_queue.public_boundaries", 8, review_summary.get("public_boundary_count"), "public boundary count")
-        _check(checks, "review_queue.unresolved_scores", 116, review_summary.get("unresolved_score_count"), "unresolved score count")
+        manifest_unresolved_total = sum(int(item.get("score_unresolved") or 0) for item in cycle_entries)
+        _check(checks, "review_queue.unresolved_scores", manifest_unresolved_total, review_summary.get("unresolved_score_count"), "unresolved score count matches manifest (no hardcoded history values)")
     map_entry = manifest.get("map") if isinstance(manifest.get("map"), dict) else {}
     map_path = site_dir / str(map_entry.get("data") or "")
     map_present = map_path.is_file()
@@ -285,6 +288,66 @@ def verify_maintainable_site(site_dir: Path) -> dict[str, Any]:
             _check(checks, "pwa.webmanifest_json", True, False, "web manifest parses as JSON")
     else:
         _check(checks, "pwa.webmanifest_present", True, False, "web manifest exists")
+    # ===== E：语义不变式层（v17.8.5）=====
+    release_json_path = Path(__file__).resolve().parents[2] / "release.json"
+    release_doc = {}
+    try:
+        release_doc = json.loads(release_json_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        _check(checks, "release.version_file", True, False, "release.json exists and parses")
+    if release_doc:
+        _check(checks, "release.version_file.release_matches_manifest", manifest.get("release"), release_doc.get("release"), "release.json release == manifest release")
+        asset_versions = set(re.findall(r"\?v=([0-9A-Za-z.\-]+)", (site_dir / "index.html").read_text(encoding="utf-8")))
+        _check(checks, "release.version_file.asset_version_matches_index", sorted(asset_versions), [release_doc.get("asset_version")], "release.json asset_version == index ?v (uniform)")
+        sw_text = (site_dir / "sw.js").read_text(encoding="utf-8")
+        sw_version = re.search(r'wanyu-shell-v(\d+)', sw_text)
+        _check(checks, "release.version_file.sw_matches", release_doc.get("service_worker_version"), f"wanyu-shell-v{sw_version.group(1)}" if sw_version else None, "release.json sw version == sw.js VERSION")
+        precache_versions = set(re.findall(r"\?v=([0-9A-Za-z.\-]+)", sw_text))
+        _check(checks, "release.version_file.asset_version_matches_sw_precache", sorted(precache_versions), [release_doc.get("asset_version")], "release.json asset_version == sw PRECACHE ?v (uniform)")
+
+    for cycle_entry in cycle_entries:
+        cycle = str(cycle_entry.get("cycle"))
+        cyc_dir = site_dir / "data" / "cycles" / cycle
+        jobs_path_c = cyc_dir / "jobs.json"
+        if not jobs_path_c.is_file():
+            continue
+        rows_c = (json.loads(jobs_path_c.read_text(encoding="utf-8")).get("allMajors") or {}).get("rows") or []
+        raw_posts = len(rows_c)
+        excluded = sum(1 for r in rows_c if str(r.get("record_status") or "") not in ("", "active"))
+        active = raw_posts - excluded
+        _check(checks, f"{cycle}.records.raw_eq_active_plus_excluded", raw_posts, active + excluded, f"raw_posts = active + excluded ({raw_posts} = {active} + {excluded})")
+        mp_raw = int(cycle_entry.get("raw_posts") or 0)
+        mp_act = int(cycle_entry.get("active_posts") or 0)
+        mp_exc = int(cycle_entry.get("excluded_posts") or 0)
+        _check(checks, f"{cycle}.records.manifest_counts_consistent", [mp_raw, mp_act, mp_exc], [raw_posts, active, excluded], "manifest raw/active/excluded match jobs.json rows")
+        ov_path = cyc_dir / "overview.json"
+        if ov_path.is_file():
+            ov_meta = ((json.loads(ov_path.read_text(encoding="utf-8")).get("allMajors") or {}).get("meta") or {})
+            _check(checks, f"{cycle}.overview.meta_total_is_active", active, int(ov_meta.get("total") or -1), "overview meta.total == active posts")
+            _check(checks, f"{cycle}.overview.meta_raw_total", raw_posts, int(ov_meta.get("raw_total") or -1), "overview meta.raw_total == raw posts")
+        if cycle == "2026":
+            # E-A：unresolved 跨位置强一致（缺位置 = FAIL）
+            audit_p = cyc_dir / "audit.json"
+            ov_p = cyc_dir / "overview.json"
+            rq_p = site_dir / "data" / "audit" / "review-queue.json"
+            expected = int(cycle_entry.get("score_unresolved") or 0)
+            locations = {}
+            if audit_p.is_file():
+                a_doc = json.loads(audit_p.read_text(encoding="utf-8"))
+                cov = ((a_doc.get("audit") or {}).get("coverage") or {}).get("score_unresolved")
+                keyed = ((a_doc.get("scoreLists") or {}).get("keyed") or {}).get("unresolved")
+                sl_scalar = (a_doc.get("scoreLists") or {}).get("unresolved")
+                locations["audit.coverage"] = cov
+                locations["audit.scoreLists.keyed"] = len(keyed) if isinstance(keyed, list) else keyed
+                if sl_scalar is not None:
+                    locations["audit.scoreLists.scalar"] = sl_scalar
+            if ov_p.is_file():
+                locations["overview.auditSummary"] = (json.loads(ov_p.read_text(encoding="utf-8")).get("auditSummary") or {}).get("score_unresolved")
+            if rq_p.is_file():
+                locations["review_queue.summary"] = (json.loads(rq_p.read_text(encoding="utf-8")).get("summary") or {}).get("unresolved_score_count")
+            bad = {k: v for k, v in locations.items() if v is None or int(v) != expected}
+            _check(checks, "2026.unresolved.all_locations_consistent", True, not bad, f"unresolved == {expected} in every projection (missing/inconsistent = fail: {bad or 'none'})")
+
     failed = sum(item["status"] == "fail" for item in checks)
     passed = sum(item["status"] == "pass" for item in checks)
     return {"status": "fail" if failed else "pass", "passed": passed, "failed": failed, "checks": checks}
