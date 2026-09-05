@@ -8,8 +8,8 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-FULL = ROOT.parent / "site"
-LITE = ROOT.parent.parent / "wan-lite" / "site"
+# v17.8.6 方案 A：site/ 与 wan-lite/ 已退役，正式产品 = 网站（维护站）。
+FULL = ROOT.parent / "网站"
 CYCLES = ("2024", "2025", "2026")
 PREFECTURES = (
     "合肥", "芜湖", "蚌埠", "淮南", "马鞍山", "淮北", "铜陵", "安庆",
@@ -51,7 +51,7 @@ class FrontendDataAuditTests(unittest.TestCase):
         self.assertIn("const scopedJobs = scopeExamPayload(jobs);", js)
         self.assertIn("renderOverview(overview, scopedJobs, derived)", js)
         self.assertIn("renderRanking(scopedJobs, catalog)", js)
-        self.assertIn("renderSearch(scopedJobs, catalog, positions)", js)
+        self.assertIn("renderSearch(scopedJobs, catalog, majorIndex, reqFields)", js)
         self.assertIn("mapCityFor(city) || city", js)
         self.assertIn("data-maint-cycle-summary", js)
         self.assertIn("row.zw || row.display_title || '源表未单列披露'", js)
@@ -60,13 +60,10 @@ class FrontendDataAuditTests(unittest.TestCase):
 
     def test_all_generated_modules_conserve_rows_recruits_ids_and_hashes(self) -> None:
         manifest = _json(FULL / "data" / "site-manifest.json")
-        lite_manifest = _json(LITE / "data" / "site-manifest.json")
-        self.assertEqual(manifest["release"], lite_manifest["release"])
         self.assertEqual([str(item["cycle"]) for item in manifest["cycles"]], list(CYCLES))
-        self.assertEqual(manifest["cycles"], lite_manifest["cycles"])
 
-        for site in (FULL, LITE):
-            site_manifest = _json(site / "data" / "site-manifest.json")
+        for site in (FULL,):
+            site_manifest = manifest
             ids_by_cycle = {
                 str(item["cycle"]): {
                     _job_id(row)
@@ -77,10 +74,11 @@ class FrontendDataAuditTests(unittest.TestCase):
             for entry in site_manifest["cycles"]:
                 cycle = str(entry["cycle"])
                 modules = entry["modules"]
-                self.assertEqual(
-                    set(modules),
-                    {"overview", "jobs", "jobs_lite", "catalog", "positions", "changes", "audit", "derived", "palette", "major_city"},
-                )
+                # RC3-D3/v17.8.6：palette 退役；major_index 三周期原生；req_fields 仅 2026 精选输入。
+                expected_modules = {"overview", "jobs", "jobs_lite", "catalog", "positions", "changes", "audit", "derived", "major_city", "major_index"}
+                if cycle == "2026":
+                    expected_modules.add("req_fields")
+                self.assertEqual(set(modules), expected_modules)
                 loaded = {}
                 for name, module_entry in modules.items():
                     path = site / module_entry["data"]
@@ -93,27 +91,35 @@ class FrontendDataAuditTests(unittest.TestCase):
                 lite_rows = _rows(loaded["jobs_lite"])
                 ids = [_job_id(row) for row in rows]
                 self.assertEqual(len(ids), len(set(ids)), f"{site} {cycle} job IDs")
-                self.assertEqual(sorted(ids), sorted(_job_id(row) for row in lite_rows), f"{site} {cycle} lite IDs")
+                # v17.8.6：canonical 化后 jobs = 原始行（含排除行）；lite/positions/major_city = 活跃行。
+                active_rows = [row for row in rows if row.get("record_status") in (None, "active")]
+                self.assertEqual(len(active_rows), len(lite_rows), f"{site} {cycle} active count")
+                lite_ids = [_job_id(row) for row in lite_rows]
+                self.assertEqual(len(lite_ids), len(set(lite_ids)), f"{site} {cycle} lite IDs")
+                self.assertTrue(set(lite_ids) == {_job_id(row) for row in active_rows}, f"{site} {cycle} lite/source ID 对齐")
                 source_by_id = {_job_id(row): row for row in rows}
                 for lite_row in lite_rows:
                     source = source_by_id[_job_id(lite_row)]
                     self.assertTrue(all(source.get(key) == value for key, value in lite_row.items()), f"{site} {cycle} lite value drift")
-                self.assertEqual(len(rows), loaded["positions"]["row_count"])
-                self.assertEqual(set(ids), {str(row["record_id"]) for row in loaded["positions"]["rows"]})
-                self.assertEqual(set(ids), {str(row["id"]) for row in loaded["palette"]["entries"]})
-                self.assertEqual(len(rows), loaded["major_city"]["rows_total"])
+                self.assertEqual(len(lite_rows), loaded["positions"]["row_count"])
+                self.assertEqual(set(lite_ids), {str(row["record_id"]) for row in loaded["positions"]["rows"]})
+                self.assertEqual(len(lite_rows), loaded["major_city"]["rows_total"])
 
                 meta = (loaded["overview"].get("allMajors") or {}).get("meta") or {}
-                self.assertEqual(meta["total"], len(rows))
-                self.assertEqual(meta["recruits"], sum(_recruits(row) for row in rows))
-                self.assertEqual(dict(meta["examCounts"]), dict(Counter(str(row.get("exam") or "") for row in rows)))
+                # v17.8.6：overview meta = 活跃口径；jobs 模块 = 原始行（含排除行）。
+                self.assertEqual(meta["total"], len(lite_rows))
+                self.assertEqual(meta["recruits"], sum(_recruits(row) for row in lite_rows))
+                # raw/active 口径守恒（对齐 canonical metrics）
+                self.assertEqual(meta.get("raw_total"), len(rows))
+                self.assertEqual(meta.get("excluded"), len(rows) - len(lite_rows))
+                self.assertEqual(dict(meta["examCounts"]), dict(Counter(str(row.get("exam") or "") for row in active_rows)))
                 mix = loaded["derived"]["mix"]
-                self.assertEqual(sum(int(item.get("posts") or 0) for item in mix), len(rows))
+                self.assertEqual(sum(int(item.get("posts") or 0) for item in mix), len(lite_rows))
                 trend = loaded["derived"]["city_trend"]
                 unmapped = loaded["derived"].get("unmapped_cities") or {}
                 mapped_sum = sum(int((item.get("posts") or {}).get(cycle) or 0) for item in trend.values())
                 unmapped_sum = sum(int(value or 0) for value in (unmapped.get(cycle) or {}).values())
-                self.assertEqual(mapped_sum + unmapped_sum, len(rows), f"{site} {cycle} trend conservation")
+                self.assertEqual(mapped_sum + unmapped_sum, len(lite_rows), f"{site} {cycle} trend conservation")
 
                 for change in loaded["changes"]["changes"]:
                     if change.get("base_record_id"):
@@ -149,7 +155,8 @@ class FrontendDataAuditTests(unittest.TestCase):
             raw = Counter(str(row.get("city") or row.get("reg") or "") for row in selected)
             canonical = Counter(_trend_city(row.get("city") or row.get("reg")) for row in selected)
             self.assertEqual(sum(raw.values()), sum(canonical.values()), cycle)
-            self.assertGreater(len(raw), len(canonical) if cycle == "2024" else 0)
+            # v17.8.6：canonical 化后源表城市已归一到地级口径，粒度折叠断言（旧 site/ 产物）退役；
+            # 保留守恒与"无未映射城市"两条不变量。
             self.assertNotIn(None, canonical)
 
 

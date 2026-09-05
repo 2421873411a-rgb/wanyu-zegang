@@ -26,3 +26,5 @@ tools/anhui_web/.deploy_wan.local
 项目源码/tools/anhui_web/data/*
 !项目源码/tools/anhui_web/data/record_status_overrides.json
 *.db
+网站.previous/
+项目源码/tests/artifacts/

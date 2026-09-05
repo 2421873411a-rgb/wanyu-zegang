@@ -588,20 +588,56 @@ def write_report(summary: dict[str, Any], path: Path) -> None:
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
+def _diff_keys(committed: dict[str, Any], recomputed: dict[str, Any], prefix: str = "") -> list[str]:
+    """返回两份审计摘要的首批差异路径（最多 8 条，供失败诊断）。"""
+    diffs: list[str] = []
+    keys = sorted(set(committed) | set(recomputed))
+    for key in keys:
+        left, right = committed.get(key, "<missing>"), recomputed.get(key, "<missing>")
+        if left != right:
+            path = f"{prefix}{key}"
+            diffs.append(path)
+            if isinstance(left, dict) and isinstance(right, dict) and len(diffs) < 8:
+                diffs.extend(_diff_keys(left, right, prefix=f"{path}.")[: 8 - len(diffs)])
+        if len(diffs) >= 8:
+            break
+    return diffs
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Audit 2024-2026 Anhui data layers")
     parser.add_argument("--root", type=Path, default=Path.cwd())
-    parser.add_argument("--output-json", type=Path, required=True)
-    parser.add_argument("--report", type=Path, required=True)
+    parser.add_argument("--output-json", type=Path, default=None)
+    parser.add_argument("--report", type=Path, default=None)
+    parser.add_argument("--check", action="store_true",
+                        help="只读复核（v17.8.6 RB-02）：内存重算审计并与 --output-json 已提交工件比对；"
+                             "任何差异或失败项 → 非 0 退出，绝不写文件。正式链必须用 --check，禁止重生成。")
     args = parser.parse_args(argv)
     try:
-        summary = build_audit(args.root, args.output_json.parent)
-        args.output_json.parent.mkdir(parents=True, exist_ok=True)
-        args.output_json.write_text(json.dumps(summary, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-        write_report(summary, args.report)
+        summary = build_audit(args.root)
     except (OSError, ValueError, KeyError, json.JSONDecodeError) as exc:
         print(f"AUDIT_ERROR: {exc}", file=sys.stderr)
         return 2
+    if args.check:
+        if args.output_json is None:
+            parser.error("--check 需要 --output-json 指向已提交的审计工件（只读比对目标）")
+        if not args.output_json.is_file():
+            print(f"AUDIT_CHECK_FAILED: 已提交审计工件缺失：{args.output_json}", file=sys.stderr)
+            return 2
+        committed = json.loads(args.output_json.read_text(encoding="utf-8"))
+        if committed != summary:
+            diffs = _diff_keys(committed, summary)
+            print(f"AUDIT_CHECK_FAILED: 审计重算与已提交工件不一致（差异路径前 8 条）：{diffs}", file=sys.stderr)
+            print("RB-02：正式链禁止重生成 three_year_audit.json；请修复 canonical/覆盖源后走发布流水线，不要在此改写工件。", file=sys.stderr)
+            return 1
+        failed = summary["checks"]["failed"]
+        print(f"audit --check: 重算与已提交工件一致；{summary['checks']['passed']} passed, {failed} failed")
+        return 0 if failed == 0 else 1
+    if args.output_json is None or args.report is None:
+        parser.error("写入模式需要 --output-json 与 --report（或使用 --check 只读复核）")
+    args.output_json.parent.mkdir(parents=True, exist_ok=True)
+    args.output_json.write_text(json.dumps(summary, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    write_report(summary, args.report)
     print(f"three-year audit: {summary['checks']['passed']} passed, {summary['checks']['failed']} failed")
     print(f"summary: {_console_safe(args.output_json)}")
     print(f"report: {_console_safe(args.report)}")

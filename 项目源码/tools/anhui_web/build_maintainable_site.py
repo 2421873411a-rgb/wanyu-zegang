@@ -171,10 +171,13 @@ def _score_resolution_total(bundle: Any) -> int:
     resolution pipeline; each carries ``attributed``/``still_ambiguous`` counts.
     """
     keyed = (getattr(bundle, "score_lists", {}) or {}).get("keyed") or {}
+    cycle = getattr(bundle, "cycle", "?")
     total = 0
     for key, value in keyed.items():
         if isinstance(key, str) and key.startswith("resolution_") and isinstance(value, dict):
-            total += int(value.get("attributed") or 0)
+            # v17.8.6-H：resolution 块缺 attributed 字段必须 fail-closed，
+            # 禁止 int(x or 0) 把缺失/None 静默计成 0（fail-open）。
+            total += require_int(value.get("attributed"), f"{cycle} {key}.attributed")
     return total
 
 
@@ -224,7 +227,7 @@ def _lifecycle_meta(
     """Active-scope meta derived from rows; pass-through when a cycle has no exclusions.
 
     - carryover_meta：cities/categories/cycle/scoreSources 等非行级字段的来源
-      （builder 路径 = bundle 原始 meta；再生路径 = 现库 jobs meta）。
+      （= bundle 原始 meta；RC2 再生路径已随方案 A 退役）。
     - calibration_meta：bundle 原始 meta。排除集非空时，行级公式必须先在 raw
       全量行上复现它（否则中止构建），再切换 active 口径。
     """
@@ -726,8 +729,9 @@ def _index_html(three_year: dict[str, object] | None = None) -> str:
 def build_maintainable_site(root: Path = ROOT, output_dir: Path = DEFAULT_OUTPUT) -> dict[str, object]:
     """Build and return the manifest for the external-data maintenance site.
 
-    全链入口：legacy 页面 → 统一 bundle → 维护站。legacy_v11 缺失时这里会抛
-    CycleBundleError（此时可用 rc2_regen_site_modules.py 以现库 raw 行走同一装配层）。
+    全链入口：canonical bundles → 维护站（HTML 零输入）。canonical 缺失或
+    校验失败会抛 CycleBundleError，发布链 fail-closed；不存在任何"以现库
+    raw 行再生"的旁路（RC2 再生工具已随方案 A 退役）。
     """
     root = Path(root).resolve()
     output_dir = Path(output_dir).resolve()
@@ -740,7 +744,7 @@ def assemble_maintainable_site(
     root: Path = ROOT,
     output_dir: Path = DEFAULT_OUTPUT,
 ) -> dict[str, object]:
-    """Assemble the site from cycle bundles (shared by full build and RC2 regen)."""
+    """Assemble the site from cycle bundles (唯一正式装配入口，canonical 输入)."""
     root = Path(root).resolve()
     output_dir = Path(output_dir).resolve()
     # RC3(N)：job_history 由 builder 原生构建（行源=canonical；绑定 canonical sha）

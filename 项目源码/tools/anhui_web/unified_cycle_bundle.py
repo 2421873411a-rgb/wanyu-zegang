@@ -1,10 +1,11 @@
-"""Load the audited three-cycle payloads used by the v12 single-file site.
+"""Load the audited three-cycle payloads from the canonical cycle bundles.
 
-The v11 pages are treated as immutable build inputs for this migration step:
-they already contain the audited, cycle-specific all-position payload,
-score-list payload, and rendered archive views.  This module deliberately does
-not import or mutate ``build_pages`` globals, so loading one cycle cannot leak
-paths or data from another cycle.
+v17.8.6（方案 A）：唯一正式数据输入 = canonical/cycles/{2024,2025,2026}.json
+（wanyu-cycle-bundle/v1，schema 校验 + 守恒 + job_id 唯一性在
+load_canonical_doc 强制）；three_year_audit.json 是受 sources.lock 锁定的
+只读工件。HTML（含遗留单文件总览）永远只是输出，正式链零 HTML 输入；
+遗留 HTML 加载器已归档至 tools/anhui_web/archive/legacy_html_loader.py，
+正式模块禁止导入。本模块不导入或改写 build_pages 全局，逐周期加载互不串扰。
 """
 
 from __future__ import annotations
