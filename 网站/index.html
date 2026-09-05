@@ -17,18 +17,26 @@
         else if (stored === 'dark' || stored === 'light') theme = stored;
         else if (window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches) theme = 'dark';
         document.documentElement.dataset.theme = theme;
+        var tc = document.querySelector('meta[name="theme-color"]');
+        if (tc) tc.content = theme === 'dark' ? '#0f1829' : '#3a83f7';
       } catch (error) { document.documentElement.dataset.theme = 'light'; }
     })();
   </script>
   <link rel="manifest" href="manifest.webmanifest">
   <meta name="theme-color" content="#3a83f7">
-  <link rel="icon" href="assets/wanyu-icon.svg?v=17.8.2" type="image/svg+xml">
-  <link rel="stylesheet" href="assets/maintainable-tokens.css?v=17.8.2">
-  <link rel="stylesheet" href="assets/maintainable-site.css?v=17.8.2">
-  <link rel="stylesheet" href="assets/v17-ui-upgrade.css?v=17.8.2">
-  <link rel="stylesheet" href="assets/v17-search.css?v=17.8.2">
-  <link rel="stylesheet" href="assets/v17-tools.css?v=17.8.2">
-  <link rel="stylesheet" href="assets/v17-exam-picker.css?v=17.8.2">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="皖域择岗 · 安徽公考岗位查询">
+  <meta property="og:description" content="三年 28,678 岗逐岗可溯源：专业匹配亮依据、官方竞争与入围线、变更通报盯招录调整。未公布不显示，推导亮明依据。">
+  <meta property="og:image" content="assets/og-card.png">
+  <meta property="og:url" content="https://wan.kaogong.art/maintainable/">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="assets/wanyu-icon.svg?v=17.8.3" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/maintainable-tokens.css?v=17.8.3">
+  <link rel="stylesheet" href="assets/maintainable-site.css?v=17.8.3">
+  <link rel="stylesheet" href="assets/v17-ui-upgrade.css?v=17.8.3">
+  <link rel="stylesheet" href="assets/v17-search.css?v=17.8.3">
+  <link rel="stylesheet" href="assets/v17-tools.css?v=17.8.3">
+  <link rel="stylesheet" href="assets/v17-exam-picker.css?v=17.8.3">
 </head>
 <body>
   <div id="maintainable-app" class="maintainable-app">
@@ -49,6 +57,7 @@
         <nav class="maintain-nav" aria-label="维护站导航">
           <a href="#overview" data-maintain-view="overview">总览</a>
           <a href="#jobs_search" data-maintain-view="jobs_search">找岗位</a>
+          <a href="#match" data-maintain-view="match">为我匹配</a>
           <a href="#jobs_map" data-maintain-view="jobs_map">岗位地图</a>
           <a href="#salary_map" data-maintain-view="salary_map">待遇对比</a>
           <a href="#jobs_ranking" data-maintain-view="jobs_ranking">城市排行</a>
@@ -83,11 +92,11 @@
       <span>第一次使用？请看导航里的「使用说明」</span>
     </footer>
   </div>
-  <script src="assets/maintainable-data.js?v=17.8.2"></script>
-  <script src="assets/maintainable-major-city.js?v=17.8.2"></script>
-  <script src="assets/maintainable-user-store.js?v=17.8.2"></script>
-  <script src="assets/v17-tools.js?v=17.8.2"></script>
-  <script type="module" src="assets/maintainable-site.js?v=17.8.2"></script>
+  <script src="assets/maintainable-data.js?v=17.8.3"></script>
+  <script src="assets/maintainable-major-city.js?v=17.8.3"></script>
+  <script src="assets/maintainable-user-store.js?v=17.8.3"></script>
+  <script src="assets/v17-tools.js?v=17.8.3"></script>
+  <script type="module" src="assets/maintainable-site.js?v=17.8.3"></script>
   <script>
   if ('serviceWorker' in navigator) {
     addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });

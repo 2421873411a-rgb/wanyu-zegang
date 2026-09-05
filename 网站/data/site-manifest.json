@@ -254,7 +254,7 @@
   "sha256": "d98fb053398facec707a3c842c138b82118990bf3b173ce8ecb9348caa9fbc77",
   "source": "tools/anhui_web/data/anhui_340000_full.json"
  },
- "release": "v17.8.2",
+ "release": "v17.8.3",
  "review_queue": {
   "bytes": 4225,
   "data": "data/audit/review-queue.json",

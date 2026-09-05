@@ -39,7 +39,7 @@
     notice: '',
     renderToken: 0,
   };
-  const validViews = new Set(['overview', 'cycle_compare', 'jobs_map', 'salary_map', 'jobs_ranking', 'jobs_search', 'saved', 'changes', 'data_boundary', 'help', 'changelog', 'calendar']);
+  const validViews = new Set(['overview', 'cycle_compare', 'jobs_map', 'salary_map', 'jobs_ranking', 'jobs_search', 'saved', 'changes', 'data_boundary', 'help', 'changelog', 'calendar', 'match']);
   const themeToggle = document.querySelector('#maintain-theme-toggle');
   const THEME_KEY = 'wanyu.v15.theme';
   const themeFromQuery = () => {
@@ -76,6 +76,7 @@
     jobs_ranking: { full: '城市排行', short: '榜单' },
     cycle_compare: { full: '三年趋势', short: '三年' },
     calendar: { full: '报考日历', short: '日历' },
+    match: { full: '为我匹配', short: '匹配' },
     changes: { full: '变更通报', short: '变更' },
     saved: { full: '我的收藏', short: '收藏' },
     data_boundary: { full: '数据说明', short: '数据' },
@@ -204,7 +205,7 @@
   };
   const normalize = (value) => String(value || '').replace(/\s+/g, '').toLocaleLowerCase();
   const number = (value) => Number(value || 0).toLocaleString('en-US');
-  const VIEW_NUMBERS = { overview: '01', cycle_compare: '02', jobs_map: '03', salary_map: '04', jobs_ranking: '05', jobs_search: '06', saved: '07', data_boundary: '08', help: '09', changelog: '10', changes: '11', calendar: '12' };
+  const VIEW_NUMBERS = { overview: '01', cycle_compare: '02', jobs_map: '03', salary_map: '04', jobs_ranking: '05', jobs_search: '06', saved: '07', data_boundary: '08', help: '09', changelog: '10', changes: '11', calendar: '12', match: '13' };
   const viewEyebrow = (view, text) => `<p class="maint-eyebrow"><span class="maint-eyebrow__index">${VIEW_NUMBERS[view] || '--'}</span>${text}</p>`;
   const prefersReducedMotion = () => Boolean(matchMedia('(prefers-reduced-motion: reduce)')?.matches);
   const REVEAL_SELECTOR = '.maint-hero, .bento, .maint-panel, .maint-kpis, .maint-callout, .maint-grid';
@@ -507,7 +508,7 @@
       app.insertAdjacentHTML('beforeend', `<nav class="maint-mobile-nav" data-maint-mobile-nav aria-label="移动端主导航"><a href="#overview" data-maintain-view="overview"><span aria-hidden="true">⌂</span><strong>${VIEW_META.overview.short}</strong></a><a href="#jobs_search" data-maintain-view="jobs_search"><span aria-hidden="true">⌕</span><strong>${VIEW_META.jobs_search.short}</strong></a><a href="#jobs_map" data-maintain-view="jobs_map"><span aria-hidden="true">⌁</span><strong>${VIEW_META.jobs_map.short}</strong></a><a href="#saved" data-maintain-view="saved"><span aria-hidden="true">☆</span><strong>${VIEW_META.saved.short}</strong></a><button type="button" data-maint-mobile-more-toggle aria-expanded="false"><span aria-hidden="true">•••</span><strong>更多</strong></button></nav>`);
     }
     if (!document.querySelector('[data-maint-mobile-more]')) {
-      app.insertAdjacentHTML('beforeend', `<div class="maint-mobile-more" data-maint-mobile-more hidden><div class="maint-mobile-more__panel" role="dialog" aria-modal="true" aria-label="更多视图"><div class="maint-mobile-more__head"><strong>更多视图</strong><button type="button" data-maint-mobile-more-close aria-label="关闭更多视图">×</button></div><div class="maint-mobile-more__grid">${['cycle_compare', 'salary_map', 'jobs_ranking', 'changes', 'calendar', 'data_boundary', 'help', 'changelog'].map((view) => `<a href="#${view}" data-maintain-view="${view}">${VIEW_META[view].full}</a>`).join('')}</div></div></div>`);
+      app.insertAdjacentHTML('beforeend', `<div class="maint-mobile-more" data-maint-mobile-more hidden><div class="maint-mobile-more__panel" role="dialog" aria-modal="true" aria-label="更多视图"><div class="maint-mobile-more__head"><strong>更多视图</strong><button type="button" data-maint-mobile-more-close aria-label="关闭更多视图">×</button></div><div class="maint-mobile-more__grid">${['match', 'cycle_compare', 'salary_map', 'jobs_ranking', 'changes', 'calendar', 'data_boundary', 'help', 'changelog'].map((view) => `<a href="#${view}" data-maintain-view="${view}">${VIEW_META[view].full}</a>`).join('')}</div></div></div>`);
     }
     document.querySelectorAll('[data-maint-mobile-nav] [data-maintain-view], [data-maint-mobile-more] [data-maintain-view]').forEach((node) => {
       const active = node.dataset.maintainView === state.view;
@@ -1012,7 +1013,7 @@
       { key: 'search.steal', label: '捡漏雷达', value: state.searchSteal ? '按竞争比升序' : '' },
     ]);
     const educationLevels = ['本科', '研究生', '大专', '不限'];
-    return `${notice}<section class="maint-hero maint-hero--compact"><div>${viewEyebrow('jobs_search', '岗位检索')}<h1>找到适合你的岗位</h1><p>输入专业、选择城市和学历，快速筛选能报的岗位。点击"查看详情"了解岗位信息。</p></div></section><section class="maint-toolbar maint-toolbar--search"><label>关键词<input id="maint-search-keyword" type="search" value="${escapeHtml(state.keyword)}" placeholder="单位 / 职位 / 专业 / 代码"></label><label>专业<input id="maint-search-major" list="maint-search-major-options" value="${escapeHtml(state.searchMajor)}" placeholder="输入专业，如：法学、计算机"></label><datalist id="maint-search-major-options">${majorOptions.map((value) => `<option value="${escapeHtml(value)}" label="${number(majorCount(catalog, value))}个岗位"></option>`).join('')}</datalist><label>城市<select id="maint-search-city"><option value="">全部城市</option>${cities.map((city) => `<option ${state.city === city ? 'selected' : ''} value="${escapeHtml(city)}">${escapeHtml(city)}</option>`).join('')}</select></label><label>学历<select id="maint-search-education"><option value="">全部学历</option>${educationLevels.map((level) => `<option ${state.education === level ? 'selected' : ''} value="${escapeHtml(level)}">${escapeHtml(level)}</option>`).join('')}</select></label><label>考试<select id="maint-search-exam">${optionMarkup(examScopeOptions, state.exam, '全部考试')}</select></label><label>排序<select id="maint-search-sort"><option value="recruits" ${state.searchSort === 'recruits' ? 'selected' : ''}>招录人数</option><option value="source" ${state.searchSort === 'source' ? 'selected' : ''}>默认顺序</option><option value="city" ${state.searchSort === 'city' ? 'selected' : ''}>城市</option></select></label>${cityGroup ? `<button type="button" class="maint-row-action" data-maint-clear-city-group>清除地图筛选</button>` : ''}${active}<div class="maint-search-stats"><span class="maint-search-stats__total">找到 <strong>${number(filtered.length)}</strong> 个岗位</span><span class="maint-search-stats__fierce" title="竞争比5:1以上">🔥 竞争激烈 ${number(competitionStats.fierce)}个</span><span class="maint-search-stats__medium" title="竞争比2-5:1">⚠️ 竞争适中 ${number(competitionStats.medium)}个</span><span class="maint-search-stats__easy" title="竞争比2:1以下">✅ 竞争较小 ${number(competitionStats.easy)}个</span>${tier ? `<span class="maint-search-stats__tier t1" title="岗位专业要求原文明确包含「${escapeHtml(majorQuery)}」">✔ 明确含 ${number(filtered.filter((row) => rowTier(row) === 1).length)}</span><span class="maint-search-stats__tier t2" title="依据：该岗要求『${escapeHtml(tier.clsName)}』，「${escapeHtml(majorQuery)}」属该专业类（推导，依据可展开原文）">🔁 类内可报·推导 ${number(filtered.filter((row) => rowTier(row) === 2).length)}</span><span class="maint-search-stats__tier t3" title="该岗不限专业">➖ 不限专业 ${number(filtered.filter((row) => rowTier(row) === 3).length)}</span>` : ''}${profileOn ? `<span class="maint-search-stats__tier t1" title="按「我的条件」核对：应届/性别/党员/法考/年龄硬性要求，一票否决；存疑岗位不否决">👤 符合我的条件 ${number(filtered.length)}</span>` : ''}${profileMiss ? '<span class="maint-filter-hint">「我的条件」核对目前覆盖 2026 周期</span>' : ''}</div><div class="maint-search-actions">${!tier && majorQuery ? `<span class="maint-filter-hint">专业目录未收录「${escapeHtml(majorQuery)}」，当前按岗位原文包含匹配；可尝试目录内规范名</span>` : ''}${state.searchSteal ? '<span class="maint-steal-hint">口径：招录 ≥3 人 · 有官方报名观测 · 按竞争比从低到高；竞争比 = 官方报名人数 ÷ 招录数</span>' : ''}<button type="button" data-maint-steal-toggle class="${state.searchSteal ? 'is-active' : ''}" aria-pressed="${state.searchSteal ? 'true' : 'false'}" title="招录≥3人且官方公布报名人数的岗位，按竞争比从低到高">🎯 捡漏雷达</button><button type="button" data-maint-profile-toggle class="${profileOn ? 'is-active' : ''}" aria-expanded="${state.profileOpen ? 'true' : 'false'}" title="填写学历/应届/性别/党员/法考/年龄，全站自动标注可报">👤 我的条件</button><button type="button" data-maint-clear-search>清空筛选</button><button type="button" data-maint-save-filter data-filter-view="jobs_search">保存筛选</button><button type="button" data-maint-export-search>导出结果</button></div>${state.profileOpen ? `<div class="maint-profile-panel"><span class="maint-profile-panel__title">我的条件（仅存本机浏览器）</span><label>性别<select id="maint-profile-gender"><option value="">不限</option><option value="male" ${profile.gender === 'male' ? 'selected' : ''}>男</option><option value="female" ${profile.gender === 'female' ? 'selected' : ''}>女</option></select></label><label>应届身份<select id="maint-profile-fresh"><option value="">不限</option><option value="yes" ${profile.fresh === 'yes' ? 'selected' : ''}>是</option><option value="no" ${profile.fresh === 'no' ? 'selected' : ''}>否</option></select></label><label>政治面貌<select id="maint-profile-party"><option value="">不限</option><option value="yes" ${profile.party === 'yes' ? 'selected' : ''}>党员（含预备）</option><option value="no" ${profile.party === 'no' ? 'selected' : ''}>群众</option></select></label><label>法律职业资格<select id="maint-profile-legal"><option value="">不限</option><option value="yes" ${profile.legal === 'yes' ? 'selected' : ''}>有</option><option value="no" ${profile.legal === 'no' ? 'selected' : ''}>无</option></select></label><label>年龄<input id="maint-profile-age" type="number" min="16" max="60" value="${escapeHtml(profile.age)}" placeholder="周岁"></label><button type="button" class="maint-row-action" data-maint-profile-clear>清除条件</button><span class="maint-filter-hint">硬性要求不满足即隐藏该岗；条件解析存疑的岗位不否决、标「待核对」；最终以官方公告为准</span></div>` : ''}</section><section class="maint-panel"><div class="table-scroll"><table class="maint-table maint-table--search"><thead><tr><th scope="col">城市</th><th scope="col">单位</th><th scope="col">职位</th><th scope="col">专业</th><th scope="col">学历</th><th scope="col">招录</th><th scope="col">竞争</th><th scope="col">操作</th></tr></thead><tbody>${pageRows.map((row) => { const recordId = row.job_id || row.row_id || row.code || ''; const recruits = Number(row.num ?? row.recruits ?? 0); const examinees = Number(row.competition_observations?.examinees?.value ?? row.bm ?? 0); let compBadge = ''; if (examinees > 0 && recruits > 0) { const ratio = (examinees / recruits).toFixed(1); if (examinees / recruits >= 5) compBadge = `<span class="comp-badge comp-fierce" title="报名${examinees}人/招${recruits}人">${ratio}:1 🔥</span>`; else if (examinees / recruits >= 2) compBadge = `<span class="comp-badge comp-medium" title="报名${examinees}人/招${recruits}人">${ratio}:1</span>`; else compBadge = `<span class="comp-badge comp-easy" title="报名${examinees}人/招${recruits}人">${ratio}:1 ✅</span>`; } else { compBadge = '<span class="comp-badge comp-unknown">暂无数据</span>'; } return `<tr data-maint-search-row data-record-id="${escapeHtml(recordId)}"><td>${escapeHtml(row.city)}</td><td>${escapeHtml(row.unit)}</td><td>${escapeHtml(row.zw || row.display_title || '源表未单列披露')}</td><td class="major-cell" title="${escapeHtml(row.zy)}">${escapeHtml(row.zy)}${(() => { const t = rowTier(row); if (!tier || t === 9) return ''; if (t === 1) return '<span class="tier-badge tb1">✔ 明确含</span>'; if (t === 2) return `<span class="tier-badge tb2" title="依据：该岗要求『${escapeHtml(tier.clsName)}』，「${escapeHtml(majorQuery)}」属该专业类（推导）">类内可报·推导</span>`; return '<span class="tier-badge tb3">不限专业</span>'; })()}${profilePending(row) ? '<span class="tier-badge tb2" title="该岗条件解析置信度较低，请以原文核对">待核对</span>' : ''}</td><td>${escapeHtml(row.xl || '—')}</td><td>${escapeHtml(row.num ?? row.recruits ?? '—')}</td><td>${compBadge}</td><td><button type="button" class="maint-row-action" data-maint-position-detail data-record-id="${escapeHtml(recordId)}">查看详情</button></td></tr>`; }).join('') || '<tr><td colspan="8" class="empty">没有找到匹配的岗位 <button type="button" class="maint-row-action" data-maint-clear-search>清空全部筛选</button></td></tr>'}</tbody></table></div><div class="maint-pagination" data-maint-pagination aria-label="分页"><span class="maint-pagination__label">第 ${number(page + 1)} / ${number(pageCount)} 页</span><div class="maint-pagination__buttons"><button type="button" data-maint-search-page="prev" ${page <= 0 ? 'disabled' : ''}>上一页</button><button type="button" data-maint-search-page="next" ${page >= pageCount - 1 ? 'disabled' : ''}>下一页</button></div></div></section>`;
+    return `${notice}<section class="maint-hero maint-hero--compact"><div>${viewEyebrow('jobs_search', '岗位检索')}<h1>找到适合你的岗位</h1><p>输入专业、选择城市和学历，快速筛选能报的岗位。点击"查看详情"了解岗位信息。</p></div></section><section class="maint-toolbar maint-toolbar--search"><label>关键词<input id="maint-search-keyword" type="search" value="${escapeHtml(state.keyword)}" placeholder="单位 / 职位 / 专业 / 代码"></label><label>专业<input id="maint-search-major" list="maint-search-major-options" value="${escapeHtml(state.searchMajor)}" placeholder="输入专业，如：法学、计算机"></label><datalist id="maint-search-major-options">${majorOptions.map((value) => `<option value="${escapeHtml(value)}" label="${number(majorCount(catalog, value))}个岗位"></option>`).join('')}</datalist><label>城市<select id="maint-search-city"><option value="">全部城市</option>${cities.map((city) => `<option ${state.city === city ? 'selected' : ''} value="${escapeHtml(city)}">${escapeHtml(city)}</option>`).join('')}</select></label><label>学历<select id="maint-search-education"><option value="">全部学历</option>${educationLevels.map((level) => `<option ${state.education === level ? 'selected' : ''} value="${escapeHtml(level)}">${escapeHtml(level)}</option>`).join('')}</select></label><label>考试<select id="maint-search-exam">${optionMarkup(examScopeOptions, state.exam, '全部考试')}</select></label><label>排序<select id="maint-search-sort"><option value="recruits" ${state.searchSort === 'recruits' ? 'selected' : ''}>招录人数</option><option value="source" ${state.searchSort === 'source' ? 'selected' : ''}>默认顺序</option><option value="city" ${state.searchSort === 'city' ? 'selected' : ''}>城市</option></select></label>${cityGroup ? `<button type="button" class="maint-row-action" data-maint-clear-city-group>清除地图筛选</button>` : ''}${active}<div class="maint-search-stats"><span class="maint-search-stats__total">找到 <strong>${number(filtered.length)}</strong> 个岗位</span><span class="maint-search-stats__fierce" title="竞争比5:1以上">🔥 竞争激烈 ${number(competitionStats.fierce)}个</span><span class="maint-search-stats__medium" title="竞争比2-5:1">⚠️ 竞争适中 ${number(competitionStats.medium)}个</span><span class="maint-search-stats__easy" title="竞争比2:1以下">✅ 竞争较小 ${number(competitionStats.easy)}个</span>${tier ? `<span class="maint-search-stats__tier t1" title="岗位专业要求原文明确包含「${escapeHtml(majorQuery)}」">✔ 明确含 ${number(filtered.filter((row) => rowTier(row) === 1).length)}</span><span class="maint-search-stats__tier t2" title="依据：该岗要求『${escapeHtml(tier.clsName)}』，「${escapeHtml(majorQuery)}」属该专业类（推导，依据可展开原文）">🔁 类内可报·推导 ${number(filtered.filter((row) => rowTier(row) === 2).length)}</span><span class="maint-search-stats__tier t3" title="该岗不限专业">➖ 不限专业 ${number(filtered.filter((row) => rowTier(row) === 3).length)}</span>` : ''}${profileOn ? `<span class="maint-search-stats__tier t1" title="按「我的条件」核对：应届/性别/党员/法考/年龄硬性要求，一票否决；存疑岗位不否决">👤 符合我的条件 ${number(filtered.length)}</span>` : ''}${profileMiss ? '<span class="maint-filter-hint">「我的条件」核对目前覆盖 2026 周期</span>' : ''}</div><div class="maint-search-actions">${!tier && majorQuery ? `<span class="maint-filter-hint">专业目录未收录「${escapeHtml(majorQuery)}」，当前按岗位原文包含匹配；可尝试目录内规范名</span>` : ''}${state.searchSteal ? '<span class="maint-steal-hint">口径：招录 ≥3 人 · 有官方报名观测 · 按竞争比从低到高；竞争比 = 官方报名人数 ÷ 招录数</span>' : ''}<button type="button" data-maint-steal-toggle class="${state.searchSteal ? 'is-active' : ''}" aria-pressed="${state.searchSteal ? 'true' : 'false'}" title="招录≥3人且官方公布报名人数的岗位，按竞争比从低到高">🎯 捡漏雷达</button><button type="button" data-maint-profile-toggle class="${profileOn ? 'is-active' : ''}" aria-expanded="${state.profileOpen ? 'true' : 'false'}" title="填写学历/应届/性别/党员/法考/年龄，全站自动标注可报">👤 我的条件</button><a class="maint-row-action" href="#match" data-maintain-view="match" title="专业+条件一次生成可报榜">⚡ 为我匹配</a><button type="button" data-maint-clear-search>清空筛选</button><button type="button" data-maint-save-filter data-filter-view="jobs_search">保存筛选</button><button type="button" data-maint-export-search>导出结果</button></div>${state.profileOpen ? `<div class="maint-profile-panel"><span class="maint-profile-panel__title">我的条件（仅存本机浏览器）</span><label>性别<select id="maint-profile-gender"><option value="">不限</option><option value="male" ${profile.gender === 'male' ? 'selected' : ''}>男</option><option value="female" ${profile.gender === 'female' ? 'selected' : ''}>女</option></select></label><label>应届身份<select id="maint-profile-fresh"><option value="">不限</option><option value="yes" ${profile.fresh === 'yes' ? 'selected' : ''}>是</option><option value="no" ${profile.fresh === 'no' ? 'selected' : ''}>否</option></select></label><label>政治面貌<select id="maint-profile-party"><option value="">不限</option><option value="yes" ${profile.party === 'yes' ? 'selected' : ''}>党员（含预备）</option><option value="no" ${profile.party === 'no' ? 'selected' : ''}>群众</option></select></label><label>法律职业资格<select id="maint-profile-legal"><option value="">不限</option><option value="yes" ${profile.legal === 'yes' ? 'selected' : ''}>有</option><option value="no" ${profile.legal === 'no' ? 'selected' : ''}>无</option></select></label><label>年龄<input id="maint-profile-age" type="number" min="16" max="60" value="${escapeHtml(profile.age)}" placeholder="周岁"></label><button type="button" class="maint-row-action" data-maint-profile-clear>清除条件</button><span class="maint-filter-hint">硬性要求不满足即隐藏该岗；条件解析存疑的岗位不否决、标「待核对」；最终以官方公告为准</span></div>` : ''}</section><section class="maint-panel"><div class="table-scroll"><table class="maint-table maint-table--search"><thead><tr><th scope="col">城市</th><th scope="col">单位</th><th scope="col">职位</th><th scope="col">专业</th><th scope="col">学历</th><th scope="col">招录</th><th scope="col">竞争</th><th scope="col">操作</th></tr></thead><tbody>${pageRows.map((row) => { const recordId = row.job_id || row.row_id || row.code || ''; const recruits = Number(row.num ?? row.recruits ?? 0); const examinees = Number(row.competition_observations?.examinees?.value ?? row.bm ?? 0); let compBadge = ''; if (examinees > 0 && recruits > 0) { const ratio = (examinees / recruits).toFixed(1); if (examinees / recruits >= 5) compBadge = `<span class="comp-badge comp-fierce" title="报名${examinees}人/招${recruits}人">${ratio}:1 🔥</span>`; else if (examinees / recruits >= 2) compBadge = `<span class="comp-badge comp-medium" title="报名${examinees}人/招${recruits}人">${ratio}:1</span>`; else compBadge = `<span class="comp-badge comp-easy" title="报名${examinees}人/招${recruits}人">${ratio}:1 ✅</span>`; } else { compBadge = '<span class="comp-badge comp-unknown">暂无数据</span>'; } return `<tr data-maint-search-row data-record-id="${escapeHtml(recordId)}"><td>${escapeHtml(row.city)}</td><td>${escapeHtml(row.unit)}</td><td>${escapeHtml(row.zw || row.display_title || '源表未单列披露')}</td><td class="major-cell" title="${escapeHtml(row.zy)}">${escapeHtml(row.zy)}${(() => { const t = rowTier(row); if (!tier || t === 9) return ''; if (t === 1) return '<span class="tier-badge tb1">✔ 明确含</span>'; if (t === 2) return `<span class="tier-badge tb2" title="依据：该岗要求『${escapeHtml(tier.clsName)}』，「${escapeHtml(majorQuery)}」属该专业类（推导）">类内可报·推导</span>`; return '<span class="tier-badge tb3">不限专业</span>'; })()}${profilePending(row) ? '<span class="tier-badge tb2" title="该岗条件解析置信度较低，请以原文核对">待核对</span>' : ''}</td><td>${escapeHtml(row.xl || '—')}</td><td>${escapeHtml(row.num ?? row.recruits ?? '—')}</td><td>${compBadge}</td><td><button type="button" class="maint-row-action" data-maint-position-detail data-record-id="${escapeHtml(recordId)}">查看详情</button></td></tr>`; }).join('') || '<tr><td colspan="8" class="empty">没有找到匹配的岗位 <button type="button" class="maint-row-action" data-maint-clear-search>清空全部筛选</button></td></tr>'}</tbody></table></div><div class="maint-pagination" data-maint-pagination aria-label="分页"><span class="maint-pagination__label">第 ${number(page + 1)} / ${number(pageCount)} 页</span><div class="maint-pagination__buttons"><button type="button" data-maint-search-page="prev" ${page <= 0 ? 'disabled' : ''}>上一页</button><button type="button" data-maint-search-page="next" ${page >= pageCount - 1 ? 'disabled' : ''}>下一页</button></div></div></section>`;
   };
   const detailStatusLabel = (status) => ({ verified: '已核验', partial_evidence: '部分证据已核验', source_bundle: '源包接入', derived: '派生指标', registered: '已登记', unpublished_or_unavailable: '未发布或未取得', ambiguous_join: '无法唯一关联', needs_review: '待复核', unavailable: '未取得', suspected_sentinel: '疑似哨兵值', incompatible_scale: '量纲不兼容', not_applicable: '不适用' }[String(status)] || '未知');
   const detailValue = (value, status = '') => {
@@ -1039,7 +1040,26 @@
           const ratioText = h.num > 0 && h.bm != null ? `${(h.bm / h.num).toFixed(1)}:1` : '—';
           return `<tr><td>${cycle}</td><td>${h.posts} 岗</td><td>${number(h.num)} 人</td><td>${h.bm != null ? number(h.bm) : '—'}</td><td>${ratioText}</td><td>${lineText}</td></tr>`;
         }).join('');
-        historyBlock = `<section class="maint-detail-section"><h3>跨年走势 · 同单位同职位族</h3><div class="table-scroll"><table class="maint-table maint-table--history"><thead><tr><th>年份</th><th>岗位</th><th>招录</th><th>报名</th><th>竞争比</th><th>入围线</th></tr></thead><tbody>${rowsHtml}</tbody></table></div><p class="maint-detail-footnote">按“城市+单位+职位名称”聚合的同职位族跨年数据，仅显示有数据的年份；报名与入围线在官方未公布或无法唯一匹配时保持空值，不以 0 冒充。</p></section>`;
+        const vizYears = order.filter((y) => historyEntry.cycles[y]?.lo != null);
+        const vizPosts = order.map((y) => ({ year: y, posts: historyEntry.cycles[y]?.posts ?? 0 }));
+        let spark = '';
+        let trendBadge = '';
+        if (vizYears.length >= 2) {
+          const los = vizYears.map((y) => historyEntry.cycles[y].lo);
+          const minV = Math.min(...los), maxV = Math.max(...los);
+          const span = maxV - minV || 1;
+          const W = 500, H = 88, PAD = 14;
+          const pts = los.map((v, i) => [PAD + (i * (W - PAD * 2)) / (los.length - 1), H - PAD - ((v - minV) / span) * (H - PAD * 2)]);
+          const poly = pts.map((pt) => `${pt[0].toFixed(1)},${pt[1].toFixed(1)}`).join(' ');
+          spark = `<svg class="maint-trend-spark" viewBox="0 0 ${W} ${H}" role="img" aria-label="同职位族入围线走势：${vizYears.join('、')}年分别为 ${los.join('、')} 分"><polyline points="${poly}" fill="none" stroke="var(--accent-primary,#3a83f7)" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>${pts.map((pt, i) => `<circle cx="${pt[0].toFixed(1)}" cy="${pt[1].toFixed(1)}" r="4.5" fill="var(--accent-primary,#3a83f7)"/><text x="${pt[0].toFixed(1)}" y="${pt[1].toFixed(1) - 10}" text-anchor="middle" class="maint-trend-spark__val">${los[i]}</text>`).join('')}<text x="${PAD}" y="${H - 2}" text-anchor="start" class="maint-trend-spark__year">${vizYears[0]}</text><text x="${W - PAD}" y="${H - 2}" text-anchor="end" class="maint-trend-spark__year">${vizYears[vizYears.length - 1]}</text></svg>`;
+        }
+        if (vizPosts.length >= 2) {
+          const p0 = vizPosts[0].posts, p1 = vizPosts[vizPosts.length - 1].posts;
+          if (p1 > p0) trendBadge = `<span class="tier-badge tb1" title="同职位族招录人数 ${p0}→${p1}">扩招 ↗（${p0}→${p1}）</span>`;
+          else if (p1 < p0) trendBadge = `<span class="tier-badge tb2" title="同职位族招录人数 ${p0}→${p1}">缩招 ↘（${p0}→${p1}）</span>`;
+          else trendBadge = `<span class="tier-badge tb3" title="同职位族招录人数持平（${p0}）">招录持平（${p0}）</span>`;
+        }
+        historyBlock = `<section class="maint-detail-section"><h3>跨年走势 · 同单位同职位族 ${trendBadge}</h3>${spark}<div class="table-scroll"><table class="maint-table maint-table--history"><thead><tr><th scope="col">年份</th><th scope="col">岗位</th><th scope="col">招录</th><th scope="col">报名</th><th scope="col">竞争比</th><th scope="col">入围线</th></tr></thead><tbody>${rowsHtml}</tbody></table></div><p class="maint-detail-footnote">按“城市+单位+职位名称”聚合的同职位族跨年数据，仅显示有数据的年份；报名与入围线在官方未公布或无法唯一匹配时保持空值，不以 0 冒充。</p></section>`;
       }
     }
     const fields = [
@@ -1114,6 +1134,79 @@
     if (recordId) [...document.querySelectorAll('[data-maint-position-detail]')].find((node) => node.dataset.recordId === recordId)?.focus();
   };
   const currentRowsPayload = () => scopeExamPayload(state.modules.get(`${state.cycle}:jobs_lite`) || state.modules.get(`${state.cycle}:jobs`) || null);
+  const renderMatch = (payload, catalog, majorIndex, reqFields) => {
+    if (!state.matchMajor) state.matchMajor = normalize(state.searchMajor || '');
+    const all = rowsFor(payload);
+    const majorQuery = normalize(state.matchMajor);
+    const profile = readProfile();
+    const profileOn = profileActive(profile) && Boolean(reqFields);
+    const p = majorIndex?.postings || null;
+    const explicitSet = new Set(p && majorQuery ? p.explicit[majorQuery] || [] : []);
+    const classSet = new Set();
+    let clsName = '';
+    if (p && majorQuery) {
+      (majorIndex.classes || []).forEach((c) => {
+        if ((c.members || []).includes(majorQuery) && Array.isArray(p.by_class[c.key])) {
+          if (!clsName) clsName = c.key;
+          p.by_class[c.key].forEach((id) => classSet.add(id));
+        }
+      });
+      if (Array.isArray(p.by_class[majorQuery])) {
+        if (!clsName) clsName = majorQuery;
+        p.by_class[majorQuery].forEach((id) => classSet.add(id));
+      }
+    }
+    const unlimitSet = new Set(p ? p.unlimited || [] : []);
+    const tierOf = (row) => {
+      const id = String(row.job_id || row.row_id || row.code || '');
+      if (explicitSet.has(id)) return 1;
+      if (classSet.has(id)) return 2;
+      if (unlimitSet.has(id)) return 3;
+      return 9;
+    };
+    const profileFail = (row) => {
+      if (!profileOn) return false;
+      const rf = reqFields[String(row.job_id || '')];
+      if (!rf || rf.confidence !== 'high') return false;
+      if (rf.fresh_only && profile.fresh === 'no') return true;
+      if (rf.party_only && profile.party === 'no') return true;
+      if (rf.cert_legal && profile.legal === 'no') return true;
+      if (rf.gender === 'male' && profile.gender === 'female') return true;
+      if (rf.gender === 'female' && profile.gender === 'male') return true;
+      if (rf.age_max != null && profile.age && Number(profile.age) > Number(rf.age_max)) return true;
+      return false;
+    };
+    const matched = majorQuery && p
+      ? all.filter((row) => tierOf(row) !== 9 && !profileFail(row))
+      : [];
+    const n1 = matched.filter((row) => tierOf(row) === 1).length;
+    const n2 = matched.filter((row) => tierOf(row) === 2).length;
+    const n3 = matched.filter((row) => tierOf(row) === 3).length;
+    const ratioOf = (row) => {
+      const num = Number(row.num ?? row.recruits ?? 0);
+      const examinees = Number(row.competition_observations?.examinees?.value ?? row.bm ?? 0);
+      return num > 0 && examinees > 0 ? examinees / num : Number.POSITIVE_INFINITY;
+    };
+    const top = [...matched].sort((a, b) => (tierOf(a) - tierOf(b)) || (ratioOf(a) - ratioOf(b))).slice(0, 30);
+    const majorOptions = curateMajorOptions(catalog, all);
+    const input = `<div class="maint-match-input"><input id="maint-match-major" list="maint-match-major-options" value="${escapeHtml(state.matchMajor)}" placeholder="输入你的专业，如：知识产权、软件工程、会计学"><datalist id="maint-match-major-options">${majorOptions.slice(0, 500).map(([value]) => `<option value="${escapeHtml(value)}"></option>`).join('')}</datalist><button type="button" class="maint-action" data-maint-match-go>生成我的可报榜</button>${profileOn ? '<span class="tier-badge tb1">👤 条件已启用</span>' : `<a class="maint-filter-hint" href="#jobs_search" data-maintain-view="jobs_search">先去「我的条件」填应届/性别/党员/法考，结果更准 →</a>`}</div>`;
+    if (!majorQuery) {
+      return `<section class="maint-hero maint-hero--compact"><div>${viewEyebrow('match', '为我匹配')}<h1>一步得到你的可报榜。</h1><p>输入专业 + 可选的个人条件，本页把「明确含你的专业」「专业类可报（推导）」「不限专业」三类岗位一次性排好，每条亮明依据。</p></div></section><section class="maint-panel">${input}<p class="maint-filter-hint">数据：${escapeHtml(String(state.cycle))} 周期 · 匹配口径与「找岗位」一致，依据均可展开原文核对。</p></section>`;
+    }
+    const tiersBar = `<div class="maint-search-stats"><span class="maint-search-stats__tier t1">✔ 明确可报 ${number(n1)}</span><span class="maint-search-stats__tier t2">🔁 类内可报·推导 ${number(n2)}</span><span class="maint-search-stats__tier t3">➖ 不限专业 ${number(n3)}</span>${profileOn ? `<span class="maint-search-stats__tier t1">👤 已按我的条件过滤</span>` : ''}</div>`;
+    const tableRows = top.map((row) => {
+      const t = tierOf(row);
+      const num = Number(row.num ?? row.recruits ?? 0);
+      const examinees = Number(row.competition_observations?.examinees?.value ?? row.bm ?? 0);
+      const ratio = num > 0 && examinees > 0 ? `${(examinees / num).toFixed(1)}:1` : '暂无数据';
+      const tierBadge = t === 1 ? '<span class="tier-badge tb1">✔ 明确含</span>' : (t === 2 ? `<span class="tier-badge tb2" title="依据：该岗要求『${escapeHtml(clsName)}』，「${escapeHtml(majorQuery)}」属该专业类（推导）">类内可报·推导</span>` : '<span class="tier-badge tb3">不限专业</span>');
+      return `<tr data-maint-search-row data-record-id="${escapeHtml(row.job_id || row.code)}"><td>${escapeHtml(row.city)}</td><td>${escapeHtml(row.unit)}</td><td>${escapeHtml(row.zw || row.display_title || '—')}</td><td class="major-cell" title="${escapeHtml(row.zy)}">${tierBadge}</td><td>${escapeHtml(row.xl || '—')}</td><td>${escapeHtml(num || '—')}</td><td>${escapeHtml(ratio)}</td><td><button type="button" class="maint-row-action" data-maint-position-detail data-record-id="${escapeHtml(row.job_id || row.code)}">查看详情</button></td></tr>`;
+    }).join('');
+    const result = majorQuery && !p
+      ? `<p class="empty">匹配索引尚未加载完成，请稍候自动刷新；或回到<a href="#jobs_search" data-maintain-view="jobs_search">找岗位</a>先行检索。</p>`
+      : `${tiersBar}<div class="table-scroll"><table class="maint-table"><thead><tr><th scope="col">城市</th><th scope="col">单位</th><th scope="col">职位</th><th scope="col">匹配依据</th><th scope="col">学历</th><th scope="col">招录</th><th scope="col">竞争</th><th scope="col">操作</th></tr></thead><tbody>${tableRows || '<tr><td colspan="8" class="empty">没有匹配的岗位：可清空部分条件，或确认专业名在目录内（回找岗位页可按原文检索）</td></tr>'}</tbody></table></div><p class="maint-filter-hint">显示竞争最友好的前 30 岗（命中档优先，再按竞争比升序）；完整清单用「找岗位」按同条件导出。</p>`;
+    return `<section class="maint-hero maint-hero--compact"><div>${viewEyebrow('match', '为我匹配')}<h1>${escapeHtml(majorQuery)} · 你的可报榜。</h1><p>三类命中一次排开，每条亮明匹配依据；个人条件只做硬性一票否决，存疑岗位不否决。</p></div></section><section class="maint-panel">${input}${result}</section>`;
+  };
   const renderCalendar = (cal) => {
     const items = Array.isArray(cal?.items) ? cal.items : [];
     const statusLabel = { expected: '预计', live: '进行中', done: '已发生' };
@@ -1328,6 +1421,18 @@
         await loadMap();
         await loadSalary();
         markup = renderSalaryMap();
+      } else if (state.view === 'match') {
+        await loadModule(state.cycle, 'jobs_lite');
+        const matchCatalog = await loadModule(state.cycle, 'catalog');
+        let matchIndex = null;
+        try { matchIndex = await loadModule(state.cycle, 'major_index'); } catch (error) { matchIndex = null; }
+        let matchReq = null;
+        const mp = readProfile();
+        if (profileActive(mp)) {
+          matchReq = state.modules.get(`${state.cycle}:req_fields`) || null;
+          if (!matchReq) void loadModule(state.cycle, 'req_fields').then(() => { if (state.view === 'match') render(); }).catch(() => {});
+        }
+        markup = renderMatch(scopeExamPayload(state.modules.get(`${state.cycle}:jobs_lite`)), matchCatalog, matchIndex, matchReq);
       } else if (state.view === 'calendar') {
         let cal = null;
         try { cal = await state.dataStore.loadGlobal('calendar'); } catch (error) { cal = null; }
@@ -1589,6 +1694,12 @@
       navigator.clipboard?.writeText(text).then(() => setStatus('分享文本已复制，可粘贴给研友', 'ready')).catch(() => setStatus('复制失败：浏览器未授权剪贴板', 'error'));
       return;
     }
+    if (event.target.closest('[data-maint-match-go]')) {
+      const input = document.getElementById('maint-match-major');
+      state.matchMajor = normalize(input?.value || '');
+      render();
+      return;
+    }
     if (event.target.closest('[data-maint-profile-toggle]')) {
       state.profileOpen = !state.profileOpen;
       render();
@@ -1741,6 +1852,7 @@
       case 'maint-map-major': state.mapMajor = value; if (state.mapMetric === 'salary') state.mapMetric = 'jobs'; return true;
       case 'maint-search-keyword': state.keyword = value; state.searchPage = 0; return true;
       case 'maint-search-major': state.searchMajor = value; state.searchPage = 0; return true;
+      case 'maint-match-major': state.matchMajor = normalize(value); return true;
       case 'maint-profile-age':
       case 'maint-profile-gender':
       case 'maint-profile-fresh':

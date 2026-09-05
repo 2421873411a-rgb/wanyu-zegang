@@ -692,3 +692,14 @@ h1,h2,h3{font-family:var(--font-display)}
 .maint-decision-bar__cell small{color:#5b7391;font-size:10px}
 [data-theme="dark"] .maint-decision-bar__cell small{color:#7e8fa9}
 @media (max-width:720px){.maint-row-action,.comp-badge{min-height:44px;display:inline-flex;align-items:center}}
+
+/* ② 跨年走势迷你折线 */
+.maint-trend-spark{width:100%;max-width:520px;height:auto;margin:0 0 12px;display:block}
+.maint-trend-spark__val{font:700 12px var(--mono,Consolas);fill:#5b7391}
+.maint-trend-spark__year{font:700 11px var(--mono,Consolas);fill:#5b7391}
+[data-theme="dark"] .maint-trend-spark__val,[data-theme="dark"] .maint-trend-spark__year{fill:#7e8fa9}
+
+/* ① 为我匹配 */
+.maint-match-input{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:14px}
+.maint-match-input input{flex:1 1 260px;min-width:220px;height:42px;padding:0 12px;border:1px solid var(--ui-line,#cbdde8);border-radius:9px;background:var(--bg-surface-soft,#fbfdff);color:inherit}
+.maint-match-input .maint-action{white-space:nowrap}
