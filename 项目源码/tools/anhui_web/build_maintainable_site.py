@@ -171,10 +171,13 @@ def _score_resolution_total(bundle: Any) -> int:
     resolution pipeline; each carries ``attributed``/``still_ambiguous`` counts.
     """
     keyed = (getattr(bundle, "score_lists", {}) or {}).get("keyed") or {}
+    cycle = getattr(bundle, "cycle", "?")
     total = 0
     for key, value in keyed.items():
         if isinstance(key, str) and key.startswith("resolution_") and isinstance(value, dict):
-            total += int(value.get("attributed") or 0)
+            # v17.8.6-H：resolution 块缺 attributed 字段必须 fail-closed，
+            # 禁止 int(x or 0) 把缺失/None 静默计成 0（fail-open）。
+            total += require_int(value.get("attributed"), f"{cycle} {key}.attributed")
     return total
 
 
