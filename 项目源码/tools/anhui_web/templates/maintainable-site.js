@@ -1467,8 +1467,11 @@
         markup = (views[state.view] || views.overview)();
       }
       if (token !== state.renderToken) return;
-      state.detail = null;
+      // 抽屉保持：后台渲染（懒加载完成等）不得吞掉用户正打开的详情抽屉。
+      const preservedDrawer = state.detail ? main.querySelector('[data-maint-detail-drawer]') : null;
+      if (!preservedDrawer) state.detail = null;
       main.innerHTML = markup;
+      if (preservedDrawer) main.appendChild(preservedDrawer);
       if (state.view === 'jobs_search') main.querySelector('.maint-toolbar--search')?.insertAdjacentHTML('beforebegin', searchFlowMarkup());
       state.notice = '';
       if (instant) main.querySelectorAll(REVEAL_SELECTOR).forEach((node) => node.classList.add('is-in'));
