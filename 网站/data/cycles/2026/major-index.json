@@ -28,7 +28,7 @@
    "classes": [
     "中共党史党建学"
    ],
-   "jobs_explicit": 17
+   "jobs_explicit": 15
   },
   {
    "key": "中兽医学",
@@ -42,7 +42,7 @@
    "classes": [
     "中医"
    ],
-   "jobs_explicit": 19
+   "jobs_explicit": 18
   },
   {
    "key": "中医临床基础",
@@ -99,7 +99,7 @@
     "中医药类",
     "中医学"
    ],
-   "jobs_explicit": 54
+   "jobs_explicit": 53
   },
   {
    "key": "中医康复学",
@@ -136,7 +136,7 @@
    "classes": [
     "马克思主义理论类"
    ],
-   "jobs_explicit": 11
+   "jobs_explicit": 10
   },
   {
    "key": "中国古代史",
@@ -199,14 +199,14 @@
    "classes": [
     "中国语言文学"
    ],
-   "jobs_explicit": 173
+   "jobs_explicit": 162
   },
   {
    "key": "中国近现代史",
    "classes": [
     "中国史"
    ],
-   "jobs_explicit": 7
+   "jobs_explicit": 6
   },
   {
    "key": "中国近现代史基本问题研究",
@@ -220,7 +220,7 @@
    "classes": [
     "中药"
    ],
-   "jobs_explicit": 10
+   "jobs_explicit": 7
   },
   {
    "key": "中药学",
@@ -229,21 +229,21 @@
     "中医药类",
     "中药学"
    ],
-   "jobs_explicit": 28
+   "jobs_explicit": 25
   },
   {
    "key": "中西医临床医学",
    "classes": [
     "中西医结合类"
    ],
-   "jobs_explicit": 23
+   "jobs_explicit": 22
   },
   {
    "key": "中西医结合",
    "classes": [
     "中西医结合"
    ],
-   "jobs_explicit": 6
+   "jobs_explicit": 5
   },
   {
    "key": "中西医结合临床",
@@ -251,7 +251,7 @@
     "中西医结合",
     "中医"
    ],
-   "jobs_explicit": 6
+   "jobs_explicit": 5
   },
   {
    "key": "临床兽医学",
@@ -266,7 +266,7 @@
     "临床医学类",
     "临床医学"
    ],
-   "jobs_explicit": 211
+   "jobs_explicit": 208
   },
   {
    "key": "临床检验诊断学",
@@ -397,7 +397,7 @@
     "公共管理类",
     "药品制造类"
    ],
-   "jobs_explicit": 32
+   "jobs_explicit": 31
   },
   {
    "key": "人居环境科学与技术",
@@ -411,7 +411,7 @@
    "classes": [
     "电子信息类"
    ],
-   "jobs_explicit": 63
+   "jobs_explicit": 60
   },
   {
    "key": "人工智能教育",
@@ -453,7 +453,7 @@
    "classes": [
     "仪器科学与技术"
    ],
-   "jobs_explicit": 13
+   "jobs_explicit": 12
   },
   {
    "key": "企业管理",
@@ -475,7 +475,7 @@
    "classes": [
     "会计"
    ],
-   "jobs_explicit": 376
+   "jobs_explicit": 361
   },
   {
    "key": "会计学",
@@ -483,7 +483,7 @@
     "工商管理类",
     "工商管理"
    ],
-   "jobs_explicit": 870
+   "jobs_explicit": 856
   },
   {
    "key": "传播学",
@@ -498,7 +498,7 @@
    "classes": [
     "体育"
    ],
-   "jobs_explicit": 14
+   "jobs_explicit": 11
   },
   {
    "key": "体育人文社会学",
@@ -512,7 +512,7 @@
    "classes": [
     "体育学"
    ],
-   "jobs_explicit": 17
+   "jobs_explicit": 14
   },
   {
    "key": "体育康养",
@@ -526,7 +526,7 @@
    "classes": [
     "体育"
    ],
-   "jobs_explicit": 6
+   "jobs_explicit": 5
   },
   {
    "key": "体育教育",
@@ -542,7 +542,7 @@
    "classes": [
     "体育学"
    ],
-   "jobs_explicit": 8
+   "jobs_explicit": 7
   },
   {
    "key": "体育旅游",
@@ -670,7 +670,7 @@
    "classes": [
     "计算机类"
    ],
-   "jobs_explicit": 72
+   "jobs_explicit": 69
   },
   {
    "key": "信息安全与管理",
@@ -743,7 +743,7 @@
     "光学工程",
     "工程"
    ],
-   "jobs_explicit": 4
+   "jobs_explicit": 3
   },
   {
    "key": "光源与照明",
@@ -785,28 +785,28 @@
    "classes": [
     "公共卫生"
    ],
-   "jobs_explicit": 30
+   "jobs_explicit": 29
   },
   {
    "key": "公共卫生与预防医学",
    "classes": [
     "公共卫生与预防医学"
    ],
-   "jobs_explicit": 32
+   "jobs_explicit": 31
   },
   {
    "key": "公共管理",
    "classes": [
     "公共管理"
    ],
-   "jobs_explicit": 42
+   "jobs_explicit": 41
   },
   {
    "key": "公共管理学",
    "classes": [
     "公共管理学"
    ],
-   "jobs_explicit": 32
+   "jobs_explicit": 31
   },
   {
    "key": "公共艺术",
@@ -883,14 +883,14 @@
    "classes": [
     "临床医学"
    ],
-   "jobs_explicit": 33
+   "jobs_explicit": 32
   },
   {
    "key": "内部审计",
    "classes": [
     "工商管理类"
    ],
-   "jobs_explicit": 15
+   "jobs_explicit": 14
   },
   {
    "key": "农业",
@@ -1129,14 +1129,14 @@
     "化工与制药类",
     "工程"
    ],
-   "jobs_explicit": 9
+   "jobs_explicit": 8
   },
   {
    "key": "力学",
    "classes": [
     "力学"
    ],
-   "jobs_explicit": 5
+   "jobs_explicit": 4
   },
   {
    "key": "功能材料",
@@ -1150,14 +1150,14 @@
    "classes": [
     "工程"
    ],
-   "jobs_explicit": 4
+   "jobs_explicit": 3
   },
   {
    "key": "动力工程及工程热物理",
    "classes": [
     "动力工程及工程热物理"
    ],
-   "jobs_explicit": 7
+   "jobs_explicit": 6
   },
   {
    "key": "动植物检疫",
@@ -1265,7 +1265,7 @@
    "classes": [
     "公共卫生与预防医学"
    ],
-   "jobs_explicit": 12
+   "jobs_explicit": 11
   },
   {
    "key": "劳动经济学",
@@ -1302,7 +1302,7 @@
     "化学类",
     "化学"
    ],
-   "jobs_explicit": 39
+   "jobs_explicit": 38
   },
   {
    "key": "化学工程",
@@ -1394,7 +1394,7 @@
    "classes": [
     "临床医学类"
    ],
-   "jobs_explicit": 56
+   "jobs_explicit": 55
   },
   {
    "key": "医学影像技术",
@@ -1443,7 +1443,7 @@
    "classes": [
     "博物馆"
    ],
-   "jobs_explicit": 5
+   "jobs_explicit": 4
   },
   {
    "key": "卫生信息管理",
@@ -1536,7 +1536,7 @@
    "classes": [
     "中国史"
    ],
-   "jobs_explicit": 3
+   "jobs_explicit": 2
   },
   {
    "key": "司法警察学",
@@ -1550,7 +1550,7 @@
    "classes": [
     "法学类"
    ],
-   "jobs_explicit": 7
+   "jobs_explicit": 6
   },
   {
    "key": "合成生物学",
@@ -1564,7 +1564,7 @@
    "classes": [
     "医学技术类"
    ],
-   "jobs_explicit": 2
+   "jobs_explicit": 1
   },
   {
    "key": "哲学",
@@ -1587,7 +1587,7 @@
     "外国语言文学类",
     "语言类"
    ],
-   "jobs_explicit": 7
+   "jobs_explicit": 6
   },
   {
    "key": "园林",
@@ -1800,7 +1800,7 @@
     "土木类",
     "土木工程"
    ],
-   "jobs_explicit": 241
+   "jobs_explicit": 239
   },
   {
    "key": "土木工程检测技术",
@@ -1814,7 +1814,7 @@
    "classes": [
     "土木水利"
    ],
-   "jobs_explicit": 65
+   "jobs_explicit": 64
   },
   {
    "key": "地下水科学与工程",
@@ -1872,7 +1872,7 @@
    "classes": [
     "地理学"
    ],
-   "jobs_explicit": 17
+   "jobs_explicit": 15
   },
   {
    "key": "地理科学",
@@ -1894,7 +1894,7 @@
     "地质学类",
     "地质学"
    ],
-   "jobs_explicit": 12
+   "jobs_explicit": 11
   },
   {
    "key": "地质工程",
@@ -1903,14 +1903,14 @@
     "地质资源与地质工程",
     "工程"
    ],
-   "jobs_explicit": 17
+   "jobs_explicit": 16
   },
   {
    "key": "地质资源与地质工程",
    "classes": [
     "地质资源与地质工程"
    ],
-   "jobs_explicit": 10
+   "jobs_explicit": 9
   },
   {
    "key": "城乡规划",
@@ -1976,7 +1976,7 @@
     "基础医学类",
     "基础医学"
    ],
-   "jobs_explicit": 13
+   "jobs_explicit": 11
   },
   {
    "key": "基础心理学",
@@ -2012,7 +2012,7 @@
    "classes": [
     "外国语言文学"
    ],
-   "jobs_explicit": 6
+   "jobs_explicit": 5
   },
   {
    "key": "外科学",
@@ -2099,7 +2099,7 @@
    "classes": [
     "教育学类"
    ],
-   "jobs_explicit": 3
+   "jobs_explicit": 2
   },
   {
    "key": "学前教育",
@@ -2124,7 +2124,7 @@
     "安全科学与工程类",
     "工程"
    ],
-   "jobs_explicit": 44
+   "jobs_explicit": 43
   },
   {
    "key": "安全技术及工程",
@@ -2145,7 +2145,7 @@
    "classes": [
     "安全科学与工程"
    ],
-   "jobs_explicit": 32
+   "jobs_explicit": 31
   },
   {
    "key": "安全防范工程",
@@ -2174,14 +2174,14 @@
    "classes": [
     "审计"
    ],
-   "jobs_explicit": 174
+   "jobs_explicit": 170
   },
   {
    "key": "审计学",
    "classes": [
     "工商管理类"
    ],
-   "jobs_explicit": 533
+   "jobs_explicit": 529
   },
   {
    "key": "宪法学与行政法学",
@@ -2271,14 +2271,14 @@
     "工商管理类",
     "工商管理"
    ],
-   "jobs_explicit": 54
+   "jobs_explicit": 51
   },
   {
    "key": "工商管理学",
    "classes": [
     "工商管理学"
    ],
-   "jobs_explicit": 27
+   "jobs_explicit": 24
   },
   {
    "key": "工程力学",
@@ -2301,7 +2301,7 @@
     "管理科学与工程类",
     "工程管理"
    ],
-   "jobs_explicit": 120
+   "jobs_explicit": 119
   },
   {
    "key": "工程造价",
@@ -2325,7 +2325,7 @@
     "工商管理类",
     "非金属材料类"
    ],
-   "jobs_explicit": 15
+   "jobs_explicit": 14
   },
   {
    "key": "市场营销教育",
@@ -2347,7 +2347,7 @@
    "classes": [
     "新闻传播学类"
    ],
-   "jobs_explicit": 4
+   "jobs_explicit": 3
   },
   {
    "key": "广播电视",
@@ -2376,7 +2376,7 @@
    "classes": [
     "戏剧与影视学类"
    ],
-   "jobs_explicit": 36
+   "jobs_explicit": 34
   },
   {
    "key": "广播电视艺术学",
@@ -2427,7 +2427,7 @@
    "classes": [
     "应用心理"
    ],
-   "jobs_explicit": 19
+   "jobs_explicit": 17
   },
   {
    "key": "应用心理学",
@@ -2471,14 +2471,14 @@
    "classes": [
     "应用经济学"
    ],
-   "jobs_explicit": 76
+   "jobs_explicit": 74
   },
   {
    "key": "应用统计",
    "classes": [
     "应用统计"
    ],
-   "jobs_explicit": 45
+   "jobs_explicit": 44
   },
   {
    "key": "应用统计学",
@@ -2499,21 +2499,21 @@
    "classes": [
     "医学技术类"
    ],
-   "jobs_explicit": 3
+   "jobs_explicit": 2
   },
   {
    "key": "康复医学与理疗学",
    "classes": [
     "临床医学"
    ],
-   "jobs_explicit": 19
+   "jobs_explicit": 18
   },
   {
    "key": "康复治疗学",
    "classes": [
     "医学技术类"
    ],
-   "jobs_explicit": 9
+   "jobs_explicit": 8
   },
   {
    "key": "康复治疗技术",
@@ -2527,14 +2527,14 @@
    "classes": [
     "医学技术类"
    ],
-   "jobs_explicit": 4
+   "jobs_explicit": 3
   },
   {
    "key": "建筑",
    "classes": [
     "建筑"
    ],
-   "jobs_explicit": 41
+   "jobs_explicit": 40
   },
   {
    "key": "建筑与土木工程",
@@ -2549,7 +2549,7 @@
     "建筑类",
     "建筑学"
    ],
-   "jobs_explicit": 93
+   "jobs_explicit": 92
   },
   {
    "key": "建筑工程",
@@ -2619,14 +2619,14 @@
    "classes": [
     "戏剧与影视学类"
    ],
-   "jobs_explicit": 2
+   "jobs_explicit": 1
   },
   {
    "key": "影像医学与核医学",
    "classes": [
     "临床医学"
    ],
-   "jobs_explicit": 36
+   "jobs_explicit": 35
   },
   {
    "key": "影视技术",
@@ -2641,7 +2641,7 @@
     "戏剧与影视学类",
     "广播影视类"
    ],
-   "jobs_explicit": 39
+   "jobs_explicit": 38
   },
   {
    "key": "影视编导",
@@ -2663,7 +2663,7 @@
    "classes": [
     "生物学"
    ],
-   "jobs_explicit": 7
+   "jobs_explicit": 6
   },
   {
    "key": "心理健康教育",
@@ -2681,7 +2681,7 @@
     "心理学类",
     "心理学"
    ],
-   "jobs_explicit": 30
+   "jobs_explicit": 28
   },
   {
    "key": "思想政治教育",
@@ -2689,7 +2689,7 @@
     "马克思主义理论类",
     "马克思主义理论"
    ],
-   "jobs_explicit": 25
+   "jobs_explicit": 23
   },
   {
    "key": "急诊医学",
@@ -2710,7 +2710,7 @@
    "classes": [
     "戏剧与影视"
    ],
-   "jobs_explicit": 24
+   "jobs_explicit": 23
   },
   {
    "key": "戏剧学",
@@ -2724,7 +2724,7 @@
    "classes": [
     "戏剧与影视学类"
    ],
-   "jobs_explicit": 9
+   "jobs_explicit": 8
   },
   {
    "key": "戏剧影视文学",
@@ -2788,7 +2788,7 @@
    "classes": [
     "金融学类"
    ],
-   "jobs_explicit": 6
+   "jobs_explicit": 5
   },
   {
    "key": "抢险救援指挥与技术",
@@ -2819,7 +2819,7 @@
    "classes": [
     "工程"
    ],
-   "jobs_explicit": 6
+   "jobs_explicit": 5
   },
   {
    "key": "控制理论与控制工程",
@@ -2833,7 +2833,7 @@
    "classes": [
     "控制科学与工程"
    ],
-   "jobs_explicit": 39
+   "jobs_explicit": 38
   },
   {
    "key": "摄影",
@@ -2861,7 +2861,7 @@
    "classes": [
     "戏剧与影视学类"
    ],
-   "jobs_explicit": 36
+   "jobs_explicit": 34
   },
   {
    "key": "放射医学",
@@ -2876,7 +2876,7 @@
    "classes": [
     "政治学"
    ],
-   "jobs_explicit": 40
+   "jobs_explicit": 38
   },
   {
    "key": "政治学与行政学",
@@ -2904,7 +2904,7 @@
    "classes": [
     "教育"
    ],
-   "jobs_explicit": 7
+   "jobs_explicit": 6
   },
   {
    "key": "教育学",
@@ -2912,7 +2912,7 @@
     "教育学类",
     "教育学"
    ],
-   "jobs_explicit": 24
+   "jobs_explicit": 22
   },
   {
    "key": "教育学原理",
@@ -2926,7 +2926,7 @@
    "classes": [
     "教育学类"
    ],
-   "jobs_explicit": 3
+   "jobs_explicit": 2
   },
   {
    "key": "教育技术学",
@@ -2962,7 +2962,7 @@
    "classes": [
     "计算机类"
    ],
-   "jobs_explicit": 17
+   "jobs_explicit": 16
   },
   {
    "key": "数字媒体艺术",
@@ -2993,7 +2993,7 @@
    "classes": [
     "数学"
    ],
-   "jobs_explicit": 33
+   "jobs_explicit": 30
   },
   {
    "key": "数学与应用数学",
@@ -3014,7 +3014,7 @@
    "classes": [
     "计算机类"
    ],
-   "jobs_explicit": 96
+   "jobs_explicit": 94
   },
   {
    "key": "数据警务技术",
@@ -3070,7 +3070,7 @@
    "classes": [
     "历史学类"
    ],
-   "jobs_explicit": 10
+   "jobs_explicit": 9
   },
   {
    "key": "文物保护与修复",
@@ -3098,7 +3098,7 @@
    "classes": [
     "计算机类"
    ],
-   "jobs_explicit": 11
+   "jobs_explicit": 10
   },
   {
    "key": "新媒体艺术",
@@ -3133,14 +3133,14 @@
    "classes": [
     "新闻与传播"
    ],
-   "jobs_explicit": 94
+   "jobs_explicit": 91
   },
   {
    "key": "新闻传播学",
    "classes": [
     "新闻传播学"
    ],
-   "jobs_explicit": 109
+   "jobs_explicit": 106
   },
   {
    "key": "新闻学",
@@ -3148,7 +3148,7 @@
     "新闻传播学类",
     "新闻传播学"
    ],
-   "jobs_explicit": 83
+   "jobs_explicit": 82
   },
   {
    "key": "新闻采编与制作",
@@ -3180,14 +3180,14 @@
     "工商管理",
     "旅游管理"
    ],
-   "jobs_explicit": 28
+   "jobs_explicit": 27
   },
   {
    "key": "旅游管理与服务教育",
    "classes": [
     "旅游管理类"
    ],
-   "jobs_explicit": 3
+   "jobs_explicit": 2
   },
   {
    "key": "无人驾驶航空器系统工程",
@@ -3349,7 +3349,7 @@
     "计算机类",
     "智能科学与技术"
    ],
-   "jobs_explicit": 46
+   "jobs_explicit": 44
   },
   {
    "key": "智能装备与系统",
@@ -3435,14 +3435,14 @@
    "classes": [
     "机械"
    ],
-   "jobs_explicit": 28
+   "jobs_explicit": 26
   },
   {
    "key": "机械制造及其自动化",
    "classes": [
     "机械工程"
    ],
-   "jobs_explicit": 11
+   "jobs_explicit": 10
   },
   {
    "key": "机械工程",
@@ -3451,7 +3451,7 @@
     "工程",
     "机械工程"
    ],
-   "jobs_explicit": 75
+   "jobs_explicit": 73
   },
   {
    "key": "机械工艺技术",
@@ -3466,7 +3466,7 @@
     "机械类",
     "机械工程"
    ],
-   "jobs_explicit": 17
+   "jobs_explicit": 16
   },
   {
    "key": "机械设计制造及其自动化",
@@ -3480,7 +3480,7 @@
    "classes": [
     "机械工程"
    ],
-   "jobs_explicit": 2
+   "jobs_explicit": 1
   },
   {
    "key": "机电排灌工程技术",
@@ -3522,7 +3522,7 @@
    "classes": [
     "工程"
    ],
-   "jobs_explicit": 4
+   "jobs_explicit": 3
   },
   {
    "key": "材料成型及控制工程",
@@ -3545,7 +3545,7 @@
     "材料类",
     "材料科学与工程"
    ],
-   "jobs_explicit": 23
+   "jobs_explicit": 22
   },
   {
    "key": "材料设计科学与工程",
@@ -3756,14 +3756,14 @@
    "classes": [
     "水产"
    ],
-   "jobs_explicit": 8
+   "jobs_explicit": 7
   },
   {
    "key": "水产养殖学",
    "classes": [
     "水产类"
    ],
-   "jobs_explicit": 8
+   "jobs_explicit": 7
   },
   {
    "key": "水产品加工及贮藏工程",
@@ -3888,7 +3888,7 @@
     "水产类",
     "渔业类"
    ],
-   "jobs_explicit": 3
+   "jobs_explicit": 2
   },
   {
    "key": "水生生物学",
@@ -3917,14 +3917,14 @@
     "中国语言文学类",
     "汉语国际教育"
    ],
-   "jobs_explicit": 9
+   "jobs_explicit": 7
   },
   {
    "key": "汉语言",
    "classes": [
     "中国语言文学类"
    ],
-   "jobs_explicit": 74
+   "jobs_explicit": 70
   },
   {
    "key": "汉语言文字学",
@@ -3938,7 +3938,7 @@
    "classes": [
     "中国语言文学类"
    ],
-   "jobs_explicit": 203
+   "jobs_explicit": 197
   },
   {
    "key": "汽车服务工程",
@@ -3992,7 +3992,7 @@
     "法学类",
     "法学"
    ],
-   "jobs_explicit": 445
+   "jobs_explicit": 434
   },
   {
    "key": "法学理论",
@@ -4007,7 +4007,7 @@
     "法律实务类",
     "法律"
    ],
-   "jobs_explicit": 259
+   "jobs_explicit": 248
   },
   {
    "key": "法律事务",
@@ -4049,7 +4049,7 @@
    "classes": [
     "仪器类"
    ],
-   "jobs_explicit": 7
+   "jobs_explicit": 6
   },
   {
    "key": "测绘工程",
@@ -4057,14 +4057,14 @@
     "测绘类",
     "工程"
    ],
-   "jobs_explicit": 61
+   "jobs_explicit": 60
   },
   {
    "key": "测绘科学与技术",
    "classes": [
     "测绘科学与技术"
    ],
-   "jobs_explicit": 46
+   "jobs_explicit": 45
   },
   {
    "key": "测试计量技术及仪器",
@@ -4155,7 +4155,7 @@
    "classes": [
     "材料类"
    ],
-   "jobs_explicit": 4
+   "jobs_explicit": 3
   },
   {
    "key": "物业管理",
@@ -4202,14 +4202,14 @@
     "生物技术类",
     "教育"
    ],
-   "jobs_explicit": 4
+   "jobs_explicit": 3
   },
   {
    "key": "特殊教育学",
    "classes": [
     "教育学"
    ],
-   "jobs_explicit": 4
+   "jobs_explicit": 3
   },
   {
    "key": "特警",
@@ -4240,7 +4240,7 @@
     "环境科学与工程",
     "工程"
    ],
-   "jobs_explicit": 36
+   "jobs_explicit": 34
   },
   {
    "key": "环境生态工程",
@@ -4255,7 +4255,7 @@
     "环境科学与工程类",
     "环境科学与工程"
    ],
-   "jobs_explicit": 24
+   "jobs_explicit": 23
   },
   {
    "key": "环境科学与工程",
@@ -4263,7 +4263,7 @@
     "环境科学与工程类",
     "环境科学与工程"
    ],
-   "jobs_explicit": 72
+   "jobs_explicit": 69
   },
   {
    "key": "环境艺术设计",
@@ -4278,7 +4278,7 @@
    "classes": [
     "设计学类"
    ],
-   "jobs_explicit": 8
+   "jobs_explicit": 7
   },
   {
    "key": "现代农业技术",
@@ -4309,7 +4309,7 @@
    "classes": [
     "力学类"
    ],
-   "jobs_explicit": 2
+   "jobs_explicit": 1
   },
   {
    "key": "理论经济学",
@@ -4469,7 +4469,7 @@
    "classes": [
     "电子信息"
    ],
-   "jobs_explicit": 76
+   "jobs_explicit": 74
   },
   {
    "key": "电子信息工程",
@@ -4497,7 +4497,7 @@
    "classes": [
     "电子商务类"
    ],
-   "jobs_explicit": 16
+   "jobs_explicit": 15
   },
   {
    "key": "电子商务及法律",
@@ -4563,7 +4563,7 @@
     "工程",
     "电气工程"
    ],
-   "jobs_explicit": 42
+   "jobs_explicit": 40
   },
   {
    "key": "电气工程与智能控制",
@@ -4577,7 +4577,7 @@
    "classes": [
     "电气类"
    ],
-   "jobs_explicit": 38
+   "jobs_explicit": 37
   },
   {
    "key": "电波传播与天线",
@@ -4662,7 +4662,7 @@
     "法学类",
     "知识产权"
    ],
-   "jobs_explicit": 34
+   "jobs_explicit": 33
   },
   {
    "key": "石油与天然气工程",
@@ -4737,7 +4737,7 @@
     "社会学类",
     "社会学"
    ],
-   "jobs_explicit": 42
+   "jobs_explicit": 41
   },
   {
    "key": "社会工作",
@@ -4746,7 +4746,7 @@
     "公共事业类",
     "社会工作"
    ],
-   "jobs_explicit": 52
+   "jobs_explicit": 51
   },
   {
    "key": "社区矫正",
@@ -4810,7 +4810,7 @@
    "classes": [
     "中国语言文学类"
    ],
-   "jobs_explicit": 32
+   "jobs_explicit": 31
   },
   {
    "key": "税务",
@@ -4838,7 +4838,7 @@
    "classes": [
     "管理科学与工程"
    ],
-   "jobs_explicit": 56
+   "jobs_explicit": 54
   },
   {
    "key": "粉体材料科学与工程",
@@ -4859,7 +4859,7 @@
    "classes": [
     "仪器类"
    ],
-   "jobs_explicit": 2
+   "jobs_explicit": 1
   },
   {
    "key": "精神医学",
@@ -4938,14 +4938,14 @@
    "classes": [
     "金融学类"
    ],
-   "jobs_explicit": 9
+   "jobs_explicit": 8
   },
   {
    "key": "经济学",
    "classes": [
     "经济学类"
    ],
-   "jobs_explicit": 116
+   "jobs_explicit": 114
   },
   {
    "key": "经济林",
@@ -4975,7 +4975,7 @@
    "classes": [
     "经济学类"
    ],
-   "jobs_explicit": 75
+   "jobs_explicit": 74
   },
   {
    "key": "结构工程",
@@ -5020,7 +5020,7 @@
     "新闻传播学类",
     "新闻出版类"
    ],
-   "jobs_explicit": 36
+   "jobs_explicit": 35
   },
   {
    "key": "网络安全与执法",
@@ -5035,7 +5035,7 @@
    "classes": [
     "计算机类"
    ],
-   "jobs_explicit": 78
+   "jobs_explicit": 76
   },
   {
    "key": "网络工程技术",
@@ -5169,7 +5169,7 @@
    "classes": [
     "能源动力类"
    ],
-   "jobs_explicit": 9
+   "jobs_explicit": 7
   },
   {
    "key": "能源与环境系统工程",
@@ -5183,7 +5183,7 @@
    "classes": [
     "能源动力"
    ],
-   "jobs_explicit": 11
+   "jobs_explicit": 10
   },
   {
    "key": "能源化学工程",
@@ -5335,7 +5335,7 @@
     "艺术学理论",
     "艺术学"
    ],
-   "jobs_explicit": 21
+   "jobs_explicit": 20
   },
   {
    "key": "艺术教育",
@@ -5373,7 +5373,7 @@
    "classes": [
     "外国语言文学类"
    ],
-   "jobs_explicit": 26
+   "jobs_explicit": 25
   },
   {
    "key": "英语口译",
@@ -5394,7 +5394,7 @@
    "classes": [
     "外国语言文学"
    ],
-   "jobs_explicit": 13
+   "jobs_explicit": 12
   },
   {
    "key": "茶学",
@@ -5424,7 +5424,7 @@
     "药学类",
     "药学"
    ],
-   "jobs_explicit": 58
+   "jobs_explicit": 56
   },
   {
    "key": "药物分析",
@@ -5572,7 +5572,7 @@
    "classes": [
     "工程"
    ],
-   "jobs_explicit": 60
+   "jobs_explicit": 56
   },
   {
    "key": "计算机科学与技术",
@@ -5580,7 +5580,7 @@
     "计算机类",
     "计算机科学与技术"
    ],
-   "jobs_explicit": 287
+   "jobs_explicit": 281
   },
   {
    "key": "计算机系统结构",
@@ -5622,7 +5622,7 @@
    "classes": [
     "设计"
    ],
-   "jobs_explicit": 12
+   "jobs_explicit": 11
   },
   {
    "key": "设计学",
@@ -5671,7 +5671,7 @@
    "classes": [
     "工商管理类"
    ],
-   "jobs_explicit": 739
+   "jobs_explicit": 726
   },
   {
    "key": "财政学",
@@ -5701,7 +5701,7 @@
    "classes": [
     "资源与环境"
    ],
-   "jobs_explicit": 9
+   "jobs_explicit": 8
   },
   {
    "key": "资源与环境经济学",
@@ -5770,7 +5770,7 @@
     "软件工程",
     "工程"
    ],
-   "jobs_explicit": 131
+   "jobs_explicit": 128
   },
   {
    "key": "轻化工程",
@@ -5798,7 +5798,7 @@
    "classes": [
     "机械类"
    ],
-   "jobs_explicit": 4
+   "jobs_explicit": 3
   },
   {
    "key": "运动人体科学",
@@ -5836,7 +5836,7 @@
     "体育类",
     "体育"
    ],
-   "jobs_explicit": 14
+   "jobs_explicit": 13
   },
   {
    "key": "通信与信息系统",
@@ -5893,7 +5893,7 @@
    "classes": [
     "土木类"
    ],
-   "jobs_explicit": 56
+   "jobs_explicit": 54
   },
   {
    "key": "遗传学",
@@ -5959,7 +5959,7 @@
    "classes": [
     "材料类"
    ],
-   "jobs_explicit": 8
+   "jobs_explicit": 7
   },
   {
    "key": "金融",
@@ -6090,7 +6090,7 @@
     "艺术",
     "音乐"
    ],
-   "jobs_explicit": 9
+   "jobs_explicit": 8
   },
   {
    "key": "音乐学",
@@ -6098,7 +6098,7 @@
     "音乐与舞蹈学类",
     "音乐与舞蹈学"
    ],
-   "jobs_explicit": 20
+   "jobs_explicit": 19
   },
   {
    "key": "音乐教育",
@@ -6137,7 +6137,7 @@
     "公共卫生与预防医学类",
     "公共卫生与卫生管理类"
    ],
-   "jobs_explicit": 53
+   "jobs_explicit": 52
   },
   {
    "key": "风景园林",
@@ -6201,7 +6201,7 @@
    "classes": [
     "工程"
    ],
-   "jobs_explicit": 12
+   "jobs_explicit": 8
   },
   {
    "key": "食品科学",
@@ -6216,7 +6216,7 @@
     "食品科学与工程类",
     "食品科学与工程"
    ],
-   "jobs_explicit": 47
+   "jobs_explicit": 43
   },
   {
    "key": "食品药品环境犯罪侦查技术",
@@ -6255,14 +6255,14 @@
    "classes": [
     "马克思主义理论"
    ],
-   "jobs_explicit": 7
+   "jobs_explicit": 6
   },
   {
    "key": "马克思主义发展史",
    "classes": [
     "马克思主义理论"
    ],
-   "jobs_explicit": 4
+   "jobs_explicit": 3
   },
   {
    "key": "马克思主义哲学",
@@ -6276,7 +6276,7 @@
    "classes": [
     "马克思主义理论"
    ],
-   "jobs_explicit": 9
+   "jobs_explicit": 8
   },
   {
    "key": "马克思主义理论",
@@ -6284,7 +6284,7 @@
     "马克思主义理论类",
     "马克思主义理论"
    ],
-   "jobs_explicit": 69
+   "jobs_explicit": 66
   },
   {
    "key": "高分子化学与物理",
@@ -6353,7 +6353,7 @@
     "汉语言文学",
     "秘书学"
    ],
-   "jobs_by_class": 392
+   "jobs_by_class": 387
   },
   {
    "key": "中药学类",
@@ -6372,7 +6372,7 @@
    "members": [
     "中西医临床医学"
    ],
-   "jobs_by_class": 18
+   "jobs_by_class": 17
   },
   {
    "key": "临床医学类",
@@ -6386,7 +6386,7 @@
     "精神医学",
     "麻醉学"
    ],
-   "jobs_by_class": 85
+   "jobs_by_class": 84
   },
   {
    "key": "交叉工程类",
@@ -6447,7 +6447,7 @@
     "运动训练",
     "马术运动与管理"
    ],
-   "jobs_by_class": 22
+   "jobs_by_class": 21
   },
   {
    "key": "公共卫生与预防医学类",
@@ -6658,7 +6658,7 @@
     "能源化学",
     "资源化学"
    ],
-   "jobs_by_class": 61
+   "jobs_by_class": 60
   },
   {
    "key": "化工与制药类",
@@ -6797,7 +6797,7 @@
     "地理科学",
     "自然地理与资源环境"
    ],
-   "jobs_by_class": 60
+   "jobs_by_class": 58
   },
   {
    "key": "地质学类",
@@ -6807,7 +6807,7 @@
     "地球化学",
     "地质学"
    ],
-   "jobs_by_class": 6
+   "jobs_by_class": 5
   },
   {
    "key": "地质类",
@@ -6829,7 +6829,7 @@
     "资源环境大数据工程",
     "钻探工程技术"
    ],
-   "jobs_by_class": 24
+   "jobs_by_class": 23
   },
   {
    "key": "城乡规划与管理类",
@@ -6851,7 +6851,7 @@
     "生物医学",
     "生物医学科学"
    ],
-   "jobs_by_class": 23
+   "jobs_by_class": 22
   },
   {
    "key": "外国语言文学类",
@@ -6983,7 +6983,7 @@
     "智慧应急",
     "职业卫生工程"
    ],
-   "jobs_by_class": 76
+   "jobs_by_class": 75
   },
   {
    "key": "工业工程类",
@@ -7058,7 +7058,7 @@
     "智慧建筑与建造",
     "风景园林"
    ],
-   "jobs_by_class": 215
+   "jobs_by_class": 214
   },
   {
    "key": "建筑设计类",
@@ -7105,7 +7105,7 @@
     "应用心理学",
     "心理学"
    ],
-   "jobs_by_class": 38
+   "jobs_by_class": 37
   },
   {
    "key": "戏剧与影视学",
@@ -7192,7 +7192,7 @@
     "数据计算及应用",
     "数理基础科学"
    ],
-   "jobs_by_class": 113
+   "jobs_by_class": 111
   },
   {
    "key": "新闻传播学类",
@@ -7208,7 +7208,7 @@
     "编辑出版学",
     "网络与新媒体"
    ],
-   "jobs_by_class": 282
+   "jobs_by_class": 279
   },
   {
    "key": "旅游管理类",
@@ -7266,7 +7266,7 @@
     "车辆工程",
     "过程装备与控制工程"
    ],
-   "jobs_by_class": 179
+   "jobs_by_class": 178
   },
   {
    "key": "材料类",
@@ -7507,7 +7507,7 @@
     "社区矫正",
     "纪检监察"
    ],
-   "jobs_by_class": 1126
+   "jobs_by_class": 1122
   },
   {
    "key": "法律实务类",
@@ -7561,7 +7561,7 @@
     "测绘工程",
     "遥感科学与技术"
    ],
-   "jobs_by_class": 47
+   "jobs_by_class": 46
   },
   {
    "key": "渔业类",
@@ -7607,7 +7607,7 @@
     "环境科学与工程",
     "资源环境科学"
    ],
-   "jobs_by_class": 137
+   "jobs_by_class": 135
   },
   {
    "key": "生物医学工程类",
@@ -7760,7 +7760,7 @@
     "社会政策",
     "老年学"
    ],
-   "jobs_by_class": 70
+   "jobs_by_class": 69
   },
   {
    "key": "管理科学与工程类",
@@ -7777,7 +7777,7 @@
     "计算金融",
     "邮政管理"
    ],
-   "jobs_by_class": 135
+   "jobs_by_class": 134
   },
   {
    "key": "纺织服装类",
@@ -8003,7 +8003,7 @@
     "药物化学",
     "药物经济与管理"
    ],
-   "jobs_by_class": 97
+   "jobs_by_class": 96
   },
   {
    "key": "计算机类",
@@ -8052,7 +8052,7 @@
     "软件工程技术",
     "软件技术"
    ],
-   "jobs_by_class": 497
+   "jobs_by_class": 496
   },
   {
    "key": "设计学类",
@@ -8187,7 +8187,7 @@
     "食品质量与安全",
     "食用菌科学与工程"
    ],
-   "jobs_by_class": 100
+   "jobs_by_class": 98
   },
   {
    "key": "马克思主义理论类",
@@ -8236,12 +8236,10 @@
     "job-2026-5b27ee02bd5670195920",
     "job-2026-679b514ec6b84dcf3b04",
     "job-2026-70a09f5e33b572ccf8bc",
-    "job-2026-8b36f58b19b5828a906b",
     "job-2026-9b52df7640449125efe2",
     "job-2026-b287296344723254f01e",
     "job-2026-ccfce2b2238f38e7f34f",
     "job-2026-d828ef908ad503e8757d",
-    "job-2026-f08e3f62a810efb62316",
     "job-2026-f0d7604af2fc481d7e93",
     "job-2026-f72f27c1a6d06b3d0e62"
    ],
@@ -8259,7 +8257,6 @@
     "job-2026-49fb5e6121a0688ade15",
     "job-2026-4c4690d19fba9955f6e2",
     "job-2026-5c5a6a0de6e2aab24640",
-    "job-2026-5fe8a364bb46ee505a9b",
     "job-2026-75468956ce9608374cbc",
     "job-2026-77c500ba1a8f1f53d6bc",
     "job-2026-81a964e6dcee294d2ac8",
@@ -8329,7 +8326,6 @@
     "job-2026-5c3c543af3089affd883",
     "job-2026-5c5a6a0de6e2aab24640",
     "job-2026-5c85719af1c9147ea8ba",
-    "job-2026-5fe8a364bb46ee505a9b",
     "job-2026-625286b0e1af843eed27",
     "job-2026-64c694607c2fd4c1f474",
     "job-2026-75468956ce9608374cbc",
@@ -8391,7 +8387,6 @@
     "job-2026-b9129c687404edcc6459",
     "job-2026-ccfce2b2238f38e7f34f",
     "job-2026-e862fb116b02551c3609",
-    "job-2026-f08e3f62a810efb62316",
     "job-2026-f72f27c1a6d06b3d0e62"
    ],
    "中国古代史": [
@@ -8485,7 +8480,6 @@
     "job-2026-2c0c80eb62da632cae90",
     "job-2026-2ca162cd8b305b5d99ca",
     "job-2026-2d16b6202d5b0430c547",
-    "job-2026-2eb4ddef7f23ed70f01c",
     "job-2026-2f38cad1bcedaec629db",
     "job-2026-31bf01a716bc4f90a64d",
     "job-2026-3299ef27c7d655954a9c",
@@ -8506,7 +8500,6 @@
     "job-2026-4a88048d1f5fe56f4421",
     "job-2026-4ed11842e27c505477a8",
     "job-2026-4f444d76356af03b8e03",
-    "job-2026-51af367750d8d5e7a5a1",
     "job-2026-51ee90dd0bef7edcd8c9",
     "job-2026-52748b22a1caad8ea47e",
     "job-2026-533577de7ef1637c945a",
@@ -8528,22 +8521,17 @@
     "job-2026-693ff041a23e243cff10",
     "job-2026-6c3a345e5d28e9a1296a",
     "job-2026-6cb863ab3d7298d81258",
-    "job-2026-6e2182f3ff349b21892c",
-    "job-2026-6e729346c0abfdc2da89",
     "job-2026-7145eec7bf8972d49334",
     "job-2026-71ad14382d2ecf9420c4",
     "job-2026-7261677e53d34a9972f2",
     "job-2026-7459d821f61aa5248b72",
-    "job-2026-7578d6efe398bc052abe",
     "job-2026-77fa589ab852d1771d3e",
     "job-2026-785a0157cdffb02f0095",
     "job-2026-78cc9a95efd88aedd0f4",
     "job-2026-78f0eb129cd1d63fb7b6",
     "job-2026-7c4307f0dd0a753c7ae8",
     "job-2026-7e96e369b220536633ba",
-    "job-2026-7f20093e1bd1ff5cfd5a",
     "job-2026-7fd46a0462e4a7e1b10d",
-    "job-2026-807c3ff83b9d0c8bbd89",
     "job-2026-81751db8617f0fa66d16",
     "job-2026-832f5e8866a64e45e7d7",
     "job-2026-833ad0b861da92d5f55e",
@@ -8551,14 +8539,12 @@
     "job-2026-892c1a51500da59f56e0",
     "job-2026-8de2bcd404b1ee01c92a",
     "job-2026-90eff8ba9b266615d494",
-    "job-2026-938743929b1d5f8ba895",
     "job-2026-93fbcff8784b29039433",
     "job-2026-96dbbe90ae1edbb33aea",
     "job-2026-9b0bbfe4a01a164381e2",
     "job-2026-9b28f0019663935b752f",
     "job-2026-9b52df7640449125efe2",
     "job-2026-9b6cd5eb2552e456759f",
-    "job-2026-9b7831d128b39c87148d",
     "job-2026-9df665bebd558d1f30d8",
     "job-2026-9f454fffec1cf5740f81",
     "job-2026-9f9154e47d0154a61a36",
@@ -8599,14 +8585,12 @@
     "job-2026-d8a940b0e258b91390d5",
     "job-2026-db613de63a03e385342c",
     "job-2026-dc46de60226d8accf3bb",
-    "job-2026-dc844c2b5cfe1bc7b5dd",
     "job-2026-de8747696b9399e59548",
     "job-2026-df5d87d29dfbce066f5f",
     "job-2026-e0c31b7cea308027c3a1",
     "job-2026-e48940cb0a42d8206ed6",
     "job-2026-e8190363295e58622112",
     "job-2026-e905ad854c81ae8704f8",
-    "job-2026-ea6ec56704e916892d9c",
     "job-2026-ead7e33e6b21e094f439",
     "job-2026-eb88aeb523b8192de645",
     "job-2026-ec80245af09c9e67e03d",
@@ -8628,7 +8612,6 @@
     "job-2026-b247e69596e2fabc8531",
     "job-2026-cd9827f1712d2a567386",
     "job-2026-db2f2f2a7c4c2326c626",
-    "job-2026-e9453d69187a22c89817",
     "job-2026-fe3457f798be2e5ddea1"
    ],
    "中国近现代史基本问题研究": [
@@ -8637,14 +8620,11 @@
    "中药": [
     "job-2026-37f0b4f77ddc17ff235d",
     "job-2026-52526c48af32a6362c11",
-    "job-2026-5fe8a364bb46ee505a9b",
     "job-2026-6cd7be8f0003584570c1",
     "job-2026-971b9f86e67f36367793",
     "job-2026-99ef80758e0a1b3b4676",
-    "job-2026-df154f8c926aadf8f66e",
     "job-2026-e3a3bbc197c85c52cac8",
-    "job-2026-f9893959e7b2209f49c4",
-    "job-2026-fdbee2dcc4eb5590c462"
+    "job-2026-f9893959e7b2209f49c4"
    ],
    "中药学": [
     "job-2026-04e973022996a856056c",
@@ -8655,7 +8635,6 @@
     "job-2026-37f0b4f77ddc17ff235d",
     "job-2026-4f6e044d49d170142dfa",
     "job-2026-52526c48af32a6362c11",
-    "job-2026-5fe8a364bb46ee505a9b",
     "job-2026-648ffeb1c4fc891c8a99",
     "job-2026-665f53ef4584cca69482",
     "job-2026-6cd7be8f0003584570c1",
@@ -8667,14 +8646,12 @@
     "job-2026-ace8be3a9049ed000b71",
     "job-2026-c0804c632663601532d1",
     "job-2026-c200eeea403c0766cd22",
-    "job-2026-df154f8c926aadf8f66e",
     "job-2026-df8553503a7cc4d2203b",
     "job-2026-e3a3bbc197c85c52cac8",
     "job-2026-e740dcb727f708b7deab",
     "job-2026-eca9bb8c825e8c138e05",
     "job-2026-f186aa1e2a831f20b988",
-    "job-2026-f9893959e7b2209f49c4",
-    "job-2026-fdbee2dcc4eb5590c462"
+    "job-2026-f9893959e7b2209f49c4"
    ],
    "中西医临床医学": [
     "job-2026-011c3b650b251acea0c8",
@@ -8683,7 +8660,6 @@
     "job-2026-0e04306c2c4ccb9c4026",
     "job-2026-106f0f8b4a1f46bce9d1",
     "job-2026-1a14b2bc51e68ca438c0",
-    "job-2026-2667d67e377ffdc34d53",
     "job-2026-297854b6b11d120fb24e",
     "job-2026-32bdd6ce7436126118de",
     "job-2026-4429bb26635f11c80eb9",
@@ -8702,7 +8678,6 @@
     "job-2026-ea9266e6416a6045e923"
    ],
    "中西医结合": [
-    "job-2026-311527fc8887fe329aa3",
     "job-2026-3c562e69e8233aaab73f",
     "job-2026-81a964e6dcee294d2ac8",
     "job-2026-af02f7bf817b46ce6a96",
@@ -8710,7 +8685,6 @@
     "job-2026-f7d6b3d70e8751fed867"
    ],
    "中西医结合临床": [
-    "job-2026-2667d67e377ffdc34d53",
     "job-2026-297854b6b11d120fb24e",
     "job-2026-397a4ef6b86e8e357f1c",
     "job-2026-5dc1d7eeaab019ca26cb",
@@ -8752,7 +8726,6 @@
     "job-2026-22cc603487e9166bcc05",
     "job-2026-24968fa8d1eaa64a2100",
     "job-2026-2520e40d1d0a6e9bbd9a",
-    "job-2026-2667d67e377ffdc34d53",
     "job-2026-26c1ec3f52ed36ee8614",
     "job-2026-2795a28e8504bf58e242",
     "job-2026-2822ef97bedb79693468",
@@ -8766,7 +8739,6 @@
     "job-2026-2e2abc18778b81123b41",
     "job-2026-2e7f9bcb8786ce0d07a0",
     "job-2026-30d6332f37cc1bbfe0ce",
-    "job-2026-311527fc8887fe329aa3",
     "job-2026-3178f4f8cdba1455ceaf",
     "job-2026-31e6b3ac1e8ee0f909e2",
     "job-2026-325eab0d6fe85000dcff",
@@ -8808,7 +8780,6 @@
     "job-2026-595f959a8fc9f2a8fafd",
     "job-2026-5be645fc27332b5e98f3",
     "job-2026-5c5a6a0de6e2aab24640",
-    "job-2026-5fe8a364bb46ee505a9b",
     "job-2026-60f8ad23a5e70f51e6f6",
     "job-2026-611bb2232730ff064852",
     "job-2026-672bbd514408e5b59dd3",
@@ -9208,7 +9179,6 @@
     "job-2026-5a15482ac809111df5d5",
     "job-2026-5ddfcc0c1622876d7856",
     "job-2026-60cebeb151c84d8fdfbd",
-    "job-2026-6de576449bc37a8c56d8",
     "job-2026-73812bc930ac7296625e",
     "job-2026-74a2806e7b5a80d31fac",
     "job-2026-7a96ae53b906318ed451",
@@ -9252,10 +9222,8 @@
     "job-2026-319288830bf90896f9a7",
     "job-2026-3239e5a707455bcdd92e",
     "job-2026-380e97db1c698cc5c575",
-    "job-2026-53744ce365feca51db33",
     "job-2026-55b41a2d5ec95de21c4d",
     "job-2026-5da1bd1375b171180f58",
-    "job-2026-5da69d85951327841776",
     "job-2026-617fdc965cc1f41d48fa",
     "job-2026-64899fd3998cf2807ebd",
     "job-2026-64c17d1636be8d85499d",
@@ -9297,7 +9265,6 @@
     "job-2026-d6f869024787e60aa93d",
     "job-2026-d7f600b723d3b2f9ccb6",
     "job-2026-d94e579ad17e92930f27",
-    "job-2026-dedebe188b15dacae5a9",
     "job-2026-e3de02483bc6b32ba9ed",
     "job-2026-ece3b9b163c8ea6e4f5b",
     "job-2026-f186a0e555dff806bb62"
@@ -9354,7 +9321,6 @@
     "job-2026-2df474b04c74b48d20dd",
     "job-2026-39a90fc6733d5bb918ec",
     "job-2026-49a3f63a57b3b2c367de",
-    "job-2026-87bd51cb5c0f21a27efd",
     "job-2026-b06e0af940d9020c2da1",
     "job-2026-b3f3804b0ece10a472bb",
     "job-2026-b65672f2a7b36768f2fb",
@@ -9458,12 +9424,10 @@
     "job-2026-5d2399ebd6bb8f87969e"
    ],
    "会计": [
-    "job-2026-00de94e7ee58cf82460b",
     "job-2026-029f3ec2a680fa442ce6",
     "job-2026-02fb7d9db722e128b45d",
     "job-2026-0355f38724bfbd8b50d4",
     "job-2026-03561cc0a10fbe679c67",
-    "job-2026-04962ea43358978af428",
     "job-2026-049ebae41d71fceec3d9",
     "job-2026-0625bf5cee3f469af79d",
     "job-2026-07f888827c6cefad64a8",
@@ -9476,8 +9440,6 @@
     "job-2026-094fe171c594ac8ac842",
     "job-2026-0966f43609b0c3ab6c94",
     "job-2026-099506996e9f6c031207",
-    "job-2026-09b9f0b9ae914ff2a0a3",
-    "job-2026-09e75b17e35c7454aed6",
     "job-2026-0b11152f7dbba4ffd16b",
     "job-2026-0b356e44786cc9b32827",
     "job-2026-0d04059548798698a6a0",
@@ -9498,7 +9460,6 @@
     "job-2026-171a306f54209e9bb1ba",
     "job-2026-1793916fba7c63d5bb9e",
     "job-2026-180e24abfd9e8bce82c7",
-    "job-2026-1af72dcd5b79c4a10b4f",
     "job-2026-1b371ec65efee8d7ce5c",
     "job-2026-1c069a97cc6a8d786898",
     "job-2026-1d72167aeb6e587d4e8c",
@@ -9518,7 +9479,6 @@
     "job-2026-257337165fbe68797c00",
     "job-2026-25abe6431b3abe693642",
     "job-2026-26a970bde533d9fa0cf2",
-    "job-2026-26a9eb8fe0f79bb607aa",
     "job-2026-270576fe5dc7c526c62d",
     "job-2026-276b3297d64249e7ec24",
     "job-2026-27ec461ac38c265e8cbf",
@@ -9556,7 +9516,6 @@
     "job-2026-3a60f68b93f21c053da8",
     "job-2026-3adc38532f11b75b6f9d",
     "job-2026-3cdd1c641794780cc683",
-    "job-2026-3d0a46feed5dad9da047",
     "job-2026-3d89671e0e970845526c",
     "job-2026-3fc871ce44a0f0d5bf2a",
     "job-2026-42075d12269e9c1d029b",
@@ -9624,13 +9583,11 @@
     "job-2026-66f1d049bd1221b64dac",
     "job-2026-6a2a1a1648a3a8a7c84b",
     "job-2026-6a88272ae63e58f8b2ca",
-    "job-2026-6af54eac4c2e20e86bf3",
     "job-2026-6b6a7a518aa91671bd58",
     "job-2026-6b81f47b6e05a82cd9c3",
     "job-2026-6c28d03e8e3bf4158a4f",
     "job-2026-6c8ba49489f9913d6904",
     "job-2026-6c8c37125201ec06bdc9",
-    "job-2026-6de576449bc37a8c56d8",
     "job-2026-6e9f746f2231a1290872",
     "job-2026-701a321fd2885f4fd76d",
     "job-2026-722ad3ebdb69d7248630",
@@ -9647,9 +9604,7 @@
     "job-2026-7a02db5d50fc786e86a8",
     "job-2026-7b6f44f03cd830eea322",
     "job-2026-7bb487032149c59f69d5",
-    "job-2026-7bc0aee30c39954809f0",
     "job-2026-7c6fd5bba641594a8b8b",
-    "job-2026-7cf80733751f48150acf",
     "job-2026-7dc1ed277b0cabff5db6",
     "job-2026-7e617c72910469a2e652",
     "job-2026-7e96e369b220536633ba",
@@ -9676,7 +9631,6 @@
     "job-2026-8d91a161995a6185dbc2",
     "job-2026-8faa7688c4cc5f29266f",
     "job-2026-8febf18b9e1f943adcec",
-    "job-2026-91e8439dc855e20141bb",
     "job-2026-92d84845266fac8251c2",
     "job-2026-92f1c5fdf8024d12f8cd",
     "job-2026-93c495e1141814da74fa",
@@ -9768,16 +9722,13 @@
     "job-2026-d2eea287df72cc655222",
     "job-2026-d41050eae90a7ea4e4bf",
     "job-2026-d48ae8aebf6080c66a32",
-    "job-2026-d4b348235ca55aac7bae",
     "job-2026-d5de1b19ba4b96ca1ed6",
     "job-2026-d67ffea871160af72b25",
     "job-2026-d7c2c4895443479d0520",
     "job-2026-d8fed2f9119389f4da43",
-    "job-2026-d90027a643c7b4b9718b",
     "job-2026-d92b4c7fa3e5e6c7c2f9",
     "job-2026-d9506ce6dd855a6b5fd6",
     "job-2026-d96305c2833d04a20086",
-    "job-2026-dad81bd7a19ca981fc48",
     "job-2026-dc54bcaf724deefd826d",
     "job-2026-dc6963aa9d897eec8a8a",
     "job-2026-dc937eb8d81f0668cb63",
@@ -9838,7 +9789,6 @@
    "会计学": [
     "job-2026-001939697d2007abf414",
     "job-2026-007ef0858e3de3e2c182",
-    "job-2026-00de94e7ee58cf82460b",
     "job-2026-01d5c18a85e77a3e925f",
     "job-2026-02563c5250eb77f88f86",
     "job-2026-029f3ec2a680fa442ce6",
@@ -9868,8 +9818,6 @@
     "job-2026-09562cf4a9c78ff6e1ed",
     "job-2026-0966f43609b0c3ab6c94",
     "job-2026-099506996e9f6c031207",
-    "job-2026-09b9f0b9ae914ff2a0a3",
-    "job-2026-09e75b17e35c7454aed6",
     "job-2026-0a79a30e795d5b3f6c10",
     "job-2026-0b11152f7dbba4ffd16b",
     "job-2026-0b356e44786cc9b32827",
@@ -9919,7 +9867,6 @@
     "job-2026-193d71ecfcd4caa22fc6",
     "job-2026-1aa50295719045c111fe",
     "job-2026-1aeebf2cf9e26512e137",
-    "job-2026-1af72dcd5b79c4a10b4f",
     "job-2026-1b371ec65efee8d7ce5c",
     "job-2026-1baa63be528462b0ca43",
     "job-2026-1c069a97cc6a8d786898",
@@ -9962,7 +9909,6 @@
     "job-2026-2601597a99610eec290b",
     "job-2026-262392cb57d5076f7031",
     "job-2026-26a970bde533d9fa0cf2",
-    "job-2026-26a9eb8fe0f79bb607aa",
     "job-2026-270576fe5dc7c526c62d",
     "job-2026-271e31d8f793c73e4944",
     "job-2026-276b3297d64249e7ec24",
@@ -10035,7 +9981,6 @@
     "job-2026-3b5ba51726801e693696",
     "job-2026-3bdc81c556ec0257b1cf",
     "job-2026-3cdd1c641794780cc683",
-    "job-2026-3d0a46feed5dad9da047",
     "job-2026-3d89671e0e970845526c",
     "job-2026-3db4cae6d6c452503310",
     "job-2026-3dfc4d695b2b7d753adf",
@@ -10207,7 +10152,6 @@
     "job-2026-6a5d9358a1eda7925ac0",
     "job-2026-6a88272ae63e58f8b2ca",
     "job-2026-6a8aaa3205b21d3c26e0",
-    "job-2026-6af54eac4c2e20e86bf3",
     "job-2026-6b6a7a518aa91671bd58",
     "job-2026-6b81f47b6e05a82cd9c3",
     "job-2026-6b9328d059b43a12ec1a",
@@ -10219,7 +10163,6 @@
     "job-2026-6c8c37125201ec06bdc9",
     "job-2026-6cf2383b3c933f736db3",
     "job-2026-6d8a8489f1c36b5e833e",
-    "job-2026-6de576449bc37a8c56d8",
     "job-2026-6e9f746f2231a1290872",
     "job-2026-6edb6e0b19ba13ffe758",
     "job-2026-6f22ffb48a4c6ae4039f",
@@ -10261,11 +10204,9 @@
     "job-2026-7b6f44f03cd830eea322",
     "job-2026-7b9284d6403824e94a50",
     "job-2026-7bb487032149c59f69d5",
-    "job-2026-7bc0aee30c39954809f0",
     "job-2026-7c6fd5bba641594a8b8b",
     "job-2026-7c9e2581982ad6a8283f",
     "job-2026-7cd19724f08e5857d6e8",
-    "job-2026-7cf80733751f48150acf",
     "job-2026-7d379f43e69237b6a1b4",
     "job-2026-7dc1ed277b0cabff5db6",
     "job-2026-7ddbd3358ba67f4f14bd",
@@ -10338,7 +10279,6 @@
     "job-2026-8febf18b9e1f943adcec",
     "job-2026-903b241c16309dbd17f6",
     "job-2026-919c1700493c544f9408",
-    "job-2026-91e8439dc855e20141bb",
     "job-2026-927596deba50e7fea486",
     "job-2026-92788546aff217ac3a36",
     "job-2026-92d84845266fac8251c2",
@@ -10575,14 +10515,12 @@
     "job-2026-d41050eae90a7ea4e4bf",
     "job-2026-d457a4e7b7baa906cf70",
     "job-2026-d48ae8aebf6080c66a32",
-    "job-2026-d4b348235ca55aac7bae",
     "job-2026-d4cd88d9bd9b0e32b63a",
     "job-2026-d53609cc57cafe5f05fa",
     "job-2026-d5de1b19ba4b96ca1ed6",
     "job-2026-d67ffea871160af72b25",
     "job-2026-d7c2c4895443479d0520",
     "job-2026-d8fed2f9119389f4da43",
-    "job-2026-d90027a643c7b4b9718b",
     "job-2026-d92b4c7fa3e5e6c7c2f9",
     "job-2026-d93107330347900738c3",
     "job-2026-d9404398bbfb51962459",
@@ -10592,7 +10530,6 @@
     "job-2026-d9f5f17b447b320c739b",
     "job-2026-da142c9bb57dddfe58be",
     "job-2026-da998ebbecf7066ae2c2",
-    "job-2026-dad81bd7a19ca981fc48",
     "job-2026-db9e825991c911a53f29",
     "job-2026-dc54bcaf724deefd826d",
     "job-2026-dc6963aa9d897eec8a8a",
@@ -10750,16 +10687,13 @@
     "job-2026-0e62e06ab2e798dcfbbf",
     "job-2026-30599b64e8f0ddde2c19",
     "job-2026-372dd23f56a2e4376b6b",
-    "job-2026-3b22f5220c3d185dace2",
     "job-2026-574ce95f2b32bb67abfb",
     "job-2026-5d2399ebd6bb8f87969e",
     "job-2026-8443fcf82827f3d7bc76",
     "job-2026-86f894b218f92d77391c",
-    "job-2026-88786da97caf1a7c41d4",
     "job-2026-a089bc19406c5231c2b8",
     "job-2026-a9165a33f71fc1fc1de2",
     "job-2026-d5c6f85c0965142b2aa6",
-    "job-2026-e4ab4c54cddcd818083d",
     "job-2026-fe3d4839da91c2a1df19"
    ],
    "体育人文社会学": [
@@ -10770,18 +10704,15 @@
     "job-2026-10303100cf8c7eccdac7",
     "job-2026-30599b64e8f0ddde2c19",
     "job-2026-372dd23f56a2e4376b6b",
-    "job-2026-3b22f5220c3d185dace2",
     "job-2026-574ce95f2b32bb67abfb",
     "job-2026-8443fcf82827f3d7bc76",
     "job-2026-86f894b218f92d77391c",
-    "job-2026-88786da97caf1a7c41d4",
     "job-2026-9a68aec4c062bacb8399",
     "job-2026-a089bc19406c5231c2b8",
     "job-2026-a9165a33f71fc1fc1de2",
     "job-2026-b8bc3bcb06fe3ce393ec",
     "job-2026-d5c6f85c0965142b2aa6",
     "job-2026-e3fbc6c4277a992c15d4",
-    "job-2026-e4ab4c54cddcd818083d",
     "job-2026-fe3d4839da91c2a1df19"
    ],
    "体育康养": [
@@ -10789,7 +10720,6 @@
    ],
    "体育教学": [
     "job-2026-03cf4a6bf92f394996a7",
-    "job-2026-2a705345f9d5bc9266c3",
     "job-2026-4a63090f69e663386d4c",
     "job-2026-54d1f6ea011397164f3b",
     "job-2026-7e04e97640d83423ff1e",
@@ -10803,7 +10733,6 @@
    "体育教育训练学": [
     "job-2026-03799cb83162e6e44094",
     "job-2026-03cf4a6bf92f394996a7",
-    "job-2026-2a705345f9d5bc9266c3",
     "job-2026-4a63090f69e663386d4c",
     "job-2026-54d1f6ea011397164f3b",
     "job-2026-7e04e97640d83423ff1e",
@@ -11043,13 +10972,11 @@
     "job-2026-4f0d3aee1d3d33a84edd",
     "job-2026-50756bf5ac2f9893cfae",
     "job-2026-533c2402b6e4f8bb0f30",
-    "job-2026-53744ce365feca51db33",
     "job-2026-5434963dff02821f1ebc",
     "job-2026-551846e73f2f422e4f2a",
     "job-2026-576983ac30f48217c24c",
     "job-2026-583c72b40a1c17c46388",
     "job-2026-5ab5ed65c3202b905d5e",
-    "job-2026-5b5a55e4c3bcc2dcc6d0",
     "job-2026-5d6bfdd74387106c0cc1",
     "job-2026-617fdc965cc1f41d48fa",
     "job-2026-6ac779d1cd9463498c02",
@@ -11085,7 +11012,6 @@
     "job-2026-d94e579ad17e92930f27",
     "job-2026-d9540f0e30b23b7e258f",
     "job-2026-d9cd5e8cd40f1c9ebee1",
-    "job-2026-dedebe188b15dacae5a9",
     "job-2026-e1d3fa57a073674e4901",
     "job-2026-e8a5bf85782860fa501c",
     "job-2026-ece3b9b163c8ea6e4f5b",
@@ -11202,7 +11128,6 @@
    ],
    "光学工程": [
     "job-2026-85e3d408de25b5adfc05",
-    "job-2026-87bd51cb5c0f21a27efd",
     "job-2026-d03c86a99cb172585806",
     "job-2026-d620c6b2f2a4bdc36c71"
    ],
@@ -11272,7 +11197,6 @@
     "job-2026-03e467f5525b17d357ce",
     "job-2026-088b3a5668fb20398c65",
     "job-2026-14a5ea993419586b79c3",
-    "job-2026-167c2d690dafe4672f43",
     "job-2026-1a42603fdd2394b4f183",
     "job-2026-1f4963e010cbfd6d091f",
     "job-2026-5e09c11517dee9b211eb",
@@ -11304,7 +11228,6 @@
     "job-2026-03e467f5525b17d357ce",
     "job-2026-088b3a5668fb20398c65",
     "job-2026-14a5ea993419586b79c3",
-    "job-2026-167c2d690dafe4672f43",
     "job-2026-3271cf3be43e4f0af9a8",
     "job-2026-4242ffcdf7ef4957727e",
     "job-2026-55aec48f74899d85b668",
@@ -11335,7 +11258,6 @@
    ],
    "公共管理": [
     "job-2026-0411c327e7c26cded26d",
-    "job-2026-04962ea43358978af428",
     "job-2026-05ab0c2ce1638e094505",
     "job-2026-0a0a02f4008a6821b974",
     "job-2026-0f6fb6bf10a5e06d0d16",
@@ -11379,7 +11301,6 @@
    ],
    "公共管理学": [
     "job-2026-0411c327e7c26cded26d",
-    "job-2026-04962ea43358978af428",
     "job-2026-054b56288a6077b443b9",
     "job-2026-05ab0c2ce1638e094505",
     "job-2026-0a0a02f4008a6821b974",
@@ -11531,7 +11452,6 @@
     "job-2026-0b2e5b586733ad4ce0cb",
     "job-2026-14a5ea993419586b79c3",
     "job-2026-1c56da5081a6d856bd88",
-    "job-2026-2667d67e377ffdc34d53",
     "job-2026-26f0e4c0db9b78de8273",
     "job-2026-29ca2d086672d863e02d",
     "job-2026-30d6332f37cc1bbfe0ce",
@@ -11573,7 +11493,6 @@
     "job-2026-a87a354f372124643fad",
     "job-2026-b95d6fc95353bd23c970",
     "job-2026-c67e9150551451122dec",
-    "job-2026-d90027a643c7b4b9718b",
     "job-2026-e6775ca22861f42e2f06",
     "job-2026-f40876cfb7f9cb2de07b",
     "job-2026-f6a220527efc83169733"
@@ -11970,7 +11889,6 @@
    "制药工程": [
     "job-2026-2b417df11f628ff96675",
     "job-2026-3547732aa180fdd542dd",
-    "job-2026-4e9db003285bc27ec139",
     "job-2026-6c7ba5d0b747ea9ef26a",
     "job-2026-74e8e796d05e6068a80f",
     "job-2026-78b50ce82aab1003feba",
@@ -11979,7 +11897,6 @@
     "job-2026-c9bf0b6498c90f5e4e5c"
    ],
    "力学": [
-    "job-2026-87bd51cb5c0f21a27efd",
     "job-2026-9accb6f8e24195caea40",
     "job-2026-b06e0af940d9020c2da1",
     "job-2026-d03c86a99cb172585806",
@@ -11992,8 +11909,7 @@
    "动力工程": [
     "job-2026-2292cf68555e240bb61e",
     "job-2026-39a90fc6733d5bb918ec",
-    "job-2026-b3f3804b0ece10a472bb",
-    "job-2026-ecdf6dad16cd504f9e3d"
+    "job-2026-b3f3804b0ece10a472bb"
    ],
    "动力工程及工程热物理": [
     "job-2026-2292cf68555e240bb61e",
@@ -12001,8 +11917,7 @@
     "job-2026-4692e4b731cc451f5efa",
     "job-2026-8a3f61fb03141b3e7958",
     "job-2026-b15e9c20fa894368dc0c",
-    "job-2026-d8f64228b700e5f4e52e",
-    "job-2026-ecdf6dad16cd504f9e3d"
+    "job-2026-d8f64228b700e5f4e52e"
    ],
    "动植物检疫": [
     "job-2026-25a49ca0b276846713b9",
@@ -12169,7 +12084,6 @@
     "job-2026-6edfb550e016f0e1b7c5",
     "job-2026-73b947c182116e6428c0",
     "job-2026-e0463dc0d05d24aefa63",
-    "job-2026-e5e05ae2c60e701e85c9",
     "job-2026-ea9d874e52f896c35085",
     "job-2026-f38f666f656b4836b886"
    ],
@@ -12204,7 +12118,6 @@
     "job-2026-47800567ee254c1c7657",
     "job-2026-53bcb1487de366b80ed8",
     "job-2026-58eb461db246142a3fdd",
-    "job-2026-5e4b2332706ba53a90bb",
     "job-2026-6c7ba5d0b747ea9ef26a",
     "job-2026-70098cf61c37d30fc226",
     "job-2026-7c3c121e74ad533ca78c",
@@ -12348,7 +12261,6 @@
     "job-2026-3432f5a68f2d0d17e0ba",
     "job-2026-37d9aa5014fd08b5b9cb",
     "job-2026-3d0aeb97e2274a1c997f",
-    "job-2026-45028c08e234d532b732",
     "job-2026-48cfa5e709878294327a",
     "job-2026-4c161e6c5c38f1cabe16",
     "job-2026-59a0a5f267b0fd37e5d6",
@@ -12464,7 +12376,6 @@
     "job-2026-0be05f4323fce384d767",
     "job-2026-13001d2ab24dbb9490a8",
     "job-2026-1cc6567a96ad1ee075c8",
-    "job-2026-2e201c57f2bc40d7a5cf",
     "job-2026-b247e69596e2fabc8531"
    ],
    "卫生信息管理": [
@@ -12569,7 +12480,6 @@
    ],
    "史学理论及史学史": [
     "job-2026-b247e69596e2fabc8531",
-    "job-2026-e9453d69187a22c89817",
     "job-2026-fe3457f798be2e5ddea1"
    ],
    "司法警察学": [
@@ -12582,7 +12492,6 @@
     "job-2026-0fe4ff36024a9d56b1db",
     "job-2026-476247226b251bb7f327",
     "job-2026-5fef12e12b59ef8ade8e",
-    "job-2026-6e719f02b6a580112fcd",
     "job-2026-8126ce9378ac98f1d2dc",
     "job-2026-e5554d89491525240868"
    ],
@@ -12590,8 +12499,7 @@
     "job-2026-871d5f4a138500f8cc4e"
    ],
    "听力与言语康复学": [
-    "job-2026-9b50ce16b0b580dea7c8",
-    "job-2026-b4128d03241754ad75fe"
+    "job-2026-9b50ce16b0b580dea7c8"
    ],
    "哲学": [
     "job-2026-25be0329f7fcd92ff8c9",
@@ -12621,7 +12529,6 @@
     "job-2026-a1403ddcba6de1da718e"
    ],
    "商务英语": [
-    "job-2026-10e7d4f5dee40a14b12b",
     "job-2026-5319683b3be67a2cf3a9",
     "job-2026-5c44de5867102e349774",
     "job-2026-7863fabb827e59492c9d",
@@ -13063,7 +12970,6 @@
     "job-2026-730f582cd842435b865f",
     "job-2026-748fb8caed180c448fac",
     "job-2026-75212e1555d495446309",
-    "job-2026-752cda656385a75c1dee",
     "job-2026-766e714a7fdf165a3fc6",
     "job-2026-76a1077839c1d6c1659a",
     "job-2026-77be1d763372bfb753a9",
@@ -13168,7 +13074,6 @@
     "job-2026-dd2bc9e8a9a070c56689",
     "job-2026-dece2dfbd2a2fbab9979",
     "job-2026-df93fc2f8feef18be398",
-    "job-2026-e042454aab3c67e5bf77",
     "job-2026-e0b67b223e4f5ff2ca3d",
     "job-2026-e0bbd346bd4a2963b6bd",
     "job-2026-e0ebe1b73e50064afa3a",
@@ -13233,7 +13138,6 @@
     "job-2026-71abd533f5ab20fd404f",
     "job-2026-745c3b0261435944f69e",
     "job-2026-74a661471a92b3e93c33",
-    "job-2026-752cda656385a75c1dee",
     "job-2026-76faa9c3d0a41155874c",
     "job-2026-78bc39f44ecea24c5900",
     "job-2026-79a2628742cb541b11df",
@@ -13358,7 +13262,6 @@
     "job-2026-056528eb1b997bb3cc02",
     "job-2026-0e041044cb336258e397",
     "job-2026-3a72e2141ada7217809d",
-    "job-2026-3d09442c6ded14a723ab",
     "job-2026-3dec620bd2e7c787e7b0",
     "job-2026-4643f7ee8cb5e046b068",
     "job-2026-64a0886a52e23c1003cf",
@@ -13369,7 +13272,6 @@
     "job-2026-c65b5781cbce9e8c91d3",
     "job-2026-daa287d3d0674fbc9dbc",
     "job-2026-dc5142c51cc4f9d116ad",
-    "job-2026-dc912182fe2c94300a45",
     "job-2026-ebe5762fa393959cdd01"
    ],
    "地理科学": [
@@ -13392,7 +13294,6 @@
     "job-2026-a192839b1e1f8477f5f7",
     "job-2026-cf4003a9ade984d6af5d",
     "job-2026-d3daf6d8da69848b9f4f",
-    "job-2026-dc912182fe2c94300a45",
     "job-2026-ddbb80a70c138b320202",
     "job-2026-f93cdf0d7deaeb15a68a"
    ],
@@ -13411,7 +13312,6 @@
     "job-2026-a192839b1e1f8477f5f7",
     "job-2026-ab537acc6fc4b3e7b1e6",
     "job-2026-bf66ddf8350562a4ec78",
-    "job-2026-dc912182fe2c94300a45",
     "job-2026-ddbb80a70c138b320202",
     "job-2026-f93cdf0d7deaeb15a68a"
    ],
@@ -13424,7 +13324,6 @@
     "job-2026-67a5a6ae9f3ae19a9d9d",
     "job-2026-ab537acc6fc4b3e7b1e6",
     "job-2026-bf66ddf8350562a4ec78",
-    "job-2026-dc912182fe2c94300a45",
     "job-2026-ebe5762fa393959cdd01"
    ],
    "城乡规划": [
@@ -13661,9 +13560,7 @@
     "job-2026-068cfdbc03b91582ff07",
     "job-2026-079c67f44c107177a75c",
     "job-2026-182a50255d7e5bd5b6a2",
-    "job-2026-311527fc8887fe329aa3",
     "job-2026-4242ffcdf7ef4957727e",
-    "job-2026-5fe8a364bb46ee505a9b",
     "job-2026-8e38d1985af5b96810ca",
     "job-2026-99ef80758e0a1b3b4676",
     "job-2026-a80564eb05db019430e7",
@@ -13693,8 +13590,7 @@
     "job-2026-1dd835d9e8dcac04a85f",
     "job-2026-31bf01a716bc4f90a64d",
     "job-2026-3ec4f4f56f2866956235",
-    "job-2026-7cc9d97180e83a873fe1",
-    "job-2026-9b7831d128b39c87148d"
+    "job-2026-7cc9d97180e83a873fe1"
    ],
    "外科学": [
     "job-2026-0b2e5b586733ad4ce0cb",
@@ -13836,8 +13732,7 @@
    ],
    "孤独症儿童教育": [
     "job-2026-b1abd56c1cfd5634f056",
-    "job-2026-b1b72c0094de740a262c",
-    "job-2026-b7344e3029a911c4cf73"
+    "job-2026-b1b72c0094de740a262c"
    ],
    "学前教育": [
     "job-2026-138bb14a8418499ece79",
@@ -13896,7 +13791,6 @@
     "job-2026-c492b3c856081f420e86",
     "job-2026-c8e49c7bb4e43a19d096",
     "job-2026-ca62b78517e866ce8a48",
-    "job-2026-e58154db238f9f7fab2c",
     "job-2026-f56f191ad8eee87e5bc5",
     "job-2026-f86997ccfbad8c7ac30f",
     "job-2026-ffd57074bdc89bb4277b"
@@ -13958,7 +13852,6 @@
     "job-2026-c9791b63793dad12c99d",
     "job-2026-ccc0d6ecbbdf4e2b1814",
     "job-2026-e53f5afcdb6e5ece69d3",
-    "job-2026-e58154db238f9f7fab2c",
     "job-2026-f56f191ad8eee87e5bc5",
     "job-2026-ffd57074bdc89bb4277b"
    ],
@@ -13994,7 +13887,6 @@
     "job-2026-08c307df8c0b76c911ec",
     "job-2026-0966f43609b0c3ab6c94",
     "job-2026-099506996e9f6c031207",
-    "job-2026-09b9f0b9ae914ff2a0a3",
     "job-2026-0daf1226c2abc7c92b5b",
     "job-2026-0ee910a5e87c85da9faf",
     "job-2026-117e34d93750571e1ebc",
@@ -14024,7 +13916,6 @@
     "job-2026-372f885e15dd89101fde",
     "job-2026-3a563ce83bf894457b04",
     "job-2026-3adc38532f11b75b6f9d",
-    "job-2026-3d0a46feed5dad9da047",
     "job-2026-3e702e7dbc1a769d43d6",
     "job-2026-3fc871ce44a0f0d5bf2a",
     "job-2026-41a9fa1ba428f5e6a754",
@@ -14074,7 +13965,6 @@
     "job-2026-793c43d82dd800c80917",
     "job-2026-79a93420329be2c502c7",
     "job-2026-7b6f44f03cd830eea322",
-    "job-2026-7cf80733751f48150acf",
     "job-2026-8001e8263db27053af85",
     "job-2026-83248139f998325c10b0",
     "job-2026-8378ad2ef382b991f305",
@@ -14132,7 +14022,6 @@
     "job-2026-d2eea287df72cc655222",
     "job-2026-d37e692c1badda5cc284",
     "job-2026-d41050eae90a7ea4e4bf",
-    "job-2026-d90027a643c7b4b9718b",
     "job-2026-d92b4c7fa3e5e6c7c2f9",
     "job-2026-d96305c2833d04a20086",
     "job-2026-dc6963aa9d897eec8a8a",
@@ -14186,7 +14075,6 @@
     "job-2026-09562cf4a9c78ff6e1ed",
     "job-2026-0966f43609b0c3ab6c94",
     "job-2026-099506996e9f6c031207",
-    "job-2026-09b9f0b9ae914ff2a0a3",
     "job-2026-0a79a30e795d5b3f6c10",
     "job-2026-0cfe9a15f2174c9fddc2",
     "job-2026-0d2e4888d70aecc7104d",
@@ -14274,7 +14162,6 @@
     "job-2026-3b1c72d6323b9ecbcc8c",
     "job-2026-3b5ba51726801e693696",
     "job-2026-3bdc81c556ec0257b1cf",
-    "job-2026-3d0a46feed5dad9da047",
     "job-2026-3db4cae6d6c452503310",
     "job-2026-3dfc4d695b2b7d753adf",
     "job-2026-3e14e62895b437ec0f8d",
@@ -14418,7 +14305,6 @@
     "job-2026-7b0f71572165d8e5f6ab",
     "job-2026-7b6f44f03cd830eea322",
     "job-2026-7cd19724f08e5857d6e8",
-    "job-2026-7cf80733751f48150acf",
     "job-2026-7d379f43e69237b6a1b4",
     "job-2026-7f44754706dd1b9feadb",
     "job-2026-8001e8263db27053af85",
@@ -14616,7 +14502,6 @@
     "job-2026-d53609cc57cafe5f05fa",
     "job-2026-d67ffea871160af72b25",
     "job-2026-d75c12800db1343fb08e",
-    "job-2026-d90027a643c7b4b9718b",
     "job-2026-d92b4c7fa3e5e6c7c2f9",
     "job-2026-d93107330347900738c3",
     "job-2026-d9404398bbfb51962459",
@@ -14759,7 +14644,6 @@
     "job-2026-5c03040a3c101739c6a7"
    ],
    "工商管理": [
-    "job-2026-04962ea43358978af428",
     "job-2026-08b3bcc7d0185885c0a2",
     "job-2026-0a0a02f4008a6821b974",
     "job-2026-0a9f6cc00c8f2bc0bd4f",
@@ -14776,13 +14660,11 @@
     "job-2026-5ddfcc0c1622876d7856",
     "job-2026-62d81766e47c0521f6d2",
     "job-2026-63a7b3a29461ae8b8f46",
-    "job-2026-6de576449bc37a8c56d8",
     "job-2026-6edb6e0b19ba13ffe758",
     "job-2026-75694030781bd0136e64",
     "job-2026-7a96ae53b906318ed451",
     "job-2026-7dc1ed277b0cabff5db6",
     "job-2026-80a6e9f0cc9e17270ed6",
-    "job-2026-82732f4b41aa10db896b",
     "job-2026-8690cb27735442645ccc",
     "job-2026-877620d48e418dd567f4",
     "job-2026-8f6ed37b8ee6341ad351",
@@ -14815,7 +14697,6 @@
     "job-2026-ff41bef19d61b0882fa5"
    ],
    "工商管理学": [
-    "job-2026-04962ea43358978af428",
     "job-2026-054b56288a6077b443b9",
     "job-2026-08b3bcc7d0185885c0a2",
     "job-2026-0a0a02f4008a6821b974",
@@ -14828,9 +14709,7 @@
     "job-2026-571b04562622e61bfdcb",
     "job-2026-62d81766e47c0521f6d2",
     "job-2026-63a7b3a29461ae8b8f46",
-    "job-2026-6de576449bc37a8c56d8",
     "job-2026-80a6e9f0cc9e17270ed6",
-    "job-2026-82732f4b41aa10db896b",
     "job-2026-96bf1abb6a7d64ce8b51",
     "job-2026-a6ae624c1dbcc2c121cc",
     "job-2026-a881cb003f8b0198f47e",
@@ -15031,7 +14910,6 @@
     "job-2026-d7f600b723d3b2f9ccb6",
     "job-2026-d945c0c55af04f33d39d",
     "job-2026-d9fbfc2d22c649ed3c41",
-    "job-2026-e346413f82f8cbf77d74",
     "job-2026-e3f55d483782df2f00bd",
     "job-2026-e46a6daa8371b20155a6",
     "job-2026-e5e7d879bc37c3dcd239",
@@ -15164,7 +15042,6 @@
    ],
    "市场营销": [
     "job-2026-12f9d06d28de121652fa",
-    "job-2026-1a2de4b0bb5ba10d2562",
     "job-2026-46b71719c4bee0fcacad",
     "job-2026-4d07c36687d2ed966713",
     "job-2026-4d560c5da54a120d564b",
@@ -15206,7 +15083,6 @@
     "job-2026-f4d5063959ee659c8be9"
    ],
    "广告学": [
-    "job-2026-1a2de4b0bb5ba10d2562",
     "job-2026-46b71719c4bee0fcacad",
     "job-2026-960d561c5282f4d5258f",
     "job-2026-e48940cb0a42d8206ed6"
@@ -15254,7 +15130,6 @@
     "job-2026-32231defb1566642d0aa",
     "job-2026-329d4ecd11eef42509ce",
     "job-2026-34d50820bad996d3023b",
-    "job-2026-3775a3b56df9a6886301",
     "job-2026-466d43c597c502d659de",
     "job-2026-5871e852f2c7234b7f06",
     "job-2026-64aab385c25383174e4c",
@@ -15268,7 +15143,6 @@
     "job-2026-833ad0b861da92d5f55e",
     "job-2026-87f24cde2f50ed669164",
     "job-2026-8ff2f931246798c2ad8c",
-    "job-2026-a3beb65c618a91bac64f",
     "job-2026-a47af02ad492413a4bdd",
     "job-2026-a6f6caa23f14b5ee3202",
     "job-2026-ac0bea61a9988e5687e3",
@@ -15394,12 +15268,10 @@
     "job-2026-35c0d855adbf8ccbabb4",
     "job-2026-39f8dc64f59eea2a7f97",
     "job-2026-4f444d76356af03b8e03",
-    "job-2026-5575499ca4eaac6dd707",
     "job-2026-9aeb9ea120ff4e79c254",
     "job-2026-9f9154e47d0154a61a36",
     "job-2026-a6e48de07504ca4e482b",
     "job-2026-dc70f4f01d6271b0b08e",
-    "job-2026-e4a6cb96500f84fe70b6",
     "job-2026-e78983ae8ec43a51663e",
     "job-2026-ec80245af09c9e67e03d",
     "job-2026-f65db87206bb9901f49f",
@@ -15440,7 +15312,6 @@
    ],
    "应用经济学": [
     "job-2026-02fefc7506ebc3c95e6e",
-    "job-2026-06c094dc60da82e1a53c",
     "job-2026-071a719b6f19396845c6",
     "job-2026-0a675523bfceed2c0bae",
     "job-2026-0a9f6cc00c8f2bc0bd4f",
@@ -15455,7 +15326,6 @@
     "job-2026-255f697377a176b092ef",
     "job-2026-26a7718872ec0937d249",
     "job-2026-29eea5e1b7edc35b7307",
-    "job-2026-29f3aa12313cfe098a40",
     "job-2026-2cbe8a7ecbd5acbf8be8",
     "job-2026-2f38cad1bcedaec629db",
     "job-2026-32aecf93f474d7f697fe",
@@ -15525,7 +15395,6 @@
     "job-2026-21a2499bbe6a5a14ed59",
     "job-2026-251f925fbc8e1d0d7369",
     "job-2026-29eea5e1b7edc35b7307",
-    "job-2026-29f3aa12313cfe098a40",
     "job-2026-2c70c774c44471515f17",
     "job-2026-2cf4ce9341a245f929f0",
     "job-2026-2d6e14229b1e7b3ea12b",
@@ -15624,8 +15493,7 @@
    ],
    "康复作业治疗": [
     "job-2026-9473365313500adec689",
-    "job-2026-9b50ce16b0b580dea7c8",
-    "job-2026-b4128d03241754ad75fe"
+    "job-2026-9b50ce16b0b580dea7c8"
    ],
    "康复医学与理疗学": [
     "job-2026-028eba9e9117b6284bda",
@@ -15642,7 +15510,6 @@
     "job-2026-9b50ce16b0b580dea7c8",
     "job-2026-a0367d1a3a00526986f4",
     "job-2026-b00f6956b1c9a29ed289",
-    "job-2026-b4128d03241754ad75fe",
     "job-2026-b55bda1d8d85c54f4b8f",
     "job-2026-c1f4b99a0d08f25f638f",
     "job-2026-e6c241b84d2a4c203278",
@@ -15656,7 +15523,6 @@
     "job-2026-8a5829bdc759e911bff8",
     "job-2026-9473365313500adec689",
     "job-2026-9b50ce16b0b580dea7c8",
-    "job-2026-b4128d03241754ad75fe",
     "job-2026-b55bda1d8d85c54f4b8f"
    ],
    "康复治疗技术": [
@@ -15665,7 +15531,6 @@
    "康复物理治疗": [
     "job-2026-9473365313500adec689",
     "job-2026-9b50ce16b0b580dea7c8",
-    "job-2026-b4128d03241754ad75fe",
     "job-2026-cfe5b3719ce06d161b2c"
    ],
    "建筑": [
@@ -15692,7 +15557,6 @@
     "job-2026-748fb8caed180c448fac",
     "job-2026-7e617c72910469a2e652",
     "job-2026-88ff39ec72ae5076830f",
-    "job-2026-987127e23a4319a77bcb",
     "job-2026-b7e44f3af3abb83685e8",
     "job-2026-bbd999ace5379006fc72",
     "job-2026-be4a46313072c99665cd",
@@ -15768,7 +15632,6 @@
     "job-2026-8abbcedca10e79e85f9f",
     "job-2026-8ad2196725a3188fd1ab",
     "job-2026-8ec89334fcf7d4bff676",
-    "job-2026-987127e23a4319a77bcb",
     "job-2026-9accb6f8e24195caea40",
     "job-2026-a7463d0f936d5d2fb2c4",
     "job-2026-ab2f53c793c6d7ef0b99",
@@ -15874,8 +15737,7 @@
     "job-2026-f4e367d7b2e09a4aa301"
    ],
    "录音艺术": [
-    "job-2026-7675c4b3fa350fb35fcf",
-    "job-2026-a3beb65c618a91bac64f"
+    "job-2026-7675c4b3fa350fb35fcf"
    ],
    "影像医学与核医学": [
     "job-2026-09b67b232f61b0cd2008",
@@ -15888,7 +15750,6 @@
     "job-2026-2cbdcceaf305c47a6d19",
     "job-2026-3d0aeb97e2274a1c997f",
     "job-2026-3e580fbd978129dc29e5",
-    "job-2026-45028c08e234d532b732",
     "job-2026-59a0a5f267b0fd37e5d6",
     "job-2026-5ed4b359978ace10f137",
     "job-2026-6169216ee04016e98b04",
@@ -15937,7 +15798,6 @@
     "job-2026-244bb852a1e7aa1477d8",
     "job-2026-32231defb1566642d0aa",
     "job-2026-35c0d855adbf8ccbabb4",
-    "job-2026-3775a3b56df9a6886301",
     "job-2026-38ff9d8fc828c15b6a0c",
     "job-2026-42dedad099903384fe1c",
     "job-2026-4f444d76356af03b8e03",
@@ -15976,7 +15836,6 @@
    ],
    "微生物学": [
     "job-2026-3360cbeafa6955a432a5",
-    "job-2026-402b6f2a0dc0ac49dd32",
     "job-2026-4712671fe6638f457405",
     "job-2026-723b5f2172536e3852af",
     "job-2026-cd3fed2ede0a36db6409",
@@ -16007,7 +15866,6 @@
     "job-2026-3ec4f4f56f2866956235",
     "job-2026-405747d612beeae5b32e",
     "job-2026-54ff9bd5150866cb8c60",
-    "job-2026-5575499ca4eaac6dd707",
     "job-2026-5600ad3d022732ec4289",
     "job-2026-595103040ed1f1937175",
     "job-2026-671e700ba4804c6f537a",
@@ -16021,14 +15879,12 @@
     "job-2026-c26223a115721a19db74",
     "job-2026-c972f862f23dc1a6ab64",
     "job-2026-dc70f4f01d6271b0b08e",
-    "job-2026-e4a6cb96500f84fe70b6",
     "job-2026-e726ca6929b560c5eb78",
     "job-2026-e7c0b41f5e8cd27054b3",
     "job-2026-ecb9f644e9289c359b5e"
    ],
    "思想政治教育": [
     "job-2026-0186e79e5585d5aabf65",
-    "job-2026-0203b459304f391be727",
     "job-2026-0247b2be6dd3cc094eb3",
     "job-2026-0525f758c9eb3c865c29",
     "job-2026-30a29436a5a5576a2ea1",
@@ -16049,7 +15905,6 @@
     "job-2026-cd6d5681158d4b41c9b9",
     "job-2026-e78983ae8ec43a51663e",
     "job-2026-ed3c3d026b8b895ac146",
-    "job-2026-f08e3f62a810efb62316",
     "job-2026-f2ab6834c65f5faf7f24",
     "job-2026-fcf88415f5c4c4a636e3"
    ],
@@ -16081,7 +15936,6 @@
     "job-2026-831c4dbf02888f241d55",
     "job-2026-86ea1365eb9bd349ae48",
     "job-2026-98d2e7eee176ac0a7724",
-    "job-2026-a3beb65c618a91bac64f",
     "job-2026-ae48a235270376c4acc4",
     "job-2026-b9f0d47a1da3e444d800",
     "job-2026-c26223a115721a19db74",
@@ -16102,7 +15956,6 @@
     "job-2026-825bd0f2a39af09180b4",
     "job-2026-86ea1365eb9bd349ae48",
     "job-2026-87f24cde2f50ed669164",
-    "job-2026-a3beb65c618a91bac64f",
     "job-2026-e48940cb0a42d8206ed6",
     "job-2026-f453235bbd04d6dbb066"
    ],
@@ -16150,7 +16003,6 @@
     "job-2026-d8fed2f9119389f4da43"
    ],
    "投资学": [
-    "job-2026-2db2d99d76ecef25ba90",
     "job-2026-47887ab87fee25f32b0d",
     "job-2026-64b15b9f215830f1abdb",
     "job-2026-a4ccbdf87d2d51808587",
@@ -16247,7 +16099,6 @@
     "job-2026-2600cf6c9a22c97fd00f",
     "job-2026-39a90fc6733d5bb918ec",
     "job-2026-9398129db208f095bd4c",
-    "job-2026-9aca1ccc91a8a0dd04a1",
     "job-2026-b3f3804b0ece10a472bb",
     "job-2026-f09fd16358c41d504623"
    ],
@@ -16279,7 +16130,6 @@
     "job-2026-8facdf4f8496f81aaadb",
     "job-2026-92d3425e481838649e9a",
     "job-2026-9398129db208f095bd4c",
-    "job-2026-9aca1ccc91a8a0dd04a1",
     "job-2026-b7f4e26320e490957461",
     "job-2026-ba3b3d8d4a4b30823a7b",
     "job-2026-bd9646660e540a87c1c7",
@@ -16327,7 +16177,6 @@
     "job-2026-297e25a58d0fa2bfd55d",
     "job-2026-3148c221dbe84a66cde2",
     "job-2026-329d4ecd11eef42509ce",
-    "job-2026-3775a3b56df9a6886301",
     "job-2026-454662ab05330e9c6911",
     "job-2026-466d43c597c502d659de",
     "job-2026-5871e852f2c7234b7f06",
@@ -16339,7 +16188,6 @@
     "job-2026-833ad0b861da92d5f55e",
     "job-2026-8ff2f931246798c2ad8c",
     "job-2026-a24de10fbe554b1939d0",
-    "job-2026-a3beb65c618a91bac64f",
     "job-2026-a6f6caa23f14b5ee3202",
     "job-2026-ae156844c172c8ce2f15",
     "job-2026-c3bd37f8f5f89518a12c",
@@ -16386,7 +16234,6 @@
     "job-2026-70a09f5e33b572ccf8bc",
     "job-2026-7fd46a0462e4a7e1b10d",
     "job-2026-8a99e89b47d6a00dd43e",
-    "job-2026-8b36f58b19b5828a906b",
     "job-2026-93fbcff8784b29039433",
     "job-2026-9f454fffec1cf5740f81",
     "job-2026-a4e42e0838d9465d784b",
@@ -16400,7 +16247,6 @@
     "job-2026-e04d3a7062335ddc14de",
     "job-2026-e2e58ab565a63bde8091",
     "job-2026-ef6082d3a6e867ed742d",
-    "job-2026-f08e3f62a810efb62316",
     "job-2026-f0d7604af2fc481d7e93",
     "job-2026-fed01843e03fac2a4363"
    ],
@@ -16430,7 +16276,6 @@
    ],
    "教育": [
     "job-2026-05acc048a690245d6c77",
-    "job-2026-2e40903551d49c46e67d",
     "job-2026-3bd4e23bcbe6c261dd0a",
     "job-2026-9f314f03e228a47700c4",
     "job-2026-c08bafb7d71504607fe0",
@@ -16440,7 +16285,6 @@
    "教育学": [
     "job-2026-02c4ab85cbc7cd0e67d6",
     "job-2026-25be0329f7fcd92ff8c9",
-    "job-2026-2e40903551d49c46e67d",
     "job-2026-31bf01a716bc4f90a64d",
     "job-2026-3bd4e23bcbe6c261dd0a",
     "job-2026-54ff9bd5150866cb8c60",
@@ -16449,7 +16293,6 @@
     "job-2026-7d5762cf90402300e19a",
     "job-2026-8722c41f560323c9c9e2",
     "job-2026-8d12b8e09a1a04ed381a",
-    "job-2026-9b7831d128b39c87148d",
     "job-2026-9f314f03e228a47700c4",
     "job-2026-a4e42e0838d9465d784b",
     "job-2026-b6f122c393a0859dda19",
@@ -16471,8 +16314,7 @@
    ],
    "教育康复学": [
     "job-2026-b1abd56c1cfd5634f056",
-    "job-2026-b1b72c0094de740a262c",
-    "job-2026-b7344e3029a911c4cf73"
+    "job-2026-b1b72c0094de740a262c"
    ],
    "教育技术学": [
     "job-2026-05acc048a690245d6c77",
@@ -16510,7 +16352,6 @@
     "job-2026-38ff9d8fc828c15b6a0c",
     "job-2026-457e9ed70ae43984f0a6",
     "job-2026-55b41a2d5ec95de21c4d",
-    "job-2026-5da69d85951327841776",
     "job-2026-64c17d1636be8d85499d",
     "job-2026-7a5884b2b6b73ccb726f",
     "job-2026-831c4dbf02888f241d55",
@@ -16570,7 +16411,6 @@
     "job-2026-55f61cfd76cbeab22581",
     "job-2026-58263ed44c56e93e677e",
     "job-2026-5903b8afdcac43010a11",
-    "job-2026-5aa0fb15669e6d124d57",
     "job-2026-5b7b53259cb796d7686d",
     "job-2026-6ec42fe4ec5ff8a56429",
     "job-2026-877620d48e418dd567f4",
@@ -16578,13 +16418,11 @@
     "job-2026-98f6dbb8592336960571",
     "job-2026-9e5ece1aa5e01fdf3775",
     "job-2026-b5186e868b95fcc80292",
-    "job-2026-b5f625dd947f7a4d2635",
     "job-2026-b818701905cc5e06f7c2",
     "job-2026-beef20dc38734db7a34f",
     "job-2026-c889c0b3dedec705ca70",
     "job-2026-cdccffb52305edc97274",
     "job-2026-d136a72b32b13d8111d3",
-    "job-2026-d3a98767459c5f136cb1",
     "job-2026-d46098d13236771a34b0",
     "job-2026-da9c8a55c03305ee92f3",
     "job-2026-dad902a93bc458712b6d",
@@ -16638,7 +16476,6 @@
     "job-2026-4c4e7a374721c4e20f69",
     "job-2026-4f0d3aee1d3d33a84edd",
     "job-2026-5319683b3be67a2cf3a9",
-    "job-2026-53744ce365feca51db33",
     "job-2026-53be396e02bea48dbeb0",
     "job-2026-54c2efa670d60bac111d",
     "job-2026-592810e76ff077481f3c",
@@ -16692,7 +16529,6 @@
     "job-2026-d94e579ad17e92930f27",
     "job-2026-d9cd5e8cd40f1c9ebee1",
     "job-2026-da142c9bb57dddfe58be",
-    "job-2026-dedebe188b15dacae5a9",
     "job-2026-e1d3fa57a073674e4901",
     "job-2026-e5da9eaffec02f1f42b0",
     "job-2026-e8a5bf85782860fa501c",
@@ -16776,7 +16612,6 @@
     "job-2026-13001d2ab24dbb9490a8",
     "job-2026-1bfcfdfcbdd11b1d2fe6",
     "job-2026-1cc6567a96ad1ee075c8",
-    "job-2026-2e201c57f2bc40d7a5cf",
     "job-2026-301d99ed2e954b116e22",
     "job-2026-3922275e04e3d9f04e14",
     "job-2026-62ecedf51c2e0e5ec227",
@@ -16807,7 +16642,6 @@
     "job-2026-244bb852a1e7aa1477d8",
     "job-2026-246b389e353f1083c8fe",
     "job-2026-38ff9d8fc828c15b6a0c",
-    "job-2026-5da69d85951327841776",
     "job-2026-64c17d1636be8d85499d",
     "job-2026-7a5884b2b6b73ccb726f",
     "job-2026-cbf61c745b9808ad20bd",
@@ -16871,8 +16705,6 @@
     "job-2026-35c0d855adbf8ccbabb4",
     "job-2026-387d2c94c49285ac29a4",
     "job-2026-3ac7523d23745c98736a",
-    "job-2026-402f04960cbbb4b76eee",
-    "job-2026-432da844379f27be080f",
     "job-2026-45f672c6f31bf7601a9a",
     "job-2026-4903cdf779b7a0bbeadc",
     "job-2026-4a7bbef6374232a9697a",
@@ -16892,7 +16724,6 @@
     "job-2026-6e9f746f2231a1290872",
     "job-2026-70d4bfab2ae60ab2b6d4",
     "job-2026-72f9989aec3e06ed414c",
-    "job-2026-7578d6efe398bc052abe",
     "job-2026-77fa589ab852d1771d3e",
     "job-2026-78cc9a95efd88aedd0f4",
     "job-2026-7ab98761aa69662d0f03",
@@ -16971,9 +16802,7 @@
     "job-2026-387d2c94c49285ac29a4",
     "job-2026-3ac7523d23745c98736a",
     "job-2026-3ec4f4f56f2866956235",
-    "job-2026-402f04960cbbb4b76eee",
     "job-2026-40fb00ee42845b975f3d",
-    "job-2026-432da844379f27be080f",
     "job-2026-45f672c6f31bf7601a9a",
     "job-2026-49f2a50f9e848dbed43f",
     "job-2026-4a7bbef6374232a9697a",
@@ -16994,7 +16823,6 @@
     "job-2026-70d4bfab2ae60ab2b6d4",
     "job-2026-71ad14382d2ecf9420c4",
     "job-2026-72f9989aec3e06ed414c",
-    "job-2026-7578d6efe398bc052abe",
     "job-2026-77fa589ab852d1771d3e",
     "job-2026-78cc9a95efd88aedd0f4",
     "job-2026-78f0eb129cd1d63fb7b6",
@@ -17077,7 +16905,6 @@
     "job-2026-35c0d855adbf8ccbabb4",
     "job-2026-36b875be2cb546ea8d4b",
     "job-2026-40791e40a874f478f899",
-    "job-2026-432da844379f27be080f",
     "job-2026-44a0c7f8c4e95bf79971",
     "job-2026-4a9586259b2409e5d7bb",
     "job-2026-4b9e76d013b68b7d0b33",
@@ -17158,7 +16985,6 @@
     "job-2026-1bc885c03dcc36373f51",
     "job-2026-1cda8b6d847421396dc6",
     "job-2026-1f2695c39db43b3151e4",
-    "job-2026-2e201c57f2bc40d7a5cf",
     "job-2026-39f7ca1b180eae63562c",
     "job-2026-4358644c834eff5a74bb",
     "job-2026-5b576ddc7d2b67b752f0",
@@ -17181,7 +17007,6 @@
    ],
    "旅游管理与服务教育": [
     "job-2026-0be05f4323fce384d767",
-    "job-2026-2e201c57f2bc40d7a5cf",
     "job-2026-6c43b46366416c242c4e"
    ],
    "无人驾驶航空器系统工程": [
@@ -17321,7 +17146,6 @@
     "job-2026-4d9163c23c82c54a0f24",
     "job-2026-4f0d3aee1d3d33a84edd",
     "job-2026-508ab0d43d859b70fada",
-    "job-2026-53744ce365feca51db33",
     "job-2026-5434963dff02821f1ebc",
     "job-2026-55b41a2d5ec95de21c4d",
     "job-2026-5ab5ed65c3202b905d5e",
@@ -17347,7 +17171,6 @@
     "job-2026-d72f2d071909daf0eea3",
     "job-2026-d94e579ad17e92930f27",
     "job-2026-d9cd5e8cd40f1c9ebee1",
-    "job-2026-dedebe188b15dacae5a9",
     "job-2026-e1d3fa57a073674e4901",
     "job-2026-ece3b9b163c8ea6e4f5b",
     "job-2026-f128eed7d9bee4073e50",
@@ -17419,10 +17242,8 @@
     "job-2026-49a3f63a57b3b2c367de",
     "job-2026-5b9e52ebd18ddbcaeaa4",
     "job-2026-5fd2c6f9f9ef933dff5e",
-    "job-2026-60058390d5c90bbbb999",
     "job-2026-698c229ce5ace9d2f094",
     "job-2026-6a48c3e7c7a23ce49205",
-    "job-2026-6ad7906dc8e0625d32d0",
     "job-2026-7c3c121e74ad533ca78c",
     "job-2026-83e41cc6c5639cc59ac4",
     "job-2026-93cd527e4082de207718",
@@ -17441,7 +17262,6 @@
    ],
    "机械制造及其自动化": [
     "job-2026-3a3875b58b25cbe64b25",
-    "job-2026-44d1d6e6ffdf05371eb8",
     "job-2026-5869210cd432fc8aeada",
     "job-2026-6c8c37125201ec06bdc9",
     "job-2026-7c5510887ff0d69740ae",
@@ -17478,12 +17298,10 @@
     "job-2026-58eb461db246142a3fdd",
     "job-2026-5b9e52ebd18ddbcaeaa4",
     "job-2026-5c4cc2286963c5d1c4ca",
-    "job-2026-60058390d5c90bbbb999",
     "job-2026-62d2f5f801a3d00754b9",
     "job-2026-66ebc7b7769a18a109df",
     "job-2026-698c229ce5ace9d2f094",
     "job-2026-6a48c3e7c7a23ce49205",
-    "job-2026-6ad7906dc8e0625d32d0",
     "job-2026-6c8c37125201ec06bdc9",
     "job-2026-6d0bfc7a8086673ac0da",
     "job-2026-6d6872204b2eb8f64825",
@@ -17536,7 +17354,6 @@
    "机械电子工程": [
     "job-2026-01573acc3883cb1bbaf7",
     "job-2026-3a3875b58b25cbe64b25",
-    "job-2026-44d1d6e6ffdf05371eb8",
     "job-2026-55c8fcf449ba330966cf",
     "job-2026-5869210cd432fc8aeada",
     "job-2026-587cad8265d8afb1d83c",
@@ -17575,7 +17392,6 @@
     "job-2026-fdaede8cbc02a4e1e3e5"
    ],
    "机械设计及理论": [
-    "job-2026-44d1d6e6ffdf05371eb8",
     "job-2026-b9af1100d1c5c8ca1c0f"
    ],
    "机电排灌工程技术": [
@@ -17610,8 +17426,7 @@
    "材料工程": [
     "job-2026-2292cf68555e240bb61e",
     "job-2026-39a90fc6733d5bb918ec",
-    "job-2026-a7d97a3d2d1f71bb812d",
-    "job-2026-ecdf6dad16cd504f9e3d"
+    "job-2026-a7d97a3d2d1f71bb812d"
    ],
    "材料成型及控制工程": [
     "job-2026-121e2f72d2f9503c0b12",
@@ -17644,7 +17459,6 @@
     "job-2026-cd4a59cf5be191863e0e",
     "job-2026-d8f64228b700e5f4e52e",
     "job-2026-da478ce429159551c5c9",
-    "job-2026-ecdf6dad16cd504f9e3d",
     "job-2026-f1d06c0372b0ecbf8be5"
    ],
    "材料设计科学与工程": [
@@ -17992,7 +17806,6 @@
    "水产": [
     "job-2026-17b52a748e70bc4264ac",
     "job-2026-507bf2726091b3eb79ec",
-    "job-2026-ab2d7d09df94dad7b833",
     "job-2026-b0b547f137f1c9042791",
     "job-2026-b463e6b0c6f4e1af2037",
     "job-2026-bcf548686ebdeb0f4b67",
@@ -18005,7 +17818,6 @@
     "job-2026-3fc4ed69d4681e5eb46e",
     "job-2026-507bf2726091b3eb79ec",
     "job-2026-5b3245e7093a76a103da",
-    "job-2026-ab2d7d09df94dad7b833",
     "job-2026-b872b1b8131943ad5f38",
     "job-2026-f8123afc2359cb1ad722"
    ],
@@ -18381,8 +18193,7 @@
    ],
    "水生动物医学": [
     "job-2026-17b52a748e70bc4264ac",
-    "job-2026-507bf2726091b3eb79ec",
-    "job-2026-ab2d7d09df94dad7b833"
+    "job-2026-507bf2726091b3eb79ec"
    ],
    "水生生物学": [
     "job-2026-4712671fe6638f457405",
@@ -18403,10 +18214,8 @@
    ],
    "汉语国际教育": [
     "job-2026-024718c8c05f23f1d33a",
-    "job-2026-2eb4ddef7f23ed70f01c",
     "job-2026-7d39fb1a138a747dcef1",
     "job-2026-81751db8617f0fa66d16",
-    "job-2026-938743929b1d5f8ba895",
     "job-2026-9b0bbfe4a01a164381e2",
     "job-2026-9f454fffec1cf5740f81",
     "job-2026-e0c31b7cea308027c3a1",
@@ -18432,10 +18241,8 @@
     "job-2026-2bb1c6235cd92bef09c0",
     "job-2026-2c0c80eb62da632cae90",
     "job-2026-2d16b6202d5b0430c547",
-    "job-2026-2eb4ddef7f23ed70f01c",
     "job-2026-3d89671e0e970845526c",
     "job-2026-44a0c7f8c4e95bf79971",
-    "job-2026-51af367750d8d5e7a5a1",
     "job-2026-55131f6d0b19742e5e58",
     "job-2026-551846e73f2f422e4f2a",
     "job-2026-572e4a0a763a82054300",
@@ -18456,7 +18263,6 @@
     "job-2026-84593891a1d245b2c86a",
     "job-2026-8f5066ca7a3439e532a3",
     "job-2026-90eff8ba9b266615d494",
-    "job-2026-938743929b1d5f8ba895",
     "job-2026-94db8636ee872efb7716",
     "job-2026-9b0bbfe4a01a164381e2",
     "job-2026-9ed8344b155ef8627f38",
@@ -18474,7 +18280,6 @@
     "job-2026-e0c31b7cea308027c3a1",
     "job-2026-e2129cd435686351451b",
     "job-2026-e52281bdcd0a095d4034",
-    "job-2026-ea6ec56704e916892d9c",
     "job-2026-ead7e33e6b21e094f439",
     "job-2026-eb88aeb523b8192de645",
     "job-2026-ec588cfe8d0eb4f0fff7",
@@ -18559,7 +18364,6 @@
     "job-2026-192022dd81ab7a727e89",
     "job-2026-193d71ecfcd4caa22fc6",
     "job-2026-1a2c3751f8657e9ebef0",
-    "job-2026-1a2de4b0bb5ba10d2562",
     "job-2026-1aa50295719045c111fe",
     "job-2026-1cf38827c919e07fa0df",
     "job-2026-1e2a221b2f5c22e38a94",
@@ -18578,7 +18382,6 @@
     "job-2026-2bb1c6235cd92bef09c0",
     "job-2026-2c0c80eb62da632cae90",
     "job-2026-2d16b6202d5b0430c547",
-    "job-2026-2eb4ddef7f23ed70f01c",
     "job-2026-30a29436a5a5576a2ea1",
     "job-2026-3299ef27c7d655954a9c",
     "job-2026-32aecf93f474d7f697fe",
@@ -18601,7 +18404,6 @@
     "job-2026-4a1944a06c71dc86f42a",
     "job-2026-4b9e76d013b68b7d0b33",
     "job-2026-4f444d76356af03b8e03",
-    "job-2026-51af367750d8d5e7a5a1",
     "job-2026-5319683b3be67a2cf3a9",
     "job-2026-533577de7ef1637c945a",
     "job-2026-53cd7a154189e8ec4a69",
@@ -18635,7 +18437,6 @@
     "job-2026-7c4307f0dd0a753c7ae8",
     "job-2026-7d39fb1a138a747dcef1",
     "job-2026-7e96e369b220536633ba",
-    "job-2026-7f20093e1bd1ff5cfd5a",
     "job-2026-8020d5d11edddd1491e5",
     "job-2026-81751db8617f0fa66d16",
     "job-2026-832f5e8866a64e45e7d7",
@@ -18650,7 +18451,6 @@
     "job-2026-8f48c3aa94b4331423b7",
     "job-2026-8f5066ca7a3439e532a3",
     "job-2026-90eff8ba9b266615d494",
-    "job-2026-938743929b1d5f8ba895",
     "job-2026-94db8636ee872efb7716",
     "job-2026-9b0bbfe4a01a164381e2",
     "job-2026-9b2de98568eba557a2a8",
@@ -18705,7 +18505,6 @@
     "job-2026-e48940cb0a42d8206ed6",
     "job-2026-e52281bdcd0a095d4034",
     "job-2026-e60fbfc6889d5aca0d6c",
-    "job-2026-ea6ec56704e916892d9c",
     "job-2026-ea9f0642a4d12bad7655",
     "job-2026-ead7e33e6b21e094f439",
     "job-2026-eb88aeb523b8192de645",
@@ -18797,7 +18596,6 @@
     "job-2026-05f56bd2ffad95293307",
     "job-2026-0806b8bb3fb022931be8",
     "job-2026-080e8c5e2f294b239bab",
-    "job-2026-08780d18d6b98b51ce37",
     "job-2026-09217c89f8145f87bd04",
     "job-2026-099e1997fad71056fe9d",
     "job-2026-0a675523bfceed2c0bae",
@@ -18817,7 +18615,6 @@
     "job-2026-1438276099e29d77b407",
     "job-2026-146e3af2587853ad392e",
     "job-2026-14e510ca19dd35435ed5",
-    "job-2026-14f456fdf431940632df",
     "job-2026-152f82205cd6b1787cba",
     "job-2026-169807c8ca81009504a0",
     "job-2026-193d71ecfcd4caa22fc6",
@@ -18927,7 +18724,6 @@
     "job-2026-52c0b80a0fb2d42dec49",
     "job-2026-53275994f006b536e916",
     "job-2026-551846e73f2f422e4f2a",
-    "job-2026-5575499ca4eaac6dd707",
     "job-2026-55f8b59d610a41a630c9",
     "job-2026-563ac59478cedb54ad8f",
     "job-2026-572e4a0a763a82054300",
@@ -18937,7 +18733,6 @@
     "job-2026-5a4587df7db6a7225ca4",
     "job-2026-5b08dc2dd636ca51c028",
     "job-2026-5c3f3202debba02daae7",
-    "job-2026-5c931cd347bba61a1650",
     "job-2026-5c93ce9394b179f05d6c",
     "job-2026-5ce6ea9186667288d3cb",
     "job-2026-5e0848ae01021b4db5ac",
@@ -18974,7 +18769,6 @@
     "job-2026-6cf61f7d7e628ebf4d07",
     "job-2026-6d22d07f1a6b875cde53",
     "job-2026-6db2b18f25a0af2ff123",
-    "job-2026-6e719f02b6a580112fcd",
     "job-2026-6efe6d592ad9557fc648",
     "job-2026-6f7668f67157079d01f8",
     "job-2026-6fbcedabf09920ffe2f2",
@@ -18989,7 +18783,6 @@
     "job-2026-7331b6cdb829f6a829d7",
     "job-2026-7420de78f6f48748d016",
     "job-2026-74533da6215ebba88684",
-    "job-2026-7578d6efe398bc052abe",
     "job-2026-7688d4836cad93c0f84d",
     "job-2026-78be8589087b0560c7d9",
     "job-2026-79e2da575284cf79b7a6",
@@ -19014,7 +18807,6 @@
     "job-2026-84dd44319c90b4abc8a8",
     "job-2026-852e4f070acd94755892",
     "job-2026-85d82eafdeeed75ceb5d",
-    "job-2026-861e1c5fca63a8ba64ad",
     "job-2026-866d19baa9bda9ce4e82",
     "job-2026-86a3151c64dfe49bba99",
     "job-2026-86dd60902af434cddec8",
@@ -19033,7 +18825,6 @@
     "job-2026-8fe705b01241f55f7360",
     "job-2026-90eff8ba9b266615d494",
     "job-2026-936372ababfd04237aad",
-    "job-2026-938743929b1d5f8ba895",
     "job-2026-93a2d47127b0b7ef60cd",
     "job-2026-93d3f0ea1c9303c6cd9b",
     "job-2026-93fbcff8784b29039433",
@@ -19048,7 +18839,6 @@
     "job-2026-98769a64b983eb5f1e23",
     "job-2026-98d4ed31c6fc5d6f1444",
     "job-2026-9906cd2ed9617894e83f",
-    "job-2026-994e3e34d7bba68f6a20",
     "job-2026-995eb5db3f6164a59153",
     "job-2026-99b4f0b73591226ea504",
     "job-2026-9a16b123346922813706",
@@ -19056,7 +18846,6 @@
     "job-2026-9b2de98568eba557a2a8",
     "job-2026-9b52df7640449125efe2",
     "job-2026-9b6cd5eb2552e456759f",
-    "job-2026-9b7831d128b39c87148d",
     "job-2026-9e808abbc7ad75fc4d38",
     "job-2026-9f454fffec1cf5740f81",
     "job-2026-9f9154e47d0154a61a36",
@@ -19167,7 +18956,6 @@
     "job-2026-e0b6c4ce79eef1f0c450",
     "job-2026-e0ebe1b73e50064afa3a",
     "job-2026-e16afac7258ddfd8c51a",
-    "job-2026-e2e3e6ca332a3fdb4278",
     "job-2026-e35ed3b8dbf9f312cc66",
     "job-2026-e38d6a47b43dec874495",
     "job-2026-e4c45c1aae8357f66bf5",
@@ -19258,7 +19046,6 @@
     "job-2026-054b56288a6077b443b9",
     "job-2026-0806b8bb3fb022931be8",
     "job-2026-080e8c5e2f294b239bab",
-    "job-2026-08780d18d6b98b51ce37",
     "job-2026-0a9f6cc00c8f2bc0bd4f",
     "job-2026-0b64b8303b598b56a243",
     "job-2026-0daf1226c2abc7c92b5b",
@@ -19267,7 +19054,6 @@
     "job-2026-100132adbbc97d74402b",
     "job-2026-1438276099e29d77b407",
     "job-2026-14e510ca19dd35435ed5",
-    "job-2026-14f456fdf431940632df",
     "job-2026-1a60ec85649a0da1512f",
     "job-2026-1b2718721927ff4d85b8",
     "job-2026-1b34e7f3dead5010c4d1",
@@ -19329,9 +19115,7 @@
     "job-2026-52748b22a1caad8ea47e",
     "job-2026-52c0b80a0fb2d42dec49",
     "job-2026-53275994f006b536e916",
-    "job-2026-5575499ca4eaac6dd707",
     "job-2026-55f8b59d610a41a630c9",
-    "job-2026-5c931cd347bba61a1650",
     "job-2026-5e61bdf2a9ee9dfc60f9",
     "job-2026-60a0a51082414907488a",
     "job-2026-60f3ca8ce5cb89876d8f",
@@ -19347,7 +19131,6 @@
     "job-2026-6cd7be8f0003584570c1",
     "job-2026-6cf61f7d7e628ebf4d07",
     "job-2026-6d22d07f1a6b875cde53",
-    "job-2026-6e719f02b6a580112fcd",
     "job-2026-6f7668f67157079d01f8",
     "job-2026-6fbcedabf09920ffe2f2",
     "job-2026-703a2c7e06c2a7eb9b27",
@@ -19355,7 +19138,6 @@
     "job-2026-7272266f78aa73a89ba0",
     "job-2026-72f9989aec3e06ed414c",
     "job-2026-7331b6cdb829f6a829d7",
-    "job-2026-7578d6efe398bc052abe",
     "job-2026-77042d3c03f4a5a22617",
     "job-2026-78be8589087b0560c7d9",
     "job-2026-7a80d735a7ee54613849",
@@ -19371,7 +19153,6 @@
     "job-2026-835bbe93c37a7892b0d8",
     "job-2026-839cd40c157e770ce29b",
     "job-2026-852e4f070acd94755892",
-    "job-2026-861e1c5fca63a8ba64ad",
     "job-2026-866d19baa9bda9ce4e82",
     "job-2026-86a3151c64dfe49bba99",
     "job-2026-86dd60902af434cddec8",
@@ -19384,7 +19165,6 @@
     "job-2026-8fae7a9c04c3c247a06a",
     "job-2026-8fe705b01241f55f7360",
     "job-2026-90eff8ba9b266615d494",
-    "job-2026-938743929b1d5f8ba895",
     "job-2026-93d3f0ea1c9303c6cd9b",
     "job-2026-94403e803ad556b8a7e5",
     "job-2026-9447c508c913199947f1",
@@ -19393,12 +19173,10 @@
     "job-2026-9778da37012f9d8b5cf5",
     "job-2026-98769a64b983eb5f1e23",
     "job-2026-98d4ed31c6fc5d6f1444",
-    "job-2026-994e3e34d7bba68f6a20",
     "job-2026-99b4f0b73591226ea504",
     "job-2026-9a16b123346922813706",
     "job-2026-9a3c80b5ed048c21dd19",
     "job-2026-9aeb9ea120ff4e79c254",
-    "job-2026-9b7831d128b39c87148d",
     "job-2026-9e808abbc7ad75fc4d38",
     "job-2026-9f9154e47d0154a61a36",
     "job-2026-9f9c3a026f3ecaebceb0",
@@ -19470,7 +19248,6 @@
     "job-2026-df2f7f1afddd1b2ebee7",
     "job-2026-dfae258ec7fe6794cdcc",
     "job-2026-e0b6c4ce79eef1f0c450",
-    "job-2026-e2e3e6ca332a3fdb4278",
     "job-2026-e35ed3b8dbf9f312cc66",
     "job-2026-e38d6a47b43dec874495",
     "job-2026-e4c45c1aae8357f66bf5",
@@ -19547,7 +19324,6 @@
    ],
    "测控技术与仪器": [
     "job-2026-57ac9bae4bd545118160",
-    "job-2026-87bd51cb5c0f21a27efd",
     "job-2026-bda5a658f1953a029713",
     "job-2026-d03c86a99cb172585806",
     "job-2026-de9a40a767709e0dffe4",
@@ -19581,7 +19357,6 @@
     "job-2026-61d9b378478310c7b468",
     "job-2026-62555774f34989f4cc99",
     "job-2026-67a5a6ae9f3ae19a9d9d",
-    "job-2026-6c720c094f148720579f",
     "job-2026-6fa3f4512c738ac3de4a",
     "job-2026-6ffadc99766d8b637bde",
     "job-2026-71177418f71cee2cac3d",
@@ -19634,7 +19409,6 @@
     "job-2026-62555774f34989f4cc99",
     "job-2026-64a0886a52e23c1003cf",
     "job-2026-67a5a6ae9f3ae19a9d9d",
-    "job-2026-6c720c094f148720579f",
     "job-2026-7901f1a9106ae1e8b189",
     "job-2026-8abfdeede2705bfe7f4a",
     "job-2026-8fdbb01087fc9a3ed7cd",
@@ -19770,8 +19544,7 @@
    "焊接技术与工程": [
     "job-2026-121e2f72d2f9503c0b12",
     "job-2026-2292cf68555e240bb61e",
-    "job-2026-3a3875b58b25cbe64b25",
-    "job-2026-ecdf6dad16cd504f9e3d"
+    "job-2026-3a3875b58b25cbe64b25"
    ],
    "物业管理": [
     "job-2026-03b264179953b50ba9b4",
@@ -19829,13 +19602,11 @@
    "特殊教育": [
     "job-2026-b1abd56c1cfd5634f056",
     "job-2026-b1b72c0094de740a262c",
-    "job-2026-b7344e3029a911c4cf73",
     "job-2026-b80ffbe15a08df522895"
    ],
    "特殊教育学": [
     "job-2026-b1abd56c1cfd5634f056",
     "job-2026-b1b72c0094de740a262c",
-    "job-2026-b7344e3029a911c4cf73",
     "job-2026-b80ffbe15a08df522895"
    ],
    "特警": [
@@ -19893,7 +19664,6 @@
     "job-2026-5c24b339a75369a75ef7",
     "job-2026-5d3f5b58cd182898e384",
     "job-2026-6039148ea14af6c2b07d",
-    "job-2026-696a09380b4d860b0c85",
     "job-2026-6a700b2a65719aa29d7a",
     "job-2026-700fee59a6928fc2de45",
     "job-2026-727b6963a3db32b53d16",
@@ -19911,7 +19681,6 @@
     "job-2026-cda81a71b1c9df518da3",
     "job-2026-ce676f7714cc65fec992",
     "job-2026-d16daade17301d640bef",
-    "job-2026-d2b4e7270e9da28280c9",
     "job-2026-d59510b5771b73b3ce18",
     "job-2026-d9b1f2cf3fa9ad57bc21",
     "job-2026-e37736331214316b9176",
@@ -19935,7 +19704,6 @@
     "job-2026-5978719b02f86eef163f",
     "job-2026-5c24b339a75369a75ef7",
     "job-2026-5d3f5b58cd182898e384",
-    "job-2026-696a09380b4d860b0c85",
     "job-2026-6a700b2a65719aa29d7a",
     "job-2026-700fee59a6928fc2de45",
     "job-2026-812c9651e4ff22415263",
@@ -19966,7 +19734,6 @@
     "job-2026-26a7718872ec0937d249",
     "job-2026-2a2159b2ef0ca004ae1d",
     "job-2026-2ee83d5cc3e86a1fa001",
-    "job-2026-3152bce0f9aadc04d24b",
     "job-2026-3812c7502216a6cd5af9",
     "job-2026-3a58f083d824772fe2ac",
     "job-2026-3ff0d14e0ce515a5e0f2",
@@ -19981,7 +19748,6 @@
     "job-2026-5c24b339a75369a75ef7",
     "job-2026-5d3f5b58cd182898e384",
     "job-2026-6039148ea14af6c2b07d",
-    "job-2026-696a09380b4d860b0c85",
     "job-2026-70e8393cda482b1ac5c9",
     "job-2026-727b6963a3db32b53d16",
     "job-2026-7ad90b4029167bfcca49",
@@ -20012,7 +19778,6 @@
     "job-2026-ce676f7714cc65fec992",
     "job-2026-d16daade17301d640bef",
     "job-2026-d1a189a881888361700f",
-    "job-2026-d2b4e7270e9da28280c9",
     "job-2026-d3382a375fe649eda691",
     "job-2026-d7fd0751af1330f7efd4",
     "job-2026-d9b1f2cf3fa9ad57bc21",
@@ -20038,7 +19803,6 @@
     "job-2026-58a0660a9076d78895d3",
     "job-2026-7675c4b3fa350fb35fcf",
     "job-2026-8587b8bd9af285892a90",
-    "job-2026-a3beb65c618a91bac64f",
     "job-2026-a47af02ad492413a4bdd",
     "job-2026-b8cb314d5f7b7637bfb8",
     "job-2026-d6c8de85173e73517e94"
@@ -20061,7 +19825,6 @@
     "job-2026-7baf19b6d56e040f4477"
    ],
    "理论与应用力学": [
-    "job-2026-87bd51cb5c0f21a27efd",
     "job-2026-d03c86a99cb172585806"
    ],
    "理论经济学": [
@@ -20263,7 +20026,6 @@
     "job-2026-13a0d84e53bb8924d6fc",
     "job-2026-179fd23d465f86cd53c6",
     "job-2026-22d83726989d7e99769f",
-    "job-2026-284389146f580a8a6905",
     "job-2026-298a39f12878f412bdf4",
     "job-2026-2e5a44deae3c6d2638e1",
     "job-2026-327927e5cb9588a8805d",
@@ -20285,7 +20047,6 @@
     "job-2026-7d2cd5376dbf9a04f3db",
     "job-2026-7d48d2474c2f70a3c825",
     "job-2026-83e41cc6c5639cc59ac4",
-    "job-2026-87bd51cb5c0f21a27efd",
     "job-2026-92dc9bdf63a4561229fa",
     "job-2026-937958ce4943a90ff538",
     "job-2026-9970d65be34b4fd81417",
@@ -20396,7 +20157,6 @@
    ],
    "电子商务": [
     "job-2026-0e3336776c295c4424a5",
-    "job-2026-1a2de4b0bb5ba10d2562",
     "job-2026-391aeedfd5a8bbc61cfd",
     "job-2026-39c924ca3c1b4096b7a4",
     "job-2026-45cf8450894d3cbbcddb",
@@ -20532,12 +20292,10 @@
     "job-2026-6d6872204b2eb8f64825",
     "job-2026-7c3c121e74ad533ca78c",
     "job-2026-8612eef87ce380c8d8e4",
-    "job-2026-87bd51cb5c0f21a27efd",
     "job-2026-8a3f61fb03141b3e7958",
     "job-2026-9509966f843150305735",
     "job-2026-9b94cfa0c9e88582e65c",
     "job-2026-a382fa5933f7d774c47d",
-    "job-2026-ad238358c94501a36b00",
     "job-2026-b09240e64b35447facb2",
     "job-2026-b6ce219b9acd35a3a1f6",
     "job-2026-ba3b3d8d4a4b30823a7b",
@@ -20589,7 +20347,6 @@
     "job-2026-6e45e7cc2fee6b4e479a",
     "job-2026-7a7960ae9ff4117c2a68",
     "job-2026-7b328ac826fdea9220b8",
-    "job-2026-87bd51cb5c0f21a27efd",
     "job-2026-985c37c8a3ddbf414fc1",
     "job-2026-9b94cfa0c9e88582e65c",
     "job-2026-9cf112b2b4a83118cc32",
@@ -20688,7 +20445,6 @@
     "job-2026-6270c2eec7bf25c6ceda",
     "job-2026-6619b859a8ce4c23fad0",
     "job-2026-67947ff2bf7f680d91c4",
-    "job-2026-6e719f02b6a580112fcd",
     "job-2026-74533da6215ebba88684",
     "job-2026-8126ce9378ac98f1d2dc",
     "job-2026-839cd40c157e770ce29b",
@@ -20778,7 +20534,6 @@
     "job-2026-4c902d77c74eddc879eb",
     "job-2026-510cb215b1b993ed9c45",
     "job-2026-53be396e02bea48dbeb0",
-    "job-2026-5575499ca4eaac6dd707",
     "job-2026-55d421c7a0a3841a2bbf",
     "job-2026-5e0848ae01021b4db5ac",
     "job-2026-7216bd1a96425af58b4b",
@@ -20826,7 +20581,6 @@
     "job-2026-4670207030374df7db7e",
     "job-2026-4c902d77c74eddc879eb",
     "job-2026-53be396e02bea48dbeb0",
-    "job-2026-5575499ca4eaac6dd707",
     "job-2026-55d421c7a0a3841a2bbf",
     "job-2026-5d797ecbc052b7f18b64",
     "job-2026-6a8815c29901c53b4e42",
@@ -20936,7 +20690,6 @@
     "job-2026-c077922de4391fcc701e",
     "job-2026-c919ff4dd801fe7c80a7",
     "job-2026-d5f651343d33871ba1ad",
-    "job-2026-ea6ec56704e916892d9c",
     "job-2026-ec588cfe8d0eb4f0fff7",
     "job-2026-f48e2b3d6f3eb5d7e2aa",
     "job-2026-f4a8937d81d03d853d25",
@@ -21018,7 +20771,6 @@
     "job-2026-6e11d489ce3be6b31350",
     "job-2026-7e0f3eb5d30f261d27ce",
     "job-2026-8052cbf09f3e327bc174",
-    "job-2026-82732f4b41aa10db896b",
     "job-2026-8690cb27735442645ccc",
     "job-2026-869b785047101f8d0480",
     "job-2026-8abfdeede2705bfe7f4a",
@@ -21038,7 +20790,6 @@
     "job-2026-d8d50b7ac26f2e92211c",
     "job-2026-dbb840032e423d7cb6ca",
     "job-2026-dc68c52315a378fa04db",
-    "job-2026-e346413f82f8cbf77d74",
     "job-2026-efee72365319ee88ec9a",
     "job-2026-f284c362c42c78b61c08",
     "job-2026-f47edb2825b6a82d0e09",
@@ -21056,7 +20807,6 @@
     "job-2026-fe58e31b59dc2846cf5c"
    ],
    "精密仪器": [
-    "job-2026-87bd51cb5c0f21a27efd",
     "job-2026-d03c86a99cb172585806"
    ],
    "精神医学": [
@@ -21137,7 +20887,6 @@
    "经济与金融": [
     "job-2026-0d04059548798698a6a0",
     "job-2026-12f9d06d28de121652fa",
-    "job-2026-2db2d99d76ecef25ba90",
     "job-2026-47887ab87fee25f32b0d",
     "job-2026-96026a8cf479fa8cae9f",
     "job-2026-a4ccbdf87d2d51808587",
@@ -21151,7 +20900,6 @@
     "job-2026-0247b2be6dd3cc094eb3",
     "job-2026-042483501c7103c4fa4f",
     "job-2026-06b03f83fbb135c18663",
-    "job-2026-06c094dc60da82e1a53c",
     "job-2026-099bc6babe31c56cf02b",
     "job-2026-0a675523bfceed2c0bae",
     "job-2026-0ba15e191452150f76eb",
@@ -21169,7 +20917,6 @@
     "job-2026-28457bcf9abe88ba2335",
     "job-2026-29040923d93737f5eaa3",
     "job-2026-296aecace2571d52147b",
-    "job-2026-29f3aa12313cfe098a40",
     "job-2026-2b08705d0d3ba5781e04",
     "job-2026-2ba0aca5ca1f49c5905f",
     "job-2026-2cbe8a7ecbd5acbf8be8",
@@ -21349,7 +21096,6 @@
     "job-2026-276b3297d64249e7ec24",
     "job-2026-28457bcf9abe88ba2335",
     "job-2026-285de416ffcfeebe6c79",
-    "job-2026-29f3aa12313cfe098a40",
     "job-2026-2ba0aca5ca1f49c5905f",
     "job-2026-2cf4ce9341a245f929f0",
     "job-2026-2d86b5077ef92283bc2c",
@@ -21599,7 +21345,6 @@
     "job-2026-23d5fd6bb9f1c3e64406",
     "job-2026-297e25a58d0fa2bfd55d",
     "job-2026-2b75fc59e908b4fba18e",
-    "job-2026-432da844379f27be080f",
     "job-2026-4903cdf779b7a0bbeadc",
     "job-2026-4a9586259b2409e5d7bb",
     "job-2026-5fe16774b878af12e6a0",
@@ -21695,10 +21440,8 @@
     "job-2026-583c72b40a1c17c46388",
     "job-2026-5ab5ed65c3202b905d5e",
     "job-2026-5b1fad2f44e11c4ff60b",
-    "job-2026-5b5a55e4c3bcc2dcc6d0",
     "job-2026-5bbf82a19f786707da4f",
     "job-2026-5d6bfdd74387106c0cc1",
-    "job-2026-5da69d85951327841776",
     "job-2026-617fdc965cc1f41d48fa",
     "job-2026-64c17d1636be8d85499d",
     "job-2026-65ac1e872b94418d0c2a",
@@ -21933,10 +21676,8 @@
     "job-2026-318d54623aa7cc5450c3",
     "job-2026-66dde7f801002c0a2651",
     "job-2026-69e1488b40d8359f4584",
-    "job-2026-87bd51cb5c0f21a27efd",
     "job-2026-d03c86a99cb172585806",
-    "job-2026-d8f64228b700e5f4e52e",
-    "job-2026-ecdf6dad16cd504f9e3d"
+    "job-2026-d8f64228b700e5f4e52e"
    ],
    "能源与环境系统工程": [
     "job-2026-c8a7cd99b684856878ae"
@@ -21948,7 +21689,6 @@
     "job-2026-4692e4b731cc451f5efa",
     "job-2026-5fd2c6f9f9ef933dff5e",
     "job-2026-69e1488b40d8359f4584",
-    "job-2026-87bd51cb5c0f21a27efd",
     "job-2026-a7200604dc2be2417b47",
     "job-2026-d03c86a99cb172585806",
     "job-2026-e67100c45f75516bee9e",
@@ -22143,7 +21883,6 @@
     "job-2026-7675c4b3fa350fb35fcf",
     "job-2026-786edb781dfda4754544",
     "job-2026-829af0585b5e9fccf085",
-    "job-2026-a3beb65c618a91bac64f",
     "job-2026-a47af02ad492413a4bdd",
     "job-2026-a78d26ed7cc248da3130",
     "job-2026-ae135621b097a8be9a27",
@@ -22184,7 +21923,6 @@
    ],
    "英语": [
     "job-2026-0249b2103ecf5f6eda66",
-    "job-2026-10e7d4f5dee40a14b12b",
     "job-2026-178783b72a47de862584",
     "job-2026-1fca337003735d6e8f34",
     "job-2026-36b026ae5a1594802e6d",
@@ -22219,7 +21957,6 @@
     "job-2026-89e18098789e0d93a7fd"
    ],
    "英语语言文学": [
-    "job-2026-10e7d4f5dee40a14b12b",
     "job-2026-3faf3faf99e46afac40f",
     "job-2026-5c44de5867102e349774",
     "job-2026-722e6ddb3517aae53b82",
@@ -22283,7 +22020,6 @@
     "job-2026-7d0c565693444861b395",
     "job-2026-829b1372841361517aa9",
     "job-2026-839cd40c157e770ce29b",
-    "job-2026-8a7f37ea41cb179b5b15",
     "job-2026-8fa747446078091805da",
     "job-2026-96026a8cf479fa8cae9f",
     "job-2026-971b9f86e67f36367793",
@@ -22310,7 +22046,6 @@
     "job-2026-ee302f82c02f77bc59ab",
     "job-2026-f186aa1e2a831f20b988",
     "job-2026-f4f31d04d1dabd873ca2",
-    "job-2026-fdbee2dcc4eb5590c462",
     "job-2026-ff1146ec5a7800814e4c"
    ],
    "药物分析": [
@@ -22515,7 +22250,6 @@
     "job-2026-02291481d5dfdb5df5ec",
     "job-2026-0397a27a8d4ea181351d",
     "job-2026-13c4896265cd0d0625ae",
-    "job-2026-13e5ec2b73509a4f78c2",
     "job-2026-16503155600d1eebe513",
     "job-2026-169419028e8efb41f022",
     "job-2026-1d6c321e40dd6131e1ef",
@@ -22532,9 +22266,7 @@
     "job-2026-457e9ed70ae43984f0a6",
     "job-2026-4f0d3aee1d3d33a84edd",
     "job-2026-533c2402b6e4f8bb0f30",
-    "job-2026-53744ce365feca51db33",
     "job-2026-5634996f07ec0134db2b",
-    "job-2026-5b5a55e4c3bcc2dcc6d0",
     "job-2026-5da1bd1375b171180f58",
     "job-2026-617fdc965cc1f41d48fa",
     "job-2026-64899fd3998cf2807ebd",
@@ -22566,7 +22298,6 @@
     "job-2026-d42c6a8927266b9e33bd",
     "job-2026-d63b6d32a4f43859c5da",
     "job-2026-d92ea556153dc6ad036d",
-    "job-2026-dedebe188b15dacae5a9",
     "job-2026-df8808aab94329f42e00",
     "job-2026-e35dbd6db796d485ca2e",
     "job-2026-ead7e33e6b21e094f439",
@@ -22595,7 +22326,6 @@
     "job-2026-13a93e56f6b3c01fbd5f",
     "job-2026-13bdc92da720ab9d4df8",
     "job-2026-13c4896265cd0d0625ae",
-    "job-2026-13e5ec2b73509a4f78c2",
     "job-2026-15a32a647648cecf30ab",
     "job-2026-16503155600d1eebe513",
     "job-2026-169419028e8efb41f022",
@@ -22621,7 +22351,6 @@
     "job-2026-231236704cfba4b2b7fc",
     "job-2026-246b389e353f1083c8fe",
     "job-2026-276b3297d64249e7ec24",
-    "job-2026-284389146f580a8a6905",
     "job-2026-28f53e5ccf115afe05c0",
     "job-2026-298f2fceab302fd68f00",
     "job-2026-2a12aeb44e67c7131080",
@@ -22665,7 +22394,6 @@
     "job-2026-50756bf5ac2f9893cfae",
     "job-2026-508ab0d43d859b70fada",
     "job-2026-533c2402b6e4f8bb0f30",
-    "job-2026-53744ce365feca51db33",
     "job-2026-53be396e02bea48dbeb0",
     "job-2026-5434963dff02821f1ebc",
     "job-2026-54c2efa670d60bac111d",
@@ -22677,14 +22405,12 @@
     "job-2026-5a2c03c091a7d024b791",
     "job-2026-5ab5ed65c3202b905d5e",
     "job-2026-5b1fad2f44e11c4ff60b",
-    "job-2026-5b5a55e4c3bcc2dcc6d0",
     "job-2026-5ba7c2b9a90fc10e62a6",
     "job-2026-5bbf82a19f786707da4f",
     "job-2026-5c36fd17ece042609451",
     "job-2026-5ccd6a8da534ca64d6b0",
     "job-2026-5d6bfdd74387106c0cc1",
     "job-2026-5da1bd1375b171180f58",
-    "job-2026-5da69d85951327841776",
     "job-2026-5de8f934d5d8b1c7da19",
     "job-2026-5e61bdf2a9ee9dfc60f9",
     "job-2026-60ce29bcda6b5bbd41fa",
@@ -22824,7 +22550,6 @@
     "job-2026-d9540f0e30b23b7e258f",
     "job-2026-d97460f1d98bbe460f55",
     "job-2026-d9cd5e8cd40f1c9ebee1",
-    "job-2026-dedebe188b15dacae5a9",
     "job-2026-df2f7f1afddd1b2ebee7",
     "job-2026-df8808aab94329f42e00",
     "job-2026-e0d5449a0f5913dde9e2",
@@ -22912,7 +22637,6 @@
     "job-2026-4c10a789817331211091",
     "job-2026-7675c4b3fa350fb35fcf",
     "job-2026-831c4dbf02888f241d55",
-    "job-2026-a3beb65c618a91bac64f",
     "job-2026-aa4b20e28559350c1085",
     "job-2026-ad97ebcb63ef39caf38c",
     "job-2026-bde64fdc986d183c9026",
@@ -23046,8 +22770,6 @@
     "job-2026-092cce745660224a15af",
     "job-2026-09562cf4a9c78ff6e1ed",
     "job-2026-099506996e9f6c031207",
-    "job-2026-09b9f0b9ae914ff2a0a3",
-    "job-2026-09e75b17e35c7454aed6",
     "job-2026-0a79a30e795d5b3f6c10",
     "job-2026-0b11152f7dbba4ffd16b",
     "job-2026-0b356e44786cc9b32827",
@@ -23091,7 +22813,6 @@
     "job-2026-1857bb7fcd209093845d",
     "job-2026-1aa50295719045c111fe",
     "job-2026-1aeebf2cf9e26512e137",
-    "job-2026-1af72dcd5b79c4a10b4f",
     "job-2026-1b371ec65efee8d7ce5c",
     "job-2026-1baa63be528462b0ca43",
     "job-2026-1c069a97cc6a8d786898",
@@ -23124,7 +22845,6 @@
     "job-2026-2601597a99610eec290b",
     "job-2026-262392cb57d5076f7031",
     "job-2026-26a970bde533d9fa0cf2",
-    "job-2026-26a9eb8fe0f79bb607aa",
     "job-2026-270576fe5dc7c526c62d",
     "job-2026-271e31d8f793c73e4944",
     "job-2026-276b3297d64249e7ec24",
@@ -23184,7 +22904,6 @@
     "job-2026-3b5ba51726801e693696",
     "job-2026-3bdc81c556ec0257b1cf",
     "job-2026-3cdd1c641794780cc683",
-    "job-2026-3d0a46feed5dad9da047",
     "job-2026-3d89671e0e970845526c",
     "job-2026-3d92a9e64c37bad2e907",
     "job-2026-3dfc4d695b2b7d753adf",
@@ -23339,7 +23058,6 @@
     "job-2026-6a5d9358a1eda7925ac0",
     "job-2026-6a88272ae63e58f8b2ca",
     "job-2026-6a8aaa3205b21d3c26e0",
-    "job-2026-6af54eac4c2e20e86bf3",
     "job-2026-6b6a7a518aa91671bd58",
     "job-2026-6b81f47b6e05a82cd9c3",
     "job-2026-6b9328d059b43a12ec1a",
@@ -23349,7 +23067,6 @@
     "job-2026-6c8ba49489f9913d6904",
     "job-2026-6cb75bcff0963679ca36",
     "job-2026-6cf2383b3c933f736db3",
-    "job-2026-6de576449bc37a8c56d8",
     "job-2026-6e9f746f2231a1290872",
     "job-2026-6edb6e0b19ba13ffe758",
     "job-2026-6f22ffb48a4c6ae4039f",
@@ -23384,10 +23101,8 @@
     "job-2026-7b0f71572165d8e5f6ab",
     "job-2026-7b9284d6403824e94a50",
     "job-2026-7bb487032149c59f69d5",
-    "job-2026-7bc0aee30c39954809f0",
     "job-2026-7c6fd5bba641594a8b8b",
     "job-2026-7cd19724f08e5857d6e8",
-    "job-2026-7cf80733751f48150acf",
     "job-2026-7d379f43e69237b6a1b4",
     "job-2026-7dc1ed277b0cabff5db6",
     "job-2026-7e617c72910469a2e652",
@@ -23442,7 +23157,6 @@
     "job-2026-8f6ed37b8ee6341ad351",
     "job-2026-903b241c16309dbd17f6",
     "job-2026-919c1700493c544f9408",
-    "job-2026-91e8439dc855e20141bb",
     "job-2026-92788546aff217ac3a36",
     "job-2026-92d84845266fac8251c2",
     "job-2026-92f1c5fdf8024d12f8cd",
@@ -23652,13 +23366,11 @@
     "job-2026-d457a4e7b7baa906cf70",
     "job-2026-d4747461be609beac73b",
     "job-2026-d48ae8aebf6080c66a32",
-    "job-2026-d4b348235ca55aac7bae",
     "job-2026-d4cd88d9bd9b0e32b63a",
     "job-2026-d53609cc57cafe5f05fa",
     "job-2026-d5de1b19ba4b96ca1ed6",
     "job-2026-d67ffea871160af72b25",
     "job-2026-d7c2c4895443479d0520",
-    "job-2026-d90027a643c7b4b9718b",
     "job-2026-d92b4c7fa3e5e6c7c2f9",
     "job-2026-d93107330347900738c3",
     "job-2026-d9404398bbfb51962459",
@@ -23669,7 +23381,6 @@
     "job-2026-d9f5f17b447b320c739b",
     "job-2026-da142c9bb57dddfe58be",
     "job-2026-da998ebbecf7066ae2c2",
-    "job-2026-dad81bd7a19ca981fc48",
     "job-2026-db9e825991c911a53f29",
     "job-2026-dc54bcaf724deefd826d",
     "job-2026-dc6963aa9d897eec8a8a",
@@ -23938,7 +23649,6 @@
    "资源与环境": [
     "job-2026-1f2695c39db43b3151e4",
     "job-2026-2a2159b2ef0ca004ae1d",
-    "job-2026-3152bce0f9aadc04d24b",
     "job-2026-4692e4b731cc451f5efa",
     "job-2026-76d67ff4e6e90fb2ac37",
     "job-2026-91b2cb07e5906cad1c82",
@@ -24036,7 +23746,6 @@
     "job-2026-20c2e96c84770e1998b7",
     "job-2026-21b4085c62f1750657c1",
     "job-2026-22fe4654355414104d93",
-    "job-2026-284389146f580a8a6905",
     "job-2026-2a2970a8adb84e92cdfa",
     "job-2026-2bfe9758f4feba15225d",
     "job-2026-2cce5cfb16bdd018e1b2",
@@ -24058,7 +23767,6 @@
     "job-2026-4ea1ac248d43b570b9d3",
     "job-2026-50756bf5ac2f9893cfae",
     "job-2026-533c2402b6e4f8bb0f30",
-    "job-2026-53744ce365feca51db33",
     "job-2026-55b41a2d5ec95de21c4d",
     "job-2026-5793ea865cc1f2d5351b",
     "job-2026-583c72b40a1c17c46388",
@@ -24130,7 +23838,6 @@
     "job-2026-d72f2d071909daf0eea3",
     "job-2026-d94e579ad17e92930f27",
     "job-2026-d9cd5e8cd40f1c9ebee1",
-    "job-2026-dedebe188b15dacae5a9",
     "job-2026-e0d5449a0f5913dde9e2",
     "job-2026-e11aa0f866be41b0c774",
     "job-2026-e2736b77e5030fe59c7b",
@@ -24164,8 +23871,7 @@
    "过程装备与控制工程": [
     "job-2026-2292cf68555e240bb61e",
     "job-2026-3a3875b58b25cbe64b25",
-    "job-2026-d8f64228b700e5f4e52e",
-    "job-2026-ecdf6dad16cd504f9e3d"
+    "job-2026-d8f64228b700e5f4e52e"
    ],
    "运动人体科学": [
     "job-2026-7e04e97640d83423ff1e"
@@ -24186,7 +23892,6 @@
     "job-2026-0e62e06ab2e798dcfbbf",
     "job-2026-1c9365e104eabe64271a",
     "job-2026-29b9fbd88dcf078f9341",
-    "job-2026-2a705345f9d5bc9266c3",
     "job-2026-49fb013d8c6eb39928a3",
     "job-2026-4a63090f69e663386d4c",
     "job-2026-54d1f6ea011397164f3b",
@@ -24289,7 +23994,6 @@
     "job-2026-6cdd5746eb0c2d12250c",
     "job-2026-726ab40c2cd9aa6998cc",
     "job-2026-73b4fd6fe2e31f9418f8",
-    "job-2026-752cda656385a75c1dee",
     "job-2026-766e714a7fdf165a3fc6",
     "job-2026-80fa60ef67c9422cdf16",
     "job-2026-846724927b8977e64ffa",
@@ -24316,7 +24020,6 @@
     "job-2026-bf75a873b73c16cac406",
     "job-2026-c48e89c17441a422b583",
     "job-2026-dd83f5e2d81bd42ce73e",
-    "job-2026-e042454aab3c67e5bf77",
     "job-2026-e0bbd346bd4a2963b6bd",
     "job-2026-e342a3e995cb1856bb10",
     "job-2026-e68f651847ca585534db",
@@ -24391,8 +24094,7 @@
     "job-2026-3a3875b58b25cbe64b25",
     "job-2026-cc0166698dd302e63e19",
     "job-2026-d3e23653fd09eee9df0c",
-    "job-2026-d8f64228b700e5f4e52e",
-    "job-2026-ecdf6dad16cd504f9e3d"
+    "job-2026-d8f64228b700e5f4e52e"
    ],
    "金融": [
     "job-2026-027d1a5e8d79ead130b6",
@@ -24716,7 +24418,6 @@
     "job-2026-80b67b5d176b6a2cd37d",
     "job-2026-829af0585b5e9fccf085",
     "job-2026-9efa3a404ba37834907d",
-    "job-2026-a3beb65c618a91bac64f",
     "job-2026-e5e74591d6a859b88b2e"
    ],
    "音乐学": [
@@ -24734,7 +24435,6 @@
     "job-2026-80b67b5d176b6a2cd37d",
     "job-2026-93cbc7b0a97f39b6e69e",
     "job-2026-9efa3a404ba37834907d",
-    "job-2026-a3beb65c618a91bac64f",
     "job-2026-ab2285da6b1976d21ec8",
     "job-2026-c6915d5278fa6b8e4ed9",
     "job-2026-e4d1e3546197c6af8a30",
@@ -24818,7 +24518,6 @@
     "job-2026-e0ec5f980a07401113fc",
     "job-2026-e22e8a7182d63767bbd8",
     "job-2026-e3a291293d4b676a3fe4",
-    "job-2026-e5e05ae2c60e701e85c9",
     "job-2026-e5e9331add3f08125f52",
     "job-2026-e6ed8cf656f0f537831e",
     "job-2026-e8259bf521de54272c14",
@@ -24922,16 +24621,12 @@
    "食品工程": [
     "job-2026-0fb9e648284a65011b2d",
     "job-2026-10baac0ccabd0b723758",
-    "job-2026-1cf50d3ac2e8c837fd8e",
-    "job-2026-3ac1fa3effed4ec60794",
     "job-2026-4cacc7919030f389e12a",
     "job-2026-70098cf61c37d30fc226",
     "job-2026-b1929388b0d703fb292b",
     "job-2026-b527ecba7bcf4db18624",
     "job-2026-cf235a5b28999dcfe542",
-    "job-2026-df8fd829bbaf1b28d908",
-    "job-2026-e58d98938fda227819a5",
-    "job-2026-e705d496bb18192be1c5"
+    "job-2026-e58d98938fda227819a5"
    ],
    "食品科学": [
     "job-2026-77f8f0bc4d46a7ad127d"
@@ -24943,11 +24638,9 @@
     "job-2026-10baac0ccabd0b723758",
     "job-2026-15b847d23670c47f411e",
     "job-2026-1c3b292c311534430ba2",
-    "job-2026-1cf50d3ac2e8c837fd8e",
     "job-2026-2bd67935a915dec627cc",
     "job-2026-30d755ea85d826416272",
     "job-2026-3299ef27c7d655954a9c",
-    "job-2026-3ac1fa3effed4ec60794",
     "job-2026-40d712537dea66307b17",
     "job-2026-423c08c5273b7eb6723f",
     "job-2026-4c78f26d578aeed71751",
@@ -24979,9 +24672,7 @@
     "job-2026-cf235a5b28999dcfe542",
     "job-2026-cf995a99fbc38e30e5de",
     "job-2026-defe95c888bef81ba164",
-    "job-2026-df8fd829bbaf1b28d908",
     "job-2026-e58d98938fda227819a5",
-    "job-2026-e705d496bb18192be1c5",
     "job-2026-e7eccba4dcb91676e564",
     "job-2026-ff96e31d6ff496a9e209"
    ],
@@ -25022,7 +24713,6 @@
     "job-2026-b550141a89754956a96e"
    ],
    "马克思主义中国化研究": [
-    "job-2026-0203b459304f391be727",
     "job-2026-15c6acbc52fe9051949a",
     "job-2026-3c5aae4ac28b75e3f1b9",
     "job-2026-4e4124880b20e29bd831",
@@ -25031,7 +24721,6 @@
     "job-2026-fcf88415f5c4c4a636e3"
    ],
    "马克思主义发展史": [
-    "job-2026-0203b459304f391be727",
     "job-2026-4e4124880b20e29bd831",
     "job-2026-7677e353bd1132b307a9",
     "job-2026-fcf88415f5c4c4a636e3"
@@ -25065,7 +24754,6 @@
     "job-2026-f72f27c1a6d06b3d0e62"
    ],
    "马克思主义基本原理": [
-    "job-2026-0203b459304f391be727",
     "job-2026-15c6acbc52fe9051949a",
     "job-2026-3c5aae4ac28b75e3f1b9",
     "job-2026-4c902d77c74eddc879eb",
@@ -25093,7 +24781,6 @@
     "job-2026-44829b78fcc61856347c",
     "job-2026-45bdbdf2585cfa2c2c75",
     "job-2026-4c902d77c74eddc879eb",
-    "job-2026-4cfd3224d90f69e84ed4",
     "job-2026-510cb215b1b993ed9c45",
     "job-2026-55a1a090254df6507463",
     "job-2026-563ac59478cedb54ad8f",
@@ -25113,7 +24800,6 @@
     "job-2026-84dd44319c90b4abc8a8",
     "job-2026-8722c41f560323c9c9e2",
     "job-2026-8a99e89b47d6a00dd43e",
-    "job-2026-8b36f58b19b5828a906b",
     "job-2026-8ed89f83918a9460df09",
     "job-2026-93fbcff8784b29039433",
     "job-2026-952981c0f13c4a7a2a84",
@@ -25140,7 +24826,6 @@
     "job-2026-edddd8446094abca97d8",
     "job-2026-ef6082d3a6e867ed742d",
     "job-2026-ef7bdfe93d00f8ed8457",
-    "job-2026-f08e3f62a810efb62316",
     "job-2026-f0d7604af2fc481d7e93",
     "job-2026-f72f27c1a6d06b3d0e62",
     "job-2026-fd932badefaa40b2d8c2",
@@ -25367,7 +25052,6 @@
     "job-2026-6cb863ab3d7298d81258",
     "job-2026-6d43d7c0da26da5774fc",
     "job-2026-6e1f14b3a9dcefb99e28",
-    "job-2026-6e2182f3ff349b21892c",
     "job-2026-6ebaa86c256f598bd9f3",
     "job-2026-70b196d02bda2fd2147a",
     "job-2026-728244fe3c1ae5782a86",
@@ -25377,7 +25061,6 @@
     "job-2026-7459d821f61aa5248b72",
     "job-2026-74f6f2df497a21e21f2e",
     "job-2026-75290868a2e97acc1047",
-    "job-2026-7578d6efe398bc052abe",
     "job-2026-75e47b9b39b3bc12f582",
     "job-2026-7865dcd5179e091b9d53",
     "job-2026-78cc9a95efd88aedd0f4",
@@ -25399,7 +25082,6 @@
     "job-2026-7ed1df2b84123231942b",
     "job-2026-7ee392ad7e3e4b2c2c06",
     "job-2026-7fd46a0462e4a7e1b10d",
-    "job-2026-807c3ff83b9d0c8bbd89",
     "job-2026-80b3010dff79e8716c91",
     "job-2026-8181682fcc21a24a1f61",
     "job-2026-8294d0b9046894956662",
@@ -25479,7 +25161,6 @@
     "job-2026-b572de9b6c758917f018",
     "job-2026-b5c8af2bd972045393bc",
     "job-2026-b5fae424459f12fe9c38",
-    "job-2026-b6c50accb942e94c0813",
     "job-2026-b6daf80484b6ee5ee1f4",
     "job-2026-b7a5a4d2a9c006555e34",
     "job-2026-b8c613a010cf3f194fbe",
@@ -25547,7 +25228,6 @@
     "job-2026-dacfa73f7ff88cc6f33f",
     "job-2026-db510e72cec0ac498ea4",
     "job-2026-dc5f97b741b917f9fa92",
-    "job-2026-dc844c2b5cfe1bc7b5dd",
     "job-2026-dcb4f68c4a6359a29984",
     "job-2026-dcbf4cbdccd904441faf",
     "job-2026-dd1c6fd91a7a2dd9b9bb",
@@ -25641,7 +25321,6 @@
    ],
    "中西医结合类": [
     "job-2026-1a14b2bc51e68ca438c0",
-    "job-2026-311527fc8887fe329aa3",
     "job-2026-32bdd6ce7436126118de",
     "job-2026-372decbc60e3a7b5730f",
     "job-2026-378cdadc98a901579222",
@@ -25672,7 +25351,6 @@
     "job-2026-23bde27abccae2131042",
     "job-2026-23e4fa0dbaabfeeb70ff",
     "job-2026-2d43cbd59d5f4feb2b24",
-    "job-2026-311527fc8887fe329aa3",
     "job-2026-32bdd6ce7436126118de",
     "job-2026-372decbc60e3a7b5730f",
     "job-2026-378cdadc98a901579222",
@@ -25851,7 +25529,6 @@
     "job-2026-8bf27236ef45abded21d",
     "job-2026-b342e8c75c7b04939e86",
     "job-2026-d4d194aa49c2c3961292",
-    "job-2026-e4ab4c54cddcd818083d",
     "job-2026-ee1900e408404e80908f",
     "job-2026-f9a9fadad3dcc144d065",
     "job-2026-fb18786ce74cd10a290a"
@@ -26367,7 +26044,6 @@
     "job-2026-4c25d123f0d9c50cfc86",
     "job-2026-58eb461db246142a3fdd",
     "job-2026-5deebd842ddf9e5c3073",
-    "job-2026-5e4b2332706ba53a90bb",
     "job-2026-628c530e581c9a95fe93",
     "job-2026-69f114dbbf140124b7ce",
     "job-2026-7545bb3176a65cc6e122",
@@ -26849,7 +26525,6 @@
     "job-2026-366be8e0addabf812679",
     "job-2026-3ac0b01ee62685cf274e",
     "job-2026-3be1d272fcca334e43d3",
-    "job-2026-3d09442c6ded14a723ab",
     "job-2026-3dec620bd2e7c787e7b0",
     "job-2026-4643f7ee8cb5e046b068",
     "job-2026-4f9152e99845950189cc",
@@ -26887,7 +26562,6 @@
     "job-2026-d78f482cae16aa659d23",
     "job-2026-daa287d3d0674fbc9dbc",
     "job-2026-dc5142c51cc4f9d116ad",
-    "job-2026-dc912182fe2c94300a45",
     "job-2026-e3bd8dc3044ba96b82d5",
     "job-2026-ebe5762fa393959cdd01",
     "job-2026-f6f002888cb64b2914b2",
@@ -26899,8 +26573,7 @@
     "job-2026-67a5a6ae9f3ae19a9d9d",
     "job-2026-92ea99710d031e5c0f9d",
     "job-2026-cbbea3a202d007a3572d",
-    "job-2026-cdee8fb6ea68b8c2ccb5",
-    "job-2026-dc912182fe2c94300a45"
+    "job-2026-cdee8fb6ea68b8c2ccb5"
    ],
    "地质类": [
     "job-2026-06efc61969a13d240517",
@@ -26923,7 +26596,6 @@
     "job-2026-bd892203a8f11dc81785",
     "job-2026-cbbea3a202d007a3572d",
     "job-2026-cc0166698dd302e63e19",
-    "job-2026-dc912182fe2c94300a45",
     "job-2026-ebe5762fa393959cdd01",
     "job-2026-f3f58553f78a06fd49ff",
     "job-2026-fd6cda1e88a4f402a48a"
@@ -26940,7 +26612,6 @@
     "job-2026-15d98815d81d1c83a0fb",
     "job-2026-211bce7a72e68975b49d",
     "job-2026-21847dedfb920cbcded7",
-    "job-2026-311527fc8887fe329aa3",
     "job-2026-32bdd6ce7436126118de",
     "job-2026-378cdadc98a901579222",
     "job-2026-385fb6bd0ddbe6184c3b",
@@ -27048,7 +26719,6 @@
     "job-2026-e08fdfbc1b9b1d31ece9",
     "job-2026-e1ff615ffbc59135eb2d",
     "job-2026-e54c5ff1c85c9f51f264",
-    "job-2026-e58154db238f9f7fab2c",
     "job-2026-e657b610298b1c9e8cd4",
     "job-2026-e6a7c6f7b1850571451f",
     "job-2026-ea4f8288375600f3a319",
@@ -27416,7 +27086,6 @@
     "job-2026-96719031cbfb363f0a89",
     "job-2026-968eccfad395b7a9acef",
     "job-2026-98173b757d53305583f8",
-    "job-2026-987127e23a4319a77bcb",
     "job-2026-990a1b672fe5c3719796",
     "job-2026-9939126779f09a897c84",
     "job-2026-9accb6f8e24195caea40",
@@ -27523,7 +27192,6 @@
     "job-2026-48c45b4ab652c64259d4",
     "job-2026-5200dd4c256ea33283a3",
     "job-2026-538f92e7f8a29d336c4e",
-    "job-2026-5575499ca4eaac6dd707",
     "job-2026-5661bbebcb2205524dba",
     "job-2026-5f3b4a910fe140ddd755",
     "job-2026-671e700ba4804c6f537a",
@@ -27752,7 +27420,6 @@
     "job-2026-b315767be867ef2928cf",
     "job-2026-b50937bd582cab04f5d5",
     "job-2026-b5186e868b95fcc80292",
-    "job-2026-b5f625dd947f7a4d2635",
     "job-2026-b6bc81698d9e73f24b66",
     "job-2026-b6f912477d9cb320715c",
     "job-2026-b70882669464223edd97",
@@ -27771,7 +27438,6 @@
     "job-2026-cfeba978d3dccd936a09",
     "job-2026-d136a72b32b13d8111d3",
     "job-2026-d357801d5a8eee9cbea0",
-    "job-2026-d3a98767459c5f136cb1",
     "job-2026-d55d7109194bda763425",
     "job-2026-d63dac1ca68f882d8a63",
     "job-2026-da9c8a55c03305ee92f3",
@@ -27857,7 +27523,6 @@
     "job-2026-38c6a201530a1f9500b4",
     "job-2026-3af58a3b06fdd0e3057b",
     "job-2026-3b882888d0514c8e7c3d",
-    "job-2026-402f04960cbbb4b76eee",
     "job-2026-402fe7ead9f83713399b",
     "job-2026-403370699a250850ebb6",
     "job-2026-40fb00ee42845b975f3d",
@@ -27920,7 +27585,6 @@
     "job-2026-73cf917cd01fdb08593e",
     "job-2026-7454abbd113281f0bcf9",
     "job-2026-75290868a2e97acc1047",
-    "job-2026-7578d6efe398bc052abe",
     "job-2026-75a05069f05a11d46cbe",
     "job-2026-78cc9a95efd88aedd0f4",
     "job-2026-78f0eb129cd1d63fb7b6",
@@ -27990,7 +27654,6 @@
     "job-2026-b5830e3bbc5d353efbdc",
     "job-2026-b5c8af2bd972045393bc",
     "job-2026-b5fae424459f12fe9c38",
-    "job-2026-b6c50accb942e94c0813",
     "job-2026-b6daf80484b6ee5ee1f4",
     "job-2026-b7a5a4d2a9c006555e34",
     "job-2026-b8c613a010cf3f194fbe",
@@ -28194,7 +27857,6 @@
     "job-2026-66bef4988272e88dbf36",
     "job-2026-66ebc7b7769a18a109df",
     "job-2026-698c229ce5ace9d2f094",
-    "job-2026-6ad7906dc8e0625d32d0",
     "job-2026-6db66137b1622b3203a3",
     "job-2026-6e45e7cc2fee6b4e479a",
     "job-2026-6ffae675a7a94f872765",
@@ -28847,7 +28509,6 @@
     "job-2026-1421ff345e930ddc1955",
     "job-2026-143e6bfe54da9d471524",
     "job-2026-14e510ca19dd35435ed5",
-    "job-2026-14f456fdf431940632df",
     "job-2026-1525d21ac7ebc5e1d2e5",
     "job-2026-152f82205cd6b1787cba",
     "job-2026-157eb79068bd3b3ee665",
@@ -29134,7 +28795,6 @@
     "job-2026-545223565d6a964237b1",
     "job-2026-550ab1e54f73586fee4d",
     "job-2026-551846e73f2f422e4f2a",
-    "job-2026-5575499ca4eaac6dd707",
     "job-2026-55a46e770f1b25052d9e",
     "job-2026-55a8d6d6b620aa46c3e1",
     "job-2026-55f0ab2bd37c51576064",
@@ -29263,7 +28923,6 @@
     "job-2026-7426202c02d6b27ac276",
     "job-2026-744cbd6838e78ed0905d",
     "job-2026-7508ee9220d300fa33a5",
-    "job-2026-7578d6efe398bc052abe",
     "job-2026-75acbe3e9b4ca1107c26",
     "job-2026-75ae5c96f03b2734b096",
     "job-2026-75d739492eafdabf0ae6",
@@ -29765,7 +29424,6 @@
     "job-2026-e1ef8c68dfd0e5b192b9",
     "job-2026-e269e5459683b78598a2",
     "job-2026-e2cca6b7b97381ccef9b",
-    "job-2026-e2e3e6ca332a3fdb4278",
     "job-2026-e301c8f3ba46f785ed62",
     "job-2026-e3041451d47c0ad463e3",
     "job-2026-e36e3b3fb1183a1504a6",
@@ -29928,7 +29586,6 @@
     "job-2026-62555774f34989f4cc99",
     "job-2026-64a0886a52e23c1003cf",
     "job-2026-67a5a6ae9f3ae19a9d9d",
-    "job-2026-6c720c094f148720579f",
     "job-2026-6def867865e53f3c057e",
     "job-2026-6e43343924da1793db41",
     "job-2026-77be1d763372bfb753a9",
@@ -30007,7 +29664,6 @@
     "job-2026-26dfc59d2e6e74266381",
     "job-2026-2a2159b2ef0ca004ae1d",
     "job-2026-2bb0914f0c5256f9973d",
-    "job-2026-3152bce0f9aadc04d24b",
     "job-2026-334fa7e50eedbbf47d49",
     "job-2026-3464f64a3671de953364",
     "job-2026-34f41e9779046af1161d",
@@ -30090,7 +29746,6 @@
     "job-2026-d0ada4babe617604cb8b",
     "job-2026-d0dcf20d078d74a707bf",
     "job-2026-d1a189a881888361700f",
-    "job-2026-d2b4e7270e9da28280c9",
     "job-2026-d3382a375fe649eda691",
     "job-2026-d77217b601c01d893ddf",
     "job-2026-da058a82df73ec02a0a7",
@@ -30674,7 +30329,6 @@
     "job-2026-4f794f5f36fccdc7d08c",
     "job-2026-51c5f1c702ed31fc9dc4",
     "job-2026-538f92e7f8a29d336c4e",
-    "job-2026-5575499ca4eaac6dd707",
     "job-2026-55d421c7a0a3841a2bbf",
     "job-2026-58fd1cde6bf154457144",
     "job-2026-5e0848ae01021b4db5ac",
@@ -30845,7 +30499,6 @@
     "job-2026-e1f625400e32f6d70454",
     "job-2026-e2c01d7479e5c57b0ce7",
     "job-2026-e342e9b0a63a163937b5",
-    "job-2026-e346413f82f8cbf77d74",
     "job-2026-e3f55d483782df2f00bd",
     "job-2026-e5e7d879bc37c3dcd239",
     "job-2026-ea4f8288375600f3a319",
@@ -31947,7 +31600,6 @@
     "job-2026-845839420f4d8566b963",
     "job-2026-867d1f92eb49c2231421",
     "job-2026-887da1d75ce8cf2f9686",
-    "job-2026-8a7f37ea41cb179b5b15",
     "job-2026-8ba0b86e6ebe5aac566c",
     "job-2026-8ee783f64c45966a65e1",
     "job-2026-8fa747446078091805da",
@@ -32061,7 +31713,6 @@
     "job-2026-25fded9946bbb2aaa483",
     "job-2026-26e8a1aa7f835c18bf7a",
     "job-2026-27eb8b9a1b96c11d9cb6",
-    "job-2026-284389146f580a8a6905",
     "job-2026-29541b67ad626da2eee1",
     "job-2026-2b33b8d44a991b15d0ea",
     "job-2026-2b64e8af4c53bdedbfa1",
@@ -33343,10 +32994,8 @@
     "job-2026-dddf24ef71721d5b7582",
     "job-2026-de7f4a0000914c2c0110",
     "job-2026-df5fcdc56c750fc3065c",
-    "job-2026-df8fd829bbaf1b28d908",
     "job-2026-e08fdfbc1b9b1d31ece9",
     "job-2026-e3dc683616ede3ad66a0",
-    "job-2026-e705d496bb18192be1c5",
     "job-2026-e76ef68b6148a8518079",
     "job-2026-ec1d73820b20b7bf25dc",
     "job-2026-ecb82947bc168ca7a1c2",
@@ -33582,7 +33231,6 @@
    "job-2026-19d26844cf3f82159b9d",
    "job-2026-1a26dba89a6fbed8911e",
    "job-2026-1a26f93123ee048de54f",
-   "job-2026-1a2de4b0bb5ba10d2562",
    "job-2026-1a3464453f9da2a59f5d",
    "job-2026-1a89c602d2cd722ca65f",
    "job-2026-1a9da44353858ae5f4e0",
@@ -33671,7 +33319,6 @@
    "job-2026-2ca7d521b52121f7b4e2",
    "job-2026-2d2b416293888414cbb2",
    "job-2026-2da09bdbff530bafb7a5",
-   "job-2026-2db2d99d76ecef25ba90",
    "job-2026-2e2992d31580bd24ea6a",
    "job-2026-2e8cbce32fce9d7c0a62",
    "job-2026-2e93906cdbdfacedbf83",
@@ -33723,7 +33370,6 @@
    "job-2026-373c566a70ca27931211",
    "job-2026-37604dbe659ef477fbe6",
    "job-2026-376a322bd910c381c26f",
-   "job-2026-3775a3b56df9a6886301",
    "job-2026-37d0eab520f86c380fec",
    "job-2026-37fd527d59e53411e5ba",
    "job-2026-383f69d5eb0c2313e09f",
@@ -33826,7 +33472,6 @@
    "job-2026-4ce12ceec662457cb7a5",
    "job-2026-4cfbc52c91f2ab94eacb",
    "job-2026-4d6bb479d33478782cad",
-   "job-2026-4de9ccfcef1b439ffa8d",
    "job-2026-4e3b461def4d257175d8",
    "job-2026-4e7c054de996d4d6e547",
    "job-2026-4e817e6aa2c2a73853c3",
@@ -33843,7 +33488,6 @@
    "job-2026-51ccb7ee17ec75f6c728",
    "job-2026-51da1268a1a930f51156",
    "job-2026-523b6ff05883f03863b6",
-   "job-2026-5248d0a67f2df06269f4",
    "job-2026-5283f5dc5de671e73104",
    "job-2026-52e2991ab635b5f0c7c8",
    "job-2026-5323df0c489c87823cbd",
@@ -33910,7 +33554,6 @@
    "job-2026-5cb158ae52ff0e0b0c86",
    "job-2026-5cd0d294f84f5eeba1fc",
    "job-2026-5d1a903bd535b5db7bc4",
-   "job-2026-5da69d85951327841776",
    "job-2026-5df51b98232f30c6ef92",
    "job-2026-5df5bdc5d0562b0d9ff7",
    "job-2026-5e2a21a94fd480249f3f",
@@ -33957,7 +33600,6 @@
    "job-2026-67060085f36b094ccd53",
    "job-2026-672c56fb67c8a55e32f1",
    "job-2026-6736deff4b30f244fa17",
-   "job-2026-6765d0b995fc4bb0828c",
    "job-2026-67685b1f84197a6f43d3",
    "job-2026-67731d7d5e4ddfbb90d5",
    "job-2026-67aeb032515f97e42d13",
@@ -33971,7 +33613,6 @@
    "job-2026-6903be7604d581b9a561",
    "job-2026-69900e791b3ba92aca46",
    "job-2026-69dc029957a2a9e588dd",
-   "job-2026-6a3854f0931817eab007",
    "job-2026-6a3db1ade3d5da2afc96",
    "job-2026-6a5555d59307e81dbc2e",
    "job-2026-6a58cec99169df5d9db5",
@@ -34056,7 +33697,6 @@
    "job-2026-7ca79f791225de9d91e9",
    "job-2026-7cd19724f08e5857d6e8",
    "job-2026-7d0a058b30f0680f9900",
-   "job-2026-7d9e559eb4e965419be3",
    "job-2026-7df7c7cbcfda65d96d34",
    "job-2026-7e1b607562d517d7b7ae",
    "job-2026-7ed92cc895909531aa57",
@@ -34344,7 +33984,6 @@
    "job-2026-b657f8dc7826a218c64d",
    "job-2026-b6ae49fbf232651cebf7",
    "job-2026-b6af4f748d5a85c444f8",
-   "job-2026-b6c50accb942e94c0813",
    "job-2026-b6f7805f1fb23fb07509",
    "job-2026-b72676155d6c203bda68",
    "job-2026-b7353d105a921db107b7",
@@ -34522,7 +34161,6 @@
    "job-2026-dae426d24c889713a923",
    "job-2026-daf4c8e1cbe3888194bc",
    "job-2026-db14465e6762a3874bc0",
-   "job-2026-db47e3366714b31cc404",
    "job-2026-db6afd4cc381d6fd8dfb",
    "job-2026-db760840a3744bf9f44e",
    "job-2026-dbab6e0f1225d41fdbcc",
@@ -34731,31 +34369,31 @@
   },
   {
    "token": "0301",
-   "jobs": 242
+   "jobs": 227
   },
   {
    "token": "1253",
-   "jobs": 219
-  },
-  {
-   "token": "经济学门类",
-   "jobs": 164
+   "jobs": 204
   },
   {
    "token": "财会审计类",
    "jobs": 161
   },
   {
-   "token": "0501",
-   "jobs": 154
+   "token": "经济学门类",
+   "jobs": 158
   },
   {
-   "token": "0351",
-   "jobs": 136
+   "token": "0501",
+   "jobs": 138
   },
   {
    "token": "专业硕士",
    "jobs": 132
+  },
+  {
+   "token": "0351",
+   "jobs": 125
   },
   {
    "token": "专科",
@@ -34763,27 +34401,27 @@
   },
   {
    "token": "0812",
-   "jobs": 111
-  },
-  {
-   "token": "K",
-   "jobs": 101
+   "jobs": 105
   },
   {
    "token": "硕士",
    "jobs": 101
   },
   {
-   "token": "0814",
+   "token": "K",
    "jobs": 96
-  },
-  {
-   "token": "0503",
-   "jobs": 95
   },
   {
    "token": "。",
    "jobs": 94
+  },
+  {
+   "token": "0814",
+   "jobs": 94
+  },
+  {
+   "token": "0503",
+   "jobs": 89
   },
   {
    "token": "农学门类",
@@ -34791,30 +34429,18 @@
   },
   {
    "token": "1257",
-   "jobs": 82
+   "jobs": 78
   },
   {
    "token": "工学门类",
    "jobs": 72
   },
   {
-   "token": "02",
-   "jobs": 59
-  },
-  {
    "token": "法学门类",
    "jobs": 58
   },
   {
-   "token": "1202",
-   "jobs": 58
-  },
-  {
    "token": "0828",
-   "jobs": 57
-  },
-  {
-   "token": "0202",
    "jobs": 56
   },
   {
@@ -34826,7 +34452,7 @@
    "jobs": 55
   },
   {
-   "token": "0809",
+   "token": "1202",
    "jobs": 55
   },
   {
@@ -34834,7 +34460,11 @@
    "jobs": 55
   },
   {
-   "token": "0813",
+   "token": "0202",
+   "jobs": 54
+  },
+  {
+   "token": "0809",
    "jobs": 54
   },
   {
@@ -34842,19 +34472,23 @@
    "jobs": 54
   },
   {
+   "token": "0813",
+   "jobs": 53
+  },
+  {
    "token": "含",
    "jobs": 53
   },
   {
-   "token": "1201",
+   "token": "02",
    "jobs": 53
   },
   {
-   "token": "0552",
-   "jobs": 51
+   "token": "管理学门类",
+   "jobs": 50
   },
   {
-   "token": "管理学门类",
+   "token": "1201",
    "jobs": 50
   },
   {
@@ -34862,28 +34496,32 @@
    "jobs": 49
   },
   {
-   "token": "1002",
+   "token": "0552",
    "jobs": 48
   },
   {
-   "token": "学科教学",
+   "token": "1002",
    "jobs": 47
-  },
-  {
-   "token": "0811",
-   "jobs": 46
   },
   {
    "token": "财务管理方向",
    "jobs": 45
   },
   {
-   "token": "0851",
+   "token": "0811",
    "jobs": 45
+  },
+  {
+   "token": "0851",
+   "jobs": 44
   },
   {
    "token": "0815",
    "jobs": 43
+  },
+  {
+   "token": "学科教学",
+   "jobs": 42
   },
   {
    "token": "社会保障类",
@@ -34891,10 +34529,6 @@
   },
   {
    "token": "1204",
-   "jobs": 42
-  },
-  {
-   "token": "0802",
    "jobs": 41
   },
   {
@@ -34904,6 +34538,10 @@
   {
    "token": "0201",
    "jobs": 40
+  },
+  {
+   "token": "0802",
+   "jobs": 38
   },
   {
    "token": "0257",
@@ -34926,20 +34564,16 @@
    "jobs": 34
   },
   {
-   "token": "0816",
-   "jobs": 34
-  },
-  {
-   "token": "1256",
-   "jobs": 34
-  },
-  {
    "token": "0853",
    "jobs": 33
   },
   {
-   "token": "大数据技术与工程",
-   "jobs": 31
+   "token": "0816",
+   "jobs": 33
+  },
+  {
+   "token": "1256",
+   "jobs": 33
   },
   {
    "token": "0833",
@@ -34950,11 +34584,11 @@
    "jobs": 31
   },
   {
-   "token": "0808",
-   "jobs": 30
+   "token": "大数据技术与工程",
+   "jobs": 29
   },
   {
-   "token": "0830",
+   "token": "0808",
    "jobs": 29
   },
   {
@@ -34962,23 +34596,15 @@
    "jobs": 28
   },
   {
-   "token": "0705",
-   "jobs": 28
+   "token": "0825",
+   "jobs": 26
   },
   {
-   "token": "0825",
-   "jobs": 28
+   "token": "0830",
+   "jobs": 26
   },
   {
    "token": "0835",
-   "jobs": 26
-  },
-  {
-   "token": "0854",
-   "jobs": 26
-  },
-  {
-   "token": "土木",
    "jobs": 25
   },
   {
@@ -34986,39 +34612,31 @@
    "jobs": 25
   },
   {
-   "token": "1251",
-   "jobs": 25
-  },
-  {
    "token": "会计专业硕士",
    "jobs": 25
   },
   {
-   "token": "0305",
-   "jobs": 25
+   "token": "土木",
+   "jobs": 24
   },
   {
-   "token": "0303",
-   "jobs": 25
+   "token": "0854",
+   "jobs": 24
+  },
+  {
+   "token": "0705",
+   "jobs": 24
   },
   {
    "token": "水利与交通工程",
-   "jobs": 24
+   "jobs": 23
   },
   {
    "token": "0859",
-   "jobs": 24
+   "jobs": 23
   },
   {
    "token": "1004",
-   "jobs": 24
-  },
-  {
-   "token": "0701",
-   "jobs": 24
-  },
-  {
-   "token": "网络与信息安全",
    "jobs": 23
   },
   {
@@ -35026,11 +34644,7 @@
    "jobs": 23
   },
   {
-   "token": "0703",
-   "jobs": 23
-  },
-  {
-   "token": "1005",
+   "token": "0303",
    "jobs": 23
   },
   {
@@ -35042,11 +34656,19 @@
    "jobs": 22
   },
   {
-   "token": "0832",
+   "token": "网络与信息安全",
    "jobs": 22
   },
   {
-   "token": "0302",
+   "token": "1251",
+   "jobs": 22
+  },
+  {
+   "token": "1005",
+   "jobs": 22
+  },
+  {
+   "token": "0305",
    "jobs": 22
   },
   {
@@ -35058,7 +34680,7 @@
    "jobs": 22
   },
   {
-   "token": "0352",
+   "token": "0703",
    "jobs": 21
   },
   {
@@ -35070,15 +34692,15 @@
    "jobs": 20
   },
   {
-   "token": "1053",
-   "jobs": 20
-  },
-  {
    "token": "0251",
    "jobs": 20
   },
   {
-   "token": "1007",
+   "token": "0302",
+   "jobs": 20
+  },
+  {
+   "token": "0352",
    "jobs": 20
   },
   {
@@ -35086,7 +34708,7 @@
    "jobs": 19
   },
   {
-   "token": "0807",
+   "token": "1053",
    "jobs": 19
   },
   {
@@ -35094,7 +34716,7 @@
    "jobs": 19
   },
   {
-   "token": "0829",
+   "token": "0701",
    "jobs": 19
   },
   {
@@ -35102,11 +34724,23 @@
    "jobs": 19
   },
   {
+   "token": "1007",
+   "jobs": 19
+  },
+  {
    "token": "文学门类",
    "jobs": 18
   },
   {
-   "token": "1252",
+   "token": "0807",
+   "jobs": 18
+  },
+  {
+   "token": "0829",
+   "jobs": 18
+  },
+  {
+   "token": "0832",
    "jobs": 18
   },
   {
@@ -35122,27 +34756,15 @@
    "jobs": 17
   },
   {
-   "token": "1405",
-   "jobs": 17
-  },
-  {
    "token": "电气工程类",
    "jobs": 17
   },
   {
+   "token": "1252",
+   "jobs": 17
+  },
+  {
    "token": "法律专业硕士",
-   "jobs": 17
-  },
-  {
-   "token": "1057",
-   "jobs": 17
-  },
-  {
-   "token": "0855",
-   "jobs": 17
-  },
-  {
-   "token": "0252",
    "jobs": 17
   },
   {
@@ -35162,11 +34784,23 @@
    "jobs": 16
   },
   {
+   "token": "1057",
+   "jobs": 16
+  },
+  {
+   "token": "0252",
+   "jobs": 16
+  },
+  {
    "token": "水利工程类",
    "jobs": 16
   },
   {
    "token": "公共管理学类",
+   "jobs": 15
+  },
+  {
+   "token": "1405",
    "jobs": 15
   },
   {
@@ -35178,24 +34812,8 @@
    "jobs": 15
   },
   {
-   "token": "0401",
+   "token": "0855",
    "jobs": 15
-  },
-  {
-   "token": "0814或085901",
-   "jobs": 15
-  },
-  {
-   "token": "0454",
-   "jobs": 14
-  },
-  {
-   "token": "0818",
-   "jobs": 14
-  },
-  {
-   "token": "0837",
-   "jobs": 14
   },
   {
    "token": "1203",
@@ -35206,7 +34824,7 @@
    "jobs": 14
   },
   {
-   "token": "0805",
+   "token": "0814或085901",
    "jobs": 14
   },
   {
@@ -35238,11 +34856,23 @@
    "jobs": 13
   },
   {
+   "token": "0818",
+   "jobs": 13
+  },
+  {
+   "token": "0837",
+   "jobs": 13
+  },
+  {
    "token": "0903",
    "jobs": 13
   },
   {
-   "token": "1008",
+   "token": "0401",
+   "jobs": 13
+  },
+  {
+   "token": "0805",
    "jobs": 13
   },
   {
@@ -35262,15 +34892,15 @@
    "jobs": 12
   },
   {
+   "token": "0454",
+   "jobs": 12
+  },
+  {
    "token": "超声医学",
    "jobs": 12
   },
   {
    "token": "信息与通信工程类",
-   "jobs": 12
-  },
-  {
-   "token": "0804",
    "jobs": 12
   },
   {
@@ -35306,6 +34936,10 @@
    "jobs": 11
   },
   {
+   "token": "0804",
+   "jobs": 11
+  },
+  {
    "token": "08",
    "jobs": 11
   },
@@ -35326,19 +34960,7 @@
    "jobs": 10
   },
   {
-   "token": "0307",
-   "jobs": 10
-  },
-  {
-   "token": "1001",
-   "jobs": 10
-  },
-  {
-   "token": "0835或085405",
-   "jobs": 10
-  },
-  {
-   "token": "1002或1051",
+   "token": "1008",
    "jobs": 10
   },
   {
@@ -35358,10 +34980,6 @@
    "jobs": 9
   },
   {
-   "token": "0827",
-   "jobs": 9
-  },
-  {
    "token": "1055",
    "jobs": 9
   },
@@ -35371,10 +34989,6 @@
   },
   {
    "token": "1011",
-   "jobs": 9
-  },
-  {
-   "token": "0403",
    "jobs": 9
   },
   {
@@ -35414,7 +35028,7 @@
    "jobs": 8
   },
   {
-   "token": "0402",
+   "token": "0307",
    "jobs": 8
   },
   {
@@ -35430,10 +35044,6 @@
    "jobs": 8
   },
   {
-   "token": "1354",
-   "jobs": 8
-  },
-  {
    "token": "0862",
    "jobs": 8
   },
@@ -35446,23 +35056,15 @@
    "jobs": 8
   },
   {
-   "token": "1056",
+   "token": "0835或085405",
    "jobs": 8
   },
   {
-   "token": "0452",
-   "jobs": 8
-  },
-  {
-   "token": "1006",
+   "token": "1002或1051",
    "jobs": 8
   },
   {
    "token": "教育学门类",
-   "jobs": 7
-  },
-  {
-   "token": "语文",
    "jobs": 7
   },
   {
@@ -35474,11 +35076,15 @@
    "jobs": 7
   },
   {
-   "token": "0908",
+   "token": "0827",
    "jobs": 7
   },
   {
-   "token": "1357",
+   "token": "1354",
+   "jobs": 7
+  },
+  {
+   "token": "1001",
    "jobs": 7
   },
   {
@@ -35498,6 +35104,10 @@
    "jobs": 6
   },
   {
+   "token": "语文",
+   "jobs": 6
+  },
+  {
    "token": "法律类",
    "jobs": 6
   },
@@ -35514,7 +35124,11 @@
    "jobs": 6
   },
   {
-   "token": "0354",
+   "token": "0908",
+   "jobs": 6
+  },
+  {
+   "token": "1357",
    "jobs": 6
   },
   {
@@ -35522,15 +35136,11 @@
    "jobs": 6
   },
   {
-   "token": "0709",
-   "jobs": 6
-  },
-  {
    "token": "1254",
    "jobs": 6
   },
   {
-   "token": "0858",
+   "token": "0403",
    "jobs": 6
   },
   {
@@ -35539,6 +35149,10 @@
   },
   {
    "token": "07",
+   "jobs": 6
+  },
+  {
+   "token": "1006",
    "jobs": 6
   },
   {
@@ -35566,7 +35180,11 @@
    "jobs": 5
   },
   {
-   "token": "0451",
+   "token": "0402",
+   "jobs": 5
+  },
+  {
+   "token": "0354",
    "jobs": 5
   },
   {
@@ -35582,10 +35200,6 @@
    "jobs": 5
   },
   {
-   "token": "0857",
-   "jobs": 5
-  },
-  {
    "token": "中国语言文学0501。",
    "jobs": 5
   },
@@ -35594,7 +35208,15 @@
    "jobs": 5
   },
   {
+   "token": "0858",
+   "jobs": 5
+  },
+  {
    "token": "0775",
+   "jobs": 5
+  },
+  {
+   "token": "1056",
    "jobs": 5
   },
   {
@@ -35606,11 +35228,11 @@
    "jobs": 5
   },
   {
-   "token": "5303",
+   "token": "0452",
    "jobs": 5
   },
   {
-   "token": "0651",
+   "token": "5303",
    "jobs": 5
   },
   {
@@ -35666,6 +35288,10 @@
    "jobs": 4
   },
   {
+   "token": "0451",
+   "jobs": 4
+  },
+  {
    "token": "0308",
    "jobs": 4
   },
@@ -35675,6 +35301,10 @@
   },
   {
    "token": "0256",
+   "jobs": 4
+  },
+  {
+   "token": "0857",
    "jobs": 4
   },
   {
@@ -35691,6 +35321,10 @@
   },
   {
    "token": "应用经济学0202。",
+   "jobs": 4
+  },
+  {
+   "token": "0709",
    "jobs": 4
   },
   {
@@ -35714,19 +35348,15 @@
    "jobs": 4
   },
   {
-   "token": "1352",
-   "jobs": 4
-  },
-  {
    "token": "核医学",
    "jobs": 4
   },
   {
-   "token": "人口",
+   "token": "0651",
    "jobs": 4
   },
   {
-   "token": "1007或1055",
+   "token": "人口",
    "jobs": 4
   },
   {
@@ -35798,10 +35428,6 @@
    "jobs": 3
   },
   {
-   "token": "0711",
-   "jobs": 3
-  },
-  {
    "token": "0702",
    "jobs": 3
   },
@@ -35858,15 +35484,11 @@
    "jobs": 3
   },
   {
-   "token": "0803",
+   "token": "1352",
    "jobs": 3
   },
   {
    "token": "针灸学",
-   "jobs": 3
-  },
-  {
-   "token": "地理",
    "jobs": 3
   },
   {
@@ -35887,14 +35509,6 @@
   },
   {
    "token": "骨科学",
-   "jobs": 3
-  },
-  {
-   "token": "0808或085801",
-   "jobs": 3
-  },
-  {
-   "token": "或1254",
    "jobs": 3
   },
   {
@@ -36114,6 +35728,10 @@
    "jobs": 2
   },
   {
+   "token": "0711",
+   "jobs": 2
+  },
+  {
    "token": "1206",
    "jobs": 2
   },
@@ -36218,11 +35836,19 @@
    "jobs": 2
   },
   {
+   "token": "0803",
+   "jobs": 2
+  },
+  {
    "token": "1303",
    "jobs": 2
   },
   {
    "token": "0838",
+   "jobs": 2
+  },
+  {
+   "token": "地理",
    "jobs": 2
   },
   {
@@ -36246,6 +35872,10 @@
    "jobs": 2
   },
   {
+   "token": "0808或085801",
+   "jobs": 2
+  },
+  {
    "token": "4502",
    "jobs": 2
   },
@@ -36262,27 +35892,15 @@
    "jobs": 2
   },
   {
-   "token": "0502",
+   "token": "或1254",
    "jobs": 2
   },
   {
-   "token": "或105110",
-   "jobs": 2
-  },
-  {
-   "token": "或105101",
-   "jobs": 2
-  },
-  {
-   "token": "1301或0504",
+   "token": "1007或1055",
    "jobs": 2
   },
   {
    "token": "或105120",
-   "jobs": 2
-  },
-  {
-   "token": "0801",
    "jobs": 2
   },
   {
@@ -37450,6 +37068,26 @@
    "jobs": 1
   },
   {
+   "token": "0502",
+   "jobs": 1
+  },
+  {
+   "token": "或105110",
+   "jobs": 1
+  },
+  {
+   "token": "或105101",
+   "jobs": 1
+  },
+  {
+   "token": "1301或0504",
+   "jobs": 1
+  },
+  {
+   "token": "0801",
+   "jobs": 1
+  },
+  {
    "token": "土地资源管理专业测绘工程专业水利水电工程",
    "jobs": 1
   },
@@ -37739,15 +37377,15 @@
   }
  ],
  "stats": {
-  "rows": 8511,
-  "rows_touched": 8129,
-  "rows_unclassified_only": 382,
+  "rows": 8401,
+  "rows_touched": 8020,
+  "rows_unclassified_only": 381,
   "explicit_terms": 866,
   "class_terms": 113,
-  "unlimited_jobs": 1260
+  "unlimited_jobs": 1249
  },
  "cycle": "2026",
  "computed_from": {
-  "jobs_sha256": "67952773f733aa664dd1ed4e27e9680e15f3e19e57142cf072ff7fc7d93f2cdd"
+  "jobs_sha256": "d0a14539b9ed61a8d51479a51c03c12f00af8ab35f436accf64b4f05bcbfd770"
  }
 }

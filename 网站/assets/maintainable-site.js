@@ -126,7 +126,7 @@
       // P0-9: palette.json(1.44MB, jobs_lite 纯子集)退役——命令面板条目改由已在内存的 jobs_lite 行派生，零额外下载
       try {
         const lite = state.modules.get(`${state.cycle}:jobs_lite`) || await loadModule(state.cycle, 'jobs_lite');
-        palette.entries = (lite?.allMajors?.rows || []).map((row) => ({ id: row.job_id || row.code || '', code: row.code || '', title: row.zw || row.display_title || '', unit: row.unit || '', city: row.city || row.reg || '', exam: row.exam || '' }));
+        palette.entries = (lite?.allMajors?.rows || []).filter((row) => !isPhantomRow(row)).map((row) => ({ id: row.job_id || row.code || '', code: row.code || '', title: row.zw || row.display_title || '', unit: row.unit || '', city: row.city || row.reg || '', exam: row.exam || '' }));
       } catch (error) { palette.entries = []; }
       palette.loaded = true;
     }
@@ -286,7 +286,10 @@
     if (!visible.length) return '<div class="maint-active-filters" data-maint-active-filter><span>未设置筛选</span></div>';
     return `<div class="maint-active-filters" data-maint-active-filter aria-label="已生效筛选"><span>已生效</span>${visible.map((entry) => `<button type="button" data-maint-clear-filter="${escapeHtml(entry.key)}" aria-label="清除${escapeHtml(entry.label)}筛选">${escapeHtml(entry.label)}：${escapeHtml(entry.value)} ×</button>`).join('')}</div>`;
   };
-  const rowsFor = (payload) => Array.isArray(payload?.allMajors?.rows) ? payload.allMajors.rows : [];
+// D2(2026-09-05): 马鞍山 110 个疑似重复收录岗位（华图源跨市复制，成绩公告全部来自六安，见 tools/anhui_web/d2_resolution_report_20260905.txt）——用户视图剔除，数据文件保留审计痕迹
+  const PHANTOM_CODES = new Set(["0901001", "0901002", "0901003", "0901004", "0901005", "0901006", "0901007", "0901008", "0901009", "0901010", "0901011", "0901012", "0901013", "0901014", "0901015", "0901016", "0901017", "0901018", "0901019", "0901020", "0901021", "0901022", "0901023", "0901024", "0901026", "0901027", "0901028", "0901029", "0901030", "0901031", "0901032", "0901033", "0901034", "0901036", "0901037", "0901038", "0901039", "0901040", "0901041", "0901042", "0901043", "0901044", "0901045", "0901046", "0901047", "0901048", "0901049", "0901050", "0901051", "0901052", "0901053", "0901054", "0901055", "0901056", "0901057", "0901059", "0901060", "0901061", "0901062", "0901063", "0901064", "0901065", "0901066", "0901067", "0901068", "0901069", "0901070", "0901071", "0901072", "0901073", "0901074", "0901075", "0901077", "0901078", "0901079", "0901080", "0901081", "0901082", "0901083", "0901084", "0901085", "0901086", "0901087", "0901088", "0901089", "0901090", "0901091", "0901094", "0901095", "0901096", "0901097", "0901098", "0901099", "0901100", "0901101", "0901102", "0901103", "0901104", "0901106", "0901107", "0901108", "0901109", "0901110", "0901112", "0901113", "0901114", "0901115", "0901116", "0901117", "0901118"]);
+  const isPhantomRow = (row) => Boolean(row) && String(row.city || '') === '马鞍山' && PHANTOM_CODES.has(String(row.code || ''));
+  const rowsFor = (payload) => Array.isArray(payload?.allMajors?.rows) ? payload.allMajors.rows.filter((row) => !isPhantomRow(row)) : [];
   const metaFor = (payload) => payload?.allMajors?.meta || {};
   const sourceText = (row) => [row?.code, row?.city, row?.exam, row?.unit, row?.zw, row?.zy, row?.bz, row?.lb].map((value) => String(value || '')).join(' ');
   const setStatus = (message, tone = '') => {
@@ -508,7 +511,7 @@
       app.insertAdjacentHTML('beforeend', `<nav class="maint-mobile-nav" data-maint-mobile-nav aria-label="移动端主导航"><a href="#overview" data-maintain-view="overview"><span aria-hidden="true">⌂</span><strong>${VIEW_META.overview.short}</strong></a><a href="#jobs_search" data-maintain-view="jobs_search"><span aria-hidden="true">⌕</span><strong>${VIEW_META.jobs_search.short}</strong></a><a href="#jobs_map" data-maintain-view="jobs_map"><span aria-hidden="true">⌁</span><strong>${VIEW_META.jobs_map.short}</strong></a><a href="#saved" data-maintain-view="saved"><span aria-hidden="true">☆</span><strong>${VIEW_META.saved.short}</strong></a><button type="button" data-maint-mobile-more-toggle aria-expanded="false"><span aria-hidden="true">•••</span><strong>更多</strong></button></nav>`);
     }
     if (!document.querySelector('[data-maint-mobile-more]')) {
-      app.insertAdjacentHTML('beforeend', `<div class="maint-mobile-more" data-maint-mobile-more hidden><div class="maint-mobile-more__panel" role="dialog" aria-modal="true" aria-label="更多视图"><div class="maint-mobile-more__head"><strong>更多视图</strong><button type="button" data-maint-mobile-more-close aria-label="关闭更多视图">×</button></div><div class="maint-mobile-more__grid">${['match', 'cycle_compare', 'salary_map', 'jobs_ranking', 'changes', 'calendar', 'data_boundary', 'help', 'changelog'].map((view) => `<a href="#${view}" data-maintain-view="${view}">${VIEW_META[view].full}</a>`).join('')}</div></div></div>`);
+      app.insertAdjacentHTML('beforeend', `<div class="maint-mobile-more" data-maint-mobile-more hidden><div class="maint-mobile-more__panel" role="dialog" aria-modal="true" aria-label="更多视图"><div class="maint-mobile-more__head"><strong>更多视图</strong><button type="button" data-maint-mobile-more-close aria-label="关闭更多视图">×</button></div><div class="maint-mobile-more__grid">${['match', 'cycle_compare', 'salary_map', 'jobs_ranking', 'calendar', 'help', 'changelog'].map((view) => `<a href="#${view}" data-maintain-view="${view}">${VIEW_META[view].full}</a>`).join('')}</div></div></div>`);
     }
     document.querySelectorAll('[data-maint-mobile-nav] [data-maintain-view], [data-maint-mobile-more] [data-maintain-view]').forEach((node) => {
       const active = node.dataset.maintainView === state.view;

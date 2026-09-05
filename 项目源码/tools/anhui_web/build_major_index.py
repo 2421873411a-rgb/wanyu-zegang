@@ -146,6 +146,9 @@ def main() -> int:
     catalog = load_json(HERE / "data" / "major_catalog.json")
     jobs_path = SITE / "data" / "cycles" / str(args.cycle) / "jobs.json"
     rows = load_json(jobs_path)["allMajors"]["rows"]
+    # D2 幽灵重复行剔除口径与前端 rowsFor 一致（马鞍山 110 行，见 d2_resolution_report_20260905.txt）
+    phantom = load_json(HERE / "data" / "phantom_codes_2026.json")
+    rows = [r for r in rows if not (str(r.get("city")) == "马鞍山" and str(r.get("code")) in set(phantom))]
     index = build(catalog["map"], rows)
     index["cycle"] = str(args.cycle)
     index["computed_from"] = {"jobs_sha256": sha256(jobs_path)}

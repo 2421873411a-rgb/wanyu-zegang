@@ -178,7 +178,8 @@ def main() -> int:
         }
         audit["scoreLists"] = sl
     gaps = audit.setdefault("gaps", [])
-    gaps.append({
+    if not any(g.get("kind") == "surgical_repair_20260905" for g in gaps):
+        gaps.append({
         "kind": "surgical_repair_20260905",
         "detail": f"哨兵恢复 {len(repaired)} 行（重收割合并）；floor null {floor_fixed} 行；"
                   f"抽样见修复报告。原值由 git 历史（v17.7.2-baseline）保全。",

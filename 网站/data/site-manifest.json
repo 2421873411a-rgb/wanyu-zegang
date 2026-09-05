@@ -215,10 +215,10 @@
      "sha256": "11945eb90b11c7c05e6e31a63904d4ffecd8827014e6da28eced4f58f22913cd"
     },
     "major_index": {
-     "bytes": 1150284,
+     "bytes": 1136529,
      "data": "data/cycles/2026/major-index.json",
      "schema": "wanyu-major-index/v1",
-     "sha256": "7c2eb594f688a17a5104d2ed017fce054758792ef1f2b0d900b19c65a68d65ad"
+     "sha256": "e30490e67802138d805ebe07a13ffe81a7e5f95ba07c96829cd6fbad558c438d"
     },
     "req_fields": {
      "bytes": 2759264,
@@ -254,7 +254,7 @@
   "sha256": "d98fb053398facec707a3c842c138b82118990bf3b173ce8ecb9348caa9fbc77",
   "source": "tools/anhui_web/data/anhui_340000_full.json"
  },
- "release": "v17.8.3",
+ "release": "v17.8.4",
  "review_queue": {
   "bytes": 4225,
   "data": "data/audit/review-queue.json",
