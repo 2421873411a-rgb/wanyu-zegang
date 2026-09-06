@@ -1,7 +1,7 @@
 {
   "release": "v17.9.0",
-  "created_on": "2026-09-06T19:54:09.013660+00:00",
-  "git_commit": "3f5de29708b1b50207c45f9c7fb01f0deada875e",
+  "created_on": "2026-09-06T20:24:56.432080+00:00",
+  "git_commit": "14e30ca49652f9f7f836ada23385f64739b1662e",
   "git_dirty": false,
   "canonical_schema": "wanyu-cycle-bundle/v1",
   "metrics_contract": {
@@ -27,10 +27,12 @@
   },
   "validation_status": "verified",
   "browser_smoke_skipped": [],
-  "tag_allowed": false,
+  "tag_allowed": true,
   "tests": {
-    "status": "pre-release-alignment-build",
-    "note": "对齐构建"
+    "status": "pass",
+    "python_modules": 27,
+    "node_suites": 4,
+    "browser_smoke_scripts": 3
   },
   "data_facts": {
     "2026": {
