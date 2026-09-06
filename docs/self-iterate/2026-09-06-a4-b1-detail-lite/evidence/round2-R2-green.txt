@@ -1,0 +1,26 @@
+PASS | 2024: lite 行数=10017 | 10017
+PASS | 2024: 6 字段全量对账零漂移 | 0 行异常
+PASS | 2024: ji/ss 全量对齐 | ji 0 / ss 0
+PASS | 2024: meta 周期级来源登记在册（observed_at 未公布则缺席=站规） | ref=tools/anhui_web/data/cycles/2024/all_maj at=None
+PASS | 2024: manifest 哈希链一致 
+PASS | 2024: .gz 同步（解压==源文件） 
+PASS | 2024: gz 682,884 ≤ 棘轮 780,000 
+PASS | 2025: lite 行数=10150 | 10150
+PASS | 2025: 6 字段全量对账零漂移 | 0 行异常
+PASS | 2025: ji/ss 全量对齐 | ji 0 / ss 0
+PASS | 2025: meta 周期级来源登记在册（observed_at 未公布则缺席=站规） | ref=tools/anhui_web/data/cycles/2025/all_maj at=None
+PASS | 2025: manifest 哈希链一致 
+PASS | 2025: .gz 同步（解压==源文件） 
+PASS | 2025: gz 709,862 ≤ 棘轮 780,000 
+PASS | 2026: lite 行数=8401 | 8401
+PASS | 2026: 6 字段全量对账零漂移 | 0 行异常
+PASS | 2026: ji/ss 全量对齐 | ji 0 / ss 0
+PASS | 2026: meta 周期级来源登记在册（observed_at 未公布则缺席=站规） | ref=tools/anhui_web/data/all_majors_2026.jso at=2026-08-28
+PASS | 2026: manifest 哈希链一致 
+PASS | 2026: .gz 同步（解压==源文件） 
+PASS | 2026: gz 620,905 ≤ 棘轮 780,000 
+PASS | 模板一致性：网站/assets/maintainable-site.js == templates（13 文件纪律成员） 
+PASS | asset .gz 同步（解压==模板） 
+PASS | B1 前端已在站点资产中（deriveSource + lite-first） 
+== 24/24 checks passed ==
+R2-green-exit=0

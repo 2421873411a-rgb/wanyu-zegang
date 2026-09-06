@@ -1,0 +1,10 @@
+FAIL | 2024: builder 支持 B1 扩展参数(job_index/source_info) | TypeError: _lite_payload() got an unexpected keyword argument 'job_index'
+FAIL | 2025: builder 支持 B1 扩展参数(job_index/source_info) | TypeError: _lite_payload() got an unexpected keyword argument 'job_index'
+FAIL | 2026: builder 支持 B1 扩展参数(job_index/source_info) | TypeError: _lite_payload() got an unexpected keyword argument 'job_index'
+FAIL | openDetail 主路径 lite-first（先取 jobs_lite 再找行） 
+FAIL | openDetail 不再无条件整包加载 jobs+positions（仅排除行回退分支可加载） | jobs 整包只允许出现在 lite 未命中的回退分支之后
+FAIL | deriveSource 用 ss 分类码三分映射(v/b/d→verified/source_bundle/derived) 
+FAIL | deriveSource 用 ji 重建 locator 
+FAIL | boundary_note 同步新契约（ji 行号 + 周期级来源登记 + ss 分类码） | 轻索引只保留检索/榜单/地图所需列;资格、成绩与来源证据字段以 jobs.json 原文为准,详情抽屉按需加载。
+== 0/8 checks passed ==
+R1-red-exit=1

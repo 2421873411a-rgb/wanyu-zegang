@@ -1,0 +1,44 @@
+皖域择岗交接包 v17.8.6+b1 · 2026-09-06
+桌面文件：皖域择岗交接包_v17.8.6+b1_20260906.zip（377MB，4854 文件）
+SHA-256：cf8180ddce0301c2889548d1fe506440067d7331343ec9908b278abd74f5ee8d
+
+━━━━ 相比 v17.8.6 原始交接包的增量 ━━━━
+A2 收口（批次3，2026-09-06）：
+  - 项目源码/docs/ops/wan-kaogong-perf.conf：三级缓存分级（/data/ immutable 一年、
+    /assets/ immutable 一年、index/sw/manifest no-cache）；gzip_static 保留
+  - 项目源码/tools/anhui_web/deploy_wan.sh：打包对象改 canonical 网站/ 树，
+    摘除遗留单文件与 deliverables 依赖；preflight verify_maintainable_site "$SITE_DIR"
+
+A4-B1 详情瘦身（批次4，2026-09-06）：
+  - 项目源码/tools/anhui_web/build_maintainable_site.py：
+    _LITE_ROW_KEYS 扩展（+xw/xz/age/score_observation/title_status/bm），
+    _lite_payload 新增 job_index/source_info 参数，
+    行级 ss 分类码 + ji 行号定位 + 周期级来源登记进 meta
+  - 项目源码/tools/anhui_web/templates/maintainable-site.js：
+    deriveSource（ss→证据对象重建）+ openDetail lite-first（排除行整包回退）
+  - 项目源码/tools/anhui_web/verify_maintainable_site.py：
+    values_match_source 演化为「值字段逐字 + ji 溯源强校验 + ss 枚举」
+  - 项目源码/tests/test_frontend_data_audit.py：同口径演化
+  - 网站/data/cycles/*/jobs_lite.json（+gz）：三年周期 lite 全量重建
+  - 网站/data/cycles/*/major_city.json（+gz）：溯源重绑 lite sha256
+  - 网站/data/site-manifest.json（+gz）：哈希链更新
+  - 网站/assets/maintainable-site.js（+gz）：模板同步
+
+  效果：岗位详情打开从 ~16.7MB 整包下载降为零额外下载（lite 复用）；
+  体积 gz 683K/716K/620K，全部 ≤ 棘轮 780KB
+
+━━━━ 未包含 / 遗留 ━━━━
+  - 111.pem（敏感，不入库）
+  - .deploy_wan.local（SSH_HOST 本地覆盖，不入库）
+  - .git_old_v177baseline_20260906（v17.7.0 旧基线，已挪出信息库树）
+  - deliverables/maintainable（旧工作区测试 fixtures，归档于 E:\zcode\_wanyu_archive\）
+
+━━━━ 门禁状态 ━━━━
+  verify_sources: 14/14 | validate_canonical: PASS | verify_site: 302/0
+  check_release: 全绿 | check_secrets: clean | 正式套件: 222/OK
+  node: wanyu_core 7/0 / major_city 2/0 / user_store 5/0 / datastore PASS
+
+━━━━ 提交状态 ━━━━
+  批次3（15文件）在 git 暂存区；批次4（20改+11新）在工作区。
+  Mimosa 全仓扫描拦截提交（32H/55M 全为既有工具链，0项来自本批 diff），
+  与批次1同源。裁决后建议按 批次3→批次4 两笔分层提交。

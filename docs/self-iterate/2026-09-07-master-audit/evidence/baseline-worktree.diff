@@ -1,0 +1,121 @@
+diff --git "a/\347\275\221\347\253\231/assets/maintainable-site.css.gz" "b/\347\275\221\347\253\231/assets/maintainable-site.css.gz"
+index 3d16850..552adfc 100644
+Binary files "a/\347\275\221\347\253\231/assets/maintainable-site.css.gz" and "b/\347\275\221\347\253\231/assets/maintainable-site.css.gz" differ
+diff --git "a/\347\275\221\347\253\231/assets/maintainable-site.js.gz" "b/\347\275\221\347\253\231/assets/maintainable-site.js.gz"
+index 3b71e27..d63b5ba 100644
+Binary files "a/\347\275\221\347\253\231/assets/maintainable-site.js.gz" and "b/\347\275\221\347\253\231/assets/maintainable-site.js.gz" differ
+diff --git "a/\347\275\221\347\253\231/assets/v17-exam-picker.css.gz" "b/\347\275\221\347\253\231/assets/v17-exam-picker.css.gz"
+index 76199cd..496f8c5 100644
+Binary files "a/\347\275\221\347\253\231/assets/v17-exam-picker.css.gz" and "b/\347\275\221\347\253\231/assets/v17-exam-picker.css.gz" differ
+diff --git "a/\347\275\221\347\253\231/assets/v17-search.css.gz" "b/\347\275\221\347\253\231/assets/v17-search.css.gz"
+index 84991af..e9a8768 100644
+Binary files "a/\347\275\221\347\253\231/assets/v17-search.css.gz" and "b/\347\275\221\347\253\231/assets/v17-search.css.gz" differ
+diff --git "a/\347\275\221\347\253\231/assets/v17-tools.css.gz" "b/\347\275\221\347\253\231/assets/v17-tools.css.gz"
+index f583f36..0239f0e 100644
+Binary files "a/\347\275\221\347\253\231/assets/v17-tools.css.gz" and "b/\347\275\221\347\253\231/assets/v17-tools.css.gz" differ
+diff --git "a/\347\275\221\347\253\231/assets/v17-tools.js.gz" "b/\347\275\221\347\253\231/assets/v17-tools.js.gz"
+index 66e8838..9440b6b 100644
+Binary files "a/\347\275\221\347\253\231/assets/v17-tools.js.gz" and "b/\347\275\221\347\253\231/assets/v17-tools.js.gz" differ
+diff --git "a/\347\275\221\347\253\231/sw.js.gz" "b/\347\275\221\347\253\231/sw.js.gz"
+index f55535e..6c89420 100644
+Binary files "a/\347\275\221\347\253\231/sw.js.gz" and "b/\347\275\221\347\253\231/sw.js.gz" differ
+diff --git "a/\351\241\271\347\233\256\346\272\220\347\240\201/tests/test_frontend_data_audit.py" "b/\351\241\271\347\233\256\346\272\220\347\240\201/tests/test_frontend_data_audit.py"
+index fd6cef2..554889a 100644
+--- "a/\351\241\271\347\233\256\346\272\220\347\240\201/tests/test_frontend_data_audit.py"
++++ "b/\351\241\271\347\233\256\346\272\220\347\240\201/tests/test_frontend_data_audit.py"
+@@ -100,7 +100,18 @@ class FrontendDataAuditTests(unittest.TestCase):
+                 source_by_id = {_job_id(row): row for row in rows}
+                 for lite_row in lite_rows:
+                     source = source_by_id[_job_id(lite_row)]
+-                    self.assertTrue(all(source.get(key) == value for key, value in lite_row.items()), f"{site} {cycle} lite value drift")
++                    # A4-B1 口径：值字段仍逐字对账；ji/ss 派生元数据单独强校验
++                    # （ji 必须指向同 job_id 的行，与 verify_maintainable_site 同口径）。
++                    ji = lite_row.get("ji")
++                    if ji is not None:
++                        self.assertIsInstance(ji, int)
++                        self.assertTrue(0 <= ji < len(rows), f"{site} {cycle} ji 越界")
++                        self.assertEqual(_job_id(rows[ji]), _job_id(lite_row), f"{site} {cycle} ji locator")
++                    self.assertIn(lite_row.get("ss"), (None, "v", "b", "d"), f"{site} {cycle} ss 枚举")
++                    self.assertTrue(
++                        all(key in ("ji", "ss") or source.get(key) == value for key, value in lite_row.items()),
++                        f"{site} {cycle} lite value drift",
++                    )
+                 self.assertEqual(len(lite_rows), loaded["positions"]["row_count"])
+                 self.assertEqual(set(lite_ids), {str(row["record_id"]) for row in loaded["positions"]["rows"]})
+                 self.assertEqual(len(lite_rows), loaded["major_city"]["rows_total"])
+diff --git "a/\351\241\271\347\233\256\346\272\220\347\240\201/tools/anhui_web/templates/maintainable-site.js" "b/\351\241\271\347\233\256\346\272\220\347\240\201/tools/anhui_web/templates/maintainable-site.js"
+index d5b0c03..2980ab4 100644
+--- "a/\351\241\271\347\233\256\346\272\220\347\240\201/tools/anhui_web/templates/maintainable-site.js"
++++ "b/\351\241\271\347\233\256\346\272\220\347\240\201/tools/anhui_web/templates/maintainable-site.js"
+@@ -1025,6 +1025,21 @@
+     return `<span class="maint-value-null">${escapeHtml(detailStatusLabel(status || 'unavailable'))}</span>`;
+   };
+   const positionIndexRow = (positions, recordId) => (positions?.rows || []).find((item) => String(item.record_id) === String(recordId));
++  /* A4-B1：lite 行 + 周期级来源登记 ⇒ 现场重建证据对象。
++     ss 分类码与 build_position_index._source_status 三分支一致：v=verified/官方、b=source_bundle、d=derived。 */
++  const deriveSource = (row, meta) => {
++    const ss = row?.ss === 'v' || row?.ss === 'b' || row?.ss === 'd' ? row.ss : 'd';
++    const status = ss === 'v' ? 'verified' : (ss === 'b' ? 'source_bundle' : 'derived');
++    const method = ss === 'v' ? 'official_page' : ss;
++    return {
++      status,
++      method,
++      source_ref: meta?.source_ref || 'jobs.json',
++      locator: Number.isInteger(row?.ji) ? `jobs.json#allMajors.rows[${row.ji}]` : (meta?.source_ref || 'jobs.json'),
++      observed_at: meta?.observed_at || null,
++      note: meta?.evidence_note || '详情展示源字段；目录清洗不覆盖原始岗位文本',
++    };
++  };
+   const renderDetailDrawer = (row, indexRow, historyEntry) => {
+     const source = indexRow?.source || {};
+     const recordId = row.job_id || row.row_id || row.code || '';
+@@ -1104,10 +1119,17 @@
+   const openDetail = async (recordId, options = {}) => {
+     if (detailInflight) return detailInflight;
+     detailInflight = (async () => {
++    const lite = state.modules.get(`${state.cycle}:jobs_lite`) || await loadModule(state.cycle, 'jobs_lite');
++    let row = rowsFor(lite).find((item) => String(item.job_id || item.row_id || item.code) === String(recordId));
++    let indexRow = null;
++    if (row) {
++      indexRow = { source: deriveSource(row, (lite && lite.allMajors && lite.allMajors.meta) || {}) };
++    } else {
+     const jobs = state.modules.get(`${state.cycle}:jobs`) || await loadModule(state.cycle, 'jobs'); const positions = state.modules.get(`${state.cycle}:positions`) || await loadModule(state.cycle, 'positions');
+-    const row = rowsFor(jobs).find((item) => String(item.job_id || item.row_id || item.code) === String(recordId));
++    row = rowsFor(jobs).find((item) => String(item.job_id || item.row_id || item.code) === String(recordId));
++    indexRow = positionIndexRow(positions, recordId);
++    }
+     if (!row) { setStatus('岗位详情不存在', 'error'); return; }
+-    const indexRow = positionIndexRow(positions, recordId);
+     const jobHistory = await loadJobHistory().catch(() => null);
+     const historyEntry = jobHistory?.jobs?.[jobHistoryKey(row)] || null;
+     state.detail = { recordId };
+diff --git "a/\351\241\271\347\233\256\346\272\220\347\240\201/tools/anhui_web/verify_maintainable_site.py" "b/\351\241\271\347\233\256\346\272\220\347\240\201/tools/anhui_web/verify_maintainable_site.py"
+index fe88f7f..b588f1a 100644
+--- "a/\351\241\271\347\233\256\346\272\220\347\240\201/tools/anhui_web/verify_maintainable_site.py"
++++ "b/\351\241\271\347\233\256\346\272\220\347\240\201/tools/anhui_web/verify_maintainable_site.py"
+@@ -296,7 +296,24 @@ def verify_maintainable_site(site_dir: Path) -> dict[str, Any]:
+         _check(checks, f"{cycle}.jobs_lite.recruits", active_recruits, sum(int(item.get("num") or item.get("recruits") or 0) for item in lite_rows), f"{cycle} lite index recruits sum equals active recruits")
+         _check(checks, f"{cycle}.jobs_lite.no_excluded", True, not lite_ids or set(lite_ids).isdisjoint({str(r.get('job_id') or '') for r in excluded_rows}), f"{cycle} lite index contains no excluded rows")
+         source_by_id = {str(row.get("job_id") or ""): row for row in rows}
+-        _check(checks, f"{cycle}.jobs_lite.values_match_source", True, all(all(source_by_id.get(str(item.get("job_id") or ""), {}).get(key) == value for key, value in item.items()) for item in lite_rows), f"{cycle} lite row values are copied verbatim from jobs rows")
++
++        def _lite_row_ok(item: dict[str, Any]) -> bool:
++            # A4-B1 口径：值字段仍须逐字来自 jobs 行；新增派生元数据键单独强校验——
++            # ji 必须指向 jobs.json 中同 job_id 的行（溯源定位本身可验证），ss 限枚举。
++            ji = item.get("ji")
++            if ji is not None:
++                if not isinstance(ji, int) or isinstance(ji, bool) or not 0 <= ji < len(rows):
++                    return False
++                if str(rows[ji].get("job_id") or "") != str(item.get("job_id") or ""):
++                    return False
++            if item.get("ss") not in (None, "v", "b", "d"):
++                return False
++            return all(
++                key in ("ji", "ss") or source_by_id.get(str(item.get("job_id") or ""), {}).get(key) == value
++                for key, value in item.items()
++            )
++
++        _check(checks, f"{cycle}.jobs_lite.values_match_source", True, all(_lite_row_ok(item) for item in lite_rows), f"{cycle} lite row values are copied verbatim from jobs rows (A4-B1: ji locator and ss code validated)")
+ 
+     expected_summary = {
+         "cycle_count": 3,

@@ -1,0 +1,8 @@
+5e1b5e8 feat: P1/P2 升级第一批 — 专业匹配引擎v2 + 三年趋势预聚合 + 学历口径归一
+54f19fd fix: UI审计修复 — 代码安全/可访问性/CSS变量/触摸目标/暗色主题
+a22aa2b perf(detail): A4-B1 detail drawer lite-first — zero extra download
+774c7d5 ops(wan): A2 closeout - nginx cache config + deploy_wan.sh canonical refactor
+05eae45 docs: add v17.8.6 handover entry doc and prepend changelist block
+0b9f49a Merge pull request #2 from 2421873411a-rgb/fix/v17.8.6-release-integrity
+abebad3 docs: record v17.8.6 final acceptance evidence
+04abaeb chore: gitignore 网站.previous rollback point and smoke artifacts

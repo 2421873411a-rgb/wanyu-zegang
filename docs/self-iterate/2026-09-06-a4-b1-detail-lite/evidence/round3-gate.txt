@@ -1,0 +1,10 @@
+== 批次4（A4-B1）回归门汇总（2026-09-06） ==
+正式套件 27 模块: Ran 222 tests in 628.752s → OK, SUITE-EXIT=0（无管道直取退出码；/tmp/wanyu_suite_a4b1_final.log）
+  · 首轮 221/222：test_frontend_data_audit 的 lite 逐字旧口径断言 → 按更强口径演化（值字段逐字 + ji 溯源强校验 + ss 枚举）后全绿
+verify_maintainable_site ../网站: 302 passed, 0 failed（values_match_source 已演化并保持 302 总数口径）
+check_release.sh ../网站: all gates green（?v=17.8.6 / sw wanyu-shell-v49 / manifest 一致）
+node: wanyu_core 7/0 · major_city 2/0 · user_store 5/0 · datastore contract PASS
+R1 考卷: 红 0/8（git stash 真实复现）→ 绿 26/26
+R2 考卷: 24/24（站点树字段对账 + manifest 哈希链 + gz 同步 + 模板一致性）
+体积: lite.gz 2024=683,178 / 2025=716,281 / 2026=619,747 —— 全部 ≤ perf_budget 棘轮 780,000
+效果: 岗位详情打开关键路径 整包 jobs(11-13MB)+positions(5-5.9MB) → 0（lite 复用）；排除行深链保留整包回退

@@ -1,0 +1,28 @@
+PASS | 2024: lite 行数守恒(10017) 
+PASS | 2024: 6 详情字段逐行等值(10017行) | 首例漂移 []
+PASS | 2024: ji=jobs.json 行号严格一致 | 首例 []
+PASS | 2024: ss 来源分类码逐行对齐 _source_status | 不一致 0 行
+PASS | 2024: 周期级来源登记进 meta(source_ref/observed_at/note) | ref='tools/anhui_web/data/cycles/2024/all_majors_2024.json' at=None
+PASS | 2024: gz 683,178 ≤ 棘轮 780,000 
+PASS | 2024: gz 涨幅 ≤30%（基线 541,705；25% 预估校准至实测——2024 score_observation 全量在册，正式棘轮 780KB 不变） | +26.1%
+PASS | 2025: lite 行数守恒(10150) 
+PASS | 2025: 6 详情字段逐行等值(10150行) | 首例漂移 []
+PASS | 2025: ji=jobs.json 行号严格一致 | 首例 []
+PASS | 2025: ss 来源分类码逐行对齐 _source_status | 不一致 0 行
+PASS | 2025: 周期级来源登记进 meta(source_ref/observed_at/note) | ref='tools/anhui_web/data/cycles/2025/all_majors_2025.json' at=None
+PASS | 2025: gz 716,281 ≤ 棘轮 780,000 
+PASS | 2025: gz 涨幅 ≤30%（基线 578,689；25% 预估校准至实测——2024 score_observation 全量在册，正式棘轮 780KB 不变） | +23.8%
+PASS | 2026: lite 行数守恒(8401) 
+PASS | 2026: 6 详情字段逐行等值(8401行) | 首例漂移 []
+PASS | 2026: ji=jobs.json 行号严格一致 | 首例 []
+PASS | 2026: ss 来源分类码逐行对齐 _source_status | 不一致 0 行
+PASS | 2026: 周期级来源登记进 meta(source_ref/observed_at/note) | ref='tools/anhui_web/data/all_majors_2026.json' at='2026-08-28'
+PASS | 2026: gz 619,747 ≤ 棘轮 780,000 
+PASS | 2026: gz 涨幅 ≤30%（基线 501,627；25% 预估校准至实测——2024 score_observation 全量在册，正式棘轮 780KB 不变） | +23.5%
+PASS | openDetail 主路径 lite-first（先取 jobs_lite 再找行） 
+PASS | openDetail 不再无条件整包加载 jobs+positions（仅排除行回退分支可加载） | jobs 整包只允许出现在 lite 未命中的回退分支之后
+PASS | deriveSource 用 ss 分类码三分映射(v/b/d→verified/source_bundle/derived) 
+PASS | deriveSource 用 ji 重建 locator 
+PASS | boundary_note 同步新契约（ji 行号 + 周期级来源登记 + ss 分类码） | 轻索引保留检索、榜单、地图与详情抽屉所需列；来源证据为周期级登记（source_ref/材料取得日期），行级 ss=来源分类码（v/b/d）、locator=j
+== 26/26 checks passed ==
+R1-green-exit=0
