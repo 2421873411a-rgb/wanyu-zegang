@@ -715,6 +715,7 @@ def _index_html(three_year: dict[str, object] | None = None) -> str:
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light dark">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' __CSP_SCRIPT_HASHES__; connect-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
   <meta name="description" content="安徽三年公考/事业编岗位数据：按专业、城市、学历找岗位，看竞争比、入围线与各地待遇。数据来自官方公告，来源可核对。">
   <title>皖域择岗 · 安徽公考岗位查询</title>
   {THEME_BOOT}
@@ -808,6 +809,23 @@ def build_maintainable_site(root: Path = ROOT, output_dir: Path = DEFAULT_OUTPUT
     output_dir = Path(output_dir).resolve()
     bundles = build_unified_bundles(root)
     return assemble_maintainable_site(bundles, root=root, output_dir=output_dir)
+
+
+def _apply_csp_script_hashes(html: str) -> str:
+    """CSP script-src 白名单：对页面里全部内联 <script> 计算构建期 sha256。
+
+    主题引导与 SW 注册都是构建期常量；哈希随源码自动演化，脚本一变 CSP 即更新，
+    避免手抄哈希漂移。"""
+    import base64
+    import hashlib
+    import re as _re
+
+    hashes: list[str] = []
+    for match in _re.finditer(r"<script(?![^>]*src=)[^>]*>(.*?)</script>", html, _re.S):
+        digest = hashlib.sha256(match.group(1).encode("utf-8")).digest()
+        hashes.append(f"'sha256-{base64.b64encode(digest).decode('ascii')}'")
+    script_src = " ".join(hashes) if hashes else "'none'"
+    return html.replace("__CSP_SCRIPT_HASHES__", script_src)
 
 
 def assemble_maintainable_site(
@@ -1066,7 +1084,8 @@ def assemble_maintainable_site(
         manifest["source_chain"]["supplement_evidence"] = "tools/anhui_web/build_supplement_evidence.py"
     _write_json(output_dir / "data" / "site-manifest.json", manifest)
     output_dir.mkdir(parents=True, exist_ok=True)
-    (output_dir / "index.html").write_text(_index_html(audit_payload.get("summary")), encoding="utf-8", newline="\n")
+    index_html = _index_html(audit_payload.get("summary"))
+    (output_dir / "index.html").write_text(_apply_csp_script_hashes(index_html), encoding="utf-8", newline="\n")
     assets = output_dir / "assets"
     assets.mkdir(parents=True, exist_ok=True)
     for name in ("maintainable-site.js", "maintainable-site.css", "v17-ui-upgrade.css", "maintainable-tokens.css", "maintainable-data.js", "maintainable-major-city.js", "maintainable-user-store.js", "v17-exam-picker.css", "v17-search.css", "v17-tools.css", "v17-tools.js", "og-card.png"):

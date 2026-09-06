@@ -28,3 +28,7 @@ tools/anhui_web/.deploy_wan.local
 *.db
 网站.previous/
 项目源码/tests/artifacts/
+
+# 审计截图存证（~20MB，仅存磁盘：docs/self-iterate/2026-09-07-master-audit/shots）
+docs/self-iterate/2026-09-07-master-audit/shots/
+项目源码/deliverables/

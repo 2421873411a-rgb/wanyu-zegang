@@ -36,7 +36,7 @@ MODULE_SCHEMAS = {
     "palette": "wanyu-maintainable-palette/v1",
     "jobs_lite": "wanyu-maintainable-jobs-lite/v1",
     "major_city": "wanyu-maintainable-major-city/v1",
-    "major_index": "wanyu-major-index/v1",
+    "major_index": "wanyu-major-index/v2",
     "req_fields": "wanyu-req-fields/v1",
 }
 
@@ -296,7 +296,24 @@ def verify_maintainable_site(site_dir: Path) -> dict[str, Any]:
         _check(checks, f"{cycle}.jobs_lite.recruits", active_recruits, sum(int(item.get("num") or item.get("recruits") or 0) for item in lite_rows), f"{cycle} lite index recruits sum equals active recruits")
         _check(checks, f"{cycle}.jobs_lite.no_excluded", True, not lite_ids or set(lite_ids).isdisjoint({str(r.get('job_id') or '') for r in excluded_rows}), f"{cycle} lite index contains no excluded rows")
         source_by_id = {str(row.get("job_id") or ""): row for row in rows}
-        _check(checks, f"{cycle}.jobs_lite.values_match_source", True, all(all(source_by_id.get(str(item.get("job_id") or ""), {}).get(key) == value for key, value in item.items()) for item in lite_rows), f"{cycle} lite row values are copied verbatim from jobs rows")
+
+        def _lite_row_ok(item: dict[str, Any]) -> bool:
+            # A4-B1 口径：值字段仍须逐字来自 jobs 行；新增派生元数据键单独强校验——
+            # ji 必须指向 jobs.json 中同 job_id 的行（溯源定位本身可验证），ss 限枚举。
+            ji = item.get("ji")
+            if ji is not None:
+                if not isinstance(ji, int) or isinstance(ji, bool) or not 0 <= ji < len(rows):
+                    return False
+                if str(rows[ji].get("job_id") or "") != str(item.get("job_id") or ""):
+                    return False
+            if item.get("ss") not in (None, "v", "b", "d"):
+                return False
+            return all(
+                key in ("ji", "ss") or source_by_id.get(str(item.get("job_id") or ""), {}).get(key) == value
+                for key, value in item.items()
+            )
+
+        _check(checks, f"{cycle}.jobs_lite.values_match_source", True, all(_lite_row_ok(item) for item in lite_rows), f"{cycle} lite row values are copied verbatim from jobs rows (A4-B1: ji locator and ss code validated)")
 
     expected_summary = {
         "cycle_count": 3,

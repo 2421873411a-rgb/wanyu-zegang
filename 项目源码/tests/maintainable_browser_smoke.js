@@ -328,7 +328,8 @@ async function waitForServer(url) {
     assert(requests.some((url) => requestPathOf(url).endsWith('/data/cycles/2026/jobs.json')));
     assert(requests.some((url) => requestPathOf(url).endsWith('/data/audit/supplement-20260904.json')));
     assert(requests.some((url) => requestPathOf(url).endsWith('/data/cycles/2026/catalog.json')));
-    assert(requests.some((url) => requestPathOf(url).endsWith('/data/cycles/2026/positions.json')));
+    // A4-B1 详情 lite-first：岗位详情零额外下载（复用 jobs_lite），positions.json 仅排除行整包回退时才拉取
+    assert(requests.some((url) => requestPathOf(url).endsWith('/data/cycles/2026/jobs_lite.json')));
     assert(requests.some((url) => requestPathOf(url).endsWith('/data/cycles/2025/changes.json')));
     assert(requests.some((url) => requestPathOf(url).endsWith('/data/cycles/2026/changes.json')));
     assert(requests.some((url) => requestPathOf(url).endsWith('/data/cycles/2025/overview.json')));

@@ -100,7 +100,18 @@ class FrontendDataAuditTests(unittest.TestCase):
                 source_by_id = {_job_id(row): row for row in rows}
                 for lite_row in lite_rows:
                     source = source_by_id[_job_id(lite_row)]
-                    self.assertTrue(all(source.get(key) == value for key, value in lite_row.items()), f"{site} {cycle} lite value drift")
+                    # A4-B1 口径：值字段仍逐字对账；ji/ss 派生元数据单独强校验
+                    # （ji 必须指向同 job_id 的行，与 verify_maintainable_site 同口径）。
+                    ji = lite_row.get("ji")
+                    if ji is not None:
+                        self.assertIsInstance(ji, int)
+                        self.assertTrue(0 <= ji < len(rows), f"{site} {cycle} ji 越界")
+                        self.assertEqual(_job_id(rows[ji]), _job_id(lite_row), f"{site} {cycle} ji locator")
+                    self.assertIn(lite_row.get("ss"), (None, "v", "b", "d"), f"{site} {cycle} ss 枚举")
+                    self.assertTrue(
+                        all(key in ("ji", "ss") or source.get(key) == value for key, value in lite_row.items()),
+                        f"{site} {cycle} lite value drift",
+                    )
                 self.assertEqual(len(lite_rows), loaded["positions"]["row_count"])
                 self.assertEqual(set(lite_ids), {str(row["record_id"]) for row in loaded["positions"]["rows"]})
                 self.assertEqual(len(lite_rows), loaded["major_city"]["rows_total"])
