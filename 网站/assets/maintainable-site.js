@@ -1025,6 +1025,21 @@
     return `<span class="maint-value-null">${escapeHtml(detailStatusLabel(status || 'unavailable'))}</span>`;
   };
   const positionIndexRow = (positions, recordId) => (positions?.rows || []).find((item) => String(item.record_id) === String(recordId));
+  /* A4-B1：lite 行 + 周期级来源登记 ⇒ 现场重建证据对象。
+     ss 分类码与 build_position_index._source_status 三分支一致：v=verified/官方、b=source_bundle、d=derived。 */
+  const deriveSource = (row, meta) => {
+    const ss = row?.ss === 'v' || row?.ss === 'b' || row?.ss === 'd' ? row.ss : 'd';
+    const status = ss === 'v' ? 'verified' : (ss === 'b' ? 'source_bundle' : 'derived');
+    const method = ss === 'v' ? 'official_page' : ss;
+    return {
+      status,
+      method,
+      source_ref: meta?.source_ref || 'jobs.json',
+      locator: Number.isInteger(row?.ji) ? `jobs.json#allMajors.rows[${row.ji}]` : (meta?.source_ref || 'jobs.json'),
+      observed_at: meta?.observed_at || null,
+      note: meta?.evidence_note || '详情展示源字段；目录清洗不覆盖原始岗位文本',
+    };
+  };
   const renderDetailDrawer = (row, indexRow, historyEntry) => {
     const source = indexRow?.source || {};
     const recordId = row.job_id || row.row_id || row.code || '';
@@ -1104,10 +1119,17 @@
   const openDetail = async (recordId, options = {}) => {
     if (detailInflight) return detailInflight;
     detailInflight = (async () => {
+    const lite = state.modules.get(`${state.cycle}:jobs_lite`) || await loadModule(state.cycle, 'jobs_lite');
+    let row = rowsFor(lite).find((item) => String(item.job_id || item.row_id || item.code) === String(recordId));
+    let indexRow = null;
+    if (row) {
+      indexRow = { source: deriveSource(row, (lite && lite.allMajors && lite.allMajors.meta) || {}) };
+    } else {
     const jobs = state.modules.get(`${state.cycle}:jobs`) || await loadModule(state.cycle, 'jobs'); const positions = state.modules.get(`${state.cycle}:positions`) || await loadModule(state.cycle, 'positions');
-    const row = rowsFor(jobs).find((item) => String(item.job_id || item.row_id || item.code) === String(recordId));
+    row = rowsFor(jobs).find((item) => String(item.job_id || item.row_id || item.code) === String(recordId));
+    indexRow = positionIndexRow(positions, recordId);
+    }
     if (!row) { setStatus('岗位详情不存在', 'error'); return; }
-    const indexRow = positionIndexRow(positions, recordId);
     const jobHistory = await loadJobHistory().catch(() => null);
     const historyEntry = jobHistory?.jobs?.[jobHistoryKey(row)] || null;
     state.detail = { recordId };
