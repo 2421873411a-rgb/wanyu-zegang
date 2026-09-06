@@ -31,15 +31,11 @@
     return true;
   });
 
-/**
- * 生成竞争热力图HTML
- * P0-9: jobs 可传入 {preaggCityStats:{城市:{jobs,recruits,examinees}}}（derived.exam_scope 预聚合，
- * 已按考试口径过滤），此时不再逐行解析全量岗位表
- */
-window.renderCompetitionHeatmap = (jobs, cycle, examFilter = '全部', examSub = '') => {
-  const preagg = jobs?.preaggCityStats || null;
-  const cityStats = preagg ? Object.fromEntries(Object.entries(preagg).map(([city, s]) => [city, { jobs: s.jobs || 0, recruits: s.recruits || 0, examinees: s.examinees || 0 }])) : {};
-  if (!preagg) {
+  /**
+   * 生成竞争热力图HTML
+   */
+  window.renderCompetitionHeatmap = (jobs, cycle, examFilter = '全部', examSub = '') => {
+    const cityStats = {};
     const rows = filterRowsByExam(jobs?.allMajors?.rows || [], examFilter, examSub);
 
     rows.forEach(row => {
@@ -52,7 +48,6 @@ window.renderCompetitionHeatmap = (jobs, cycle, examFilter = '全部', examSub =
       cityStats[city].recruits += Number(row.num ?? row.recruits ?? 0);
       cityStats[city].examinees += Number(row.competition_observations?.examinees?.value ?? row.bm ?? 0);
     });
-  }
 
     const cities = Object.entries(cityStats)
       .map(([city, stats]) => ({
@@ -60,8 +55,7 @@ window.renderCompetitionHeatmap = (jobs, cycle, examFilter = '全部', examSub =
         ...stats,
         ratio: stats.examinees > 0 && stats.recruits > 0 ? (stats.examinees / stats.recruits).toFixed(1) : null
       }))
-      // 并列时按岗位数、城市名裁决，保证预聚合与全量两条输入路径输出一致（P0-9）
-      .sort((a, b) => (Number(b.ratio) || 0) - (Number(a.ratio) || 0) || b.jobs - a.jobs || a.city.localeCompare(b.city, 'zh'));
+      .sort((a, b) => (Number(b.ratio) || 0) - (Number(a.ratio) || 0));
 
     if (!cities.length) {
       return `<section class="maint-panel"><header><div><h2>各城市竞争热度</h2></div></header><p class="empty">当前筛选下暂无岗位数据</p></section>`;
@@ -94,17 +88,14 @@ window.renderCompetitionHeatmap = (jobs, cycle, examFilter = '全部', examSub =
     return `<section class="maint-panel"><header><div><h2>各城市竞争热度${examLabel}</h2></div></header><div class="heatmap">${rowsHtml}</div><p class="heatmap-hint">竞争比 = 报名人数 ÷ 招录人数，数值越大竞争越激烈；"—" 表示官方未逐岗公布，不做推断</p></section>`;
   };
 
-/**
- * 生成城市对比表格HTML（响应考试类别筛选）
- * P0-9: 同样支持 {preaggCityStats} 预聚合输入（已按考试口径过滤）
- */
-window.renderCityComparison = (jobs, salary, cycle, examFilter = '全部', examSub = '') => {
-  const preagg = jobs?.preaggCityStats || null;
-  const cityStats = preagg ? Object.fromEntries(Object.entries(preagg).map(([city, s]) => [city, { jobs: s.jobs || 0, recruits: s.recruits || 0 }])) : {};
-  if (!preagg) {
+  /**
+   * 生成城市对比表格HTML（响应考试类别筛选）
+   */
+  window.renderCityComparison = (jobs, salary, cycle, examFilter = '全部', examSub = '') => {
     const rows = filterRowsByExam(jobs?.allMajors?.rows || [], examFilter, examSub);
 
     // 按归并后的城市统计
+    const cityStats = {};
     rows.forEach(row => {
       const city = normalizeCity(row.city);
       if (!city) return;
@@ -112,7 +103,6 @@ window.renderCityComparison = (jobs, salary, cycle, examFilter = '全部', examS
       cityStats[city].jobs++;
       cityStats[city].recruits += Number(row.num ?? row.recruits ?? 0);
     });
-  }
 
     const salaryData = salary?.series || {};
     const gwyData = salaryData['公务员'] || {};
@@ -127,8 +117,7 @@ window.renderCityComparison = (jobs, salary, cycle, examFilter = '全部', examS
         gwySalary: gwyData[city]?.['3年'] || '—',
         sybSalary: sybData[city]?.['3年'] || '—'
       }))
-      // 并列时按招录人数、城市名裁决，保证预聚合与全量两条输入路径输出一致（P0-9）
-      .sort((a, b) => b.jobs - a.jobs || b.recruits - a.recruits || a.city.localeCompare(b.city, 'zh'))
+      .sort((a, b) => b.jobs - a.jobs)
       .slice(0, 10);
 
     if (!cities.length) {
