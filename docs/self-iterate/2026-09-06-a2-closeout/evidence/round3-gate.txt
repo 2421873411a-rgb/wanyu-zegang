@@ -1,0 +1,9 @@
+== 批次3 回归门汇总（2026-09-06） ==
+verify_sources: 14/14 一致 (exit 0)
+validate_canonical --root 项目源码: PASS（schema+守恒+溯源+score_state+2026 回归锁定）
+verify_maintainable_site ../网站: 302 passed, 0 failed
+check_release.sh ../网站: all gates green (?v=17.8.6 / sw v49 / manifest 一致)
+check_secrets.sh tools docs: clean
+DRY_RUN=1 deploy_wan.sh: exit 0（见 round2-DRY-deploy.txt）
+正式套件 27 模块: Ran 222 tests in 700.841s OK SUITE-EXIT=0（无管道直取退出码）
+考卷: R1 8/11→12/12, R2 5/10→10/10（红门以真实还原产物复现）

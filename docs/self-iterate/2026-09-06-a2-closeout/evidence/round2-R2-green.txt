@@ -1,0 +1,12 @@
+PASS | 不再依赖遗留 deliverables/maintainable（v17.8.6 未跟踪该目录，正式仓库上部署直接中止） 
+PASS | 不再打包遗留单文件 皖域择岗总览.html（v17.8.6 方案A 已退役） 
+PASS | 打包对象改为 canonical 网站/ 树（SITE_DIR 指向仓库根 网站/） 
+PASS | preflight verify_maintainable_site 指向 "$SITE_DIR"（已实测 canonical 树 302/0） 
+PASS | 远端保持 SITE_ROOT/maintainable/ 布局（tar 内容物为 maintainable/） 
+PASS | 线上冒烟 URL 用 v17.8.6 真实路径（/maintainable/data/site-manifest.json） 
+PASS | APPLY_NGINX 仍安装 R1 同一 perf conf 
+PASS | DRY_RUN 安全默认仍为 1（红线：不显式在场不连生产） 
+PASS | SSH_HOST 仍走 gitignored .deploy_wan.local（P0-7 纪律） 
+PASS | bash -n 语法通过 
+== 10/10 checks passed ==
+R2-green-exit=0

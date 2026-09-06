@@ -1,0 +1,14 @@
+PASS | perf conf 已入库（git ls-files 非空） | "\351\241\271\347\233\256\346\272\220\347\240\201/docs/ops/wan-kaogong-perf.conf"
+PASS | /data/ location 存在（锚定 /maintainable/data/） | ~* ^/maintainable/data/
+PASS | /data/ 头 = public, max-age=31536000, immutable | add_header Cache-Control "public, max-age=31536000, immutable";
+PASS | index.html+sw.js 有 no-cache location（SW/manifest 驱动的前提） | add_header Cache-Control "no-cache";
+PASS | conf 保留 gzip_static on（P0-9① 成果不倒退） 
+PASS | data loader 仍为 manifest 驱动 ?sha= URL 
+PASS | 带 sha 走字节校验降级、无 sha 才全量 SHA-256 校验（A2⑤ 校验降级回退） 
+PASS | SW 对 ?sha= JSON 走 cache-first 
+PASS | SW 清理同路径旧 sha 条目（activate 语义） 
+PASS | gzip_static 前提在盘: index.html.gz 
+PASS | gzip_static 前提在盘: sw.js.gz 
+PASS | gzip_static 前提在盘: data/site-manifest.json.gz 
+== 12/12 checks passed ==
+R1-green-exit=0

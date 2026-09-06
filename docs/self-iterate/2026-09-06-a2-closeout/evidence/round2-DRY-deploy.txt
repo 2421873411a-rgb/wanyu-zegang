@@ -1,0 +1,9 @@
+[1;36m[deploy_wan][0m repo=/e/zcode/择岗/项目源码 site=网站（v17.8.6 发布树，含 .gz 预压缩）
+[1;36m[deploy_wan][0m 当前为 DRY_RUN；真正部署请：DRY_RUN=0 deploy_wan.sh
+[1;36m[deploy_wan][0m DRY: python tools/anhui_web/verify_maintainable_site.py /e/zcode/择岗/网站
+[1;36m[deploy_wan][0m 打包 网站/ → maintainable/ → /tmp/wan-deploy-20260906015650.tgz
+[1;36m[deploy_wan][0m DRY: cp -r 网站 <stage>/maintainable && tar czf /tmp/wan-deploy-20260906015650.tgz -C <stage> maintainable
+[1;36m[deploy_wan][0m DRY: scp -i /c/Users/24218/.ssh/wanyu111_fixed.pem /tmp/wan-deploy-20260906015650.tgz ubuntu@<REDACTED-HOST>:/tmp/
+[1;36m[deploy_wan][0m 远端解包到 /var/www/wan.kaogong.art/maintainable
+[1;36m[deploy_wan][0m DRY: ssh -i /c/Users/24218/.ssh/wanyu111_fixed.pem ubuntu@<REDACTED-HOST> 'sudo bash -s' <<REMOTE ... (见下)
+DRY_RUN=1 bash deploy_wan.sh → exit 0（输出节选，IP 已脱敏）

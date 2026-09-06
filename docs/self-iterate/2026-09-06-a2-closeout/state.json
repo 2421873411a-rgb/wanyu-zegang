@@ -1,0 +1,83 @@
+{
+ "goal": "批次3（A2 收口）：v2 计划 A2「?sha= 内容寻址缓存」五要素对账——主体已随 6196609/v17.8.6 发布，本批补齐唯一缺口④「/data/ immutable 头」（conf 分级缓存+入库）并修复 deploy_wan.sh 与 v17.8.6 发布树的脱节",
+ "created": "2026-09-06T00:00:00+08:00",
+ "deadline": null,
+ "max_rounds": 8,
+ "criteria": [
+  "R1: 项目源码/docs/ops/wan-kaogong-perf.conf 已入库（git ls-files 非空）；含锚定 /maintainable/data/ 的 location 且头为 public, max-age=31536000, immutable；index.html+sw.js 有 no-cache location；gzip_static on 保留",
+  "R2: deploy_wan.sh 不再引用 deliverables/maintainable 与 皖域择岗总览.html；打包 canonical 网站/ 树并保持远端 maintainable/ 布局；preflight verify_maintainable_site.py \"$SITE_DIR\"（实测 canonical 树 302/0）；冒烟 URL 用 v17.8.6 真实路径；DRY_RUN 默认 1 与 .deploy_wan.local 纪律不变；bash -n 过",
+  "回归门: 正式套件 27 模块 222 tests 全绿（最终树） + check_release.sh 全绿 + check_secrets.sh clean + verify_maintainable_site.py 网站 302/0"
+ ],
+ "assumptions": [
+  "交接包 v17.8.6 已验收落盘（锁 14/14、canonical PASS、302/0）",
+  "w1plus baton 已过时：A2 主体在续作机 6196609 落地，本批=收口而非重做",
+  "不连生产/不部署（DRY_RUN 红线不变）；只改部署工具与 ops 配置，不动 网站/ 内容树",
+  "线上 nginx server{} 的 include 由站长人工添加一次（既有设计）；add_header 覆盖继承的风险在 conf 注释里向站长声明",
+  "本机网站-lite 陈旧副本归档至 E:\\zcode\\_wanyu_archive\\ 后从 canonical 重建（正式门断言 lite=同步副本）；lite 删除决策仍属站长"
+ ],
+ "points": [
+  {
+   "id": "R1",
+   "desc": "A2④: /data/ immutable 头 + 缓存分级进 perf conf 并入库",
+   "status": "passed",
+   "deps": [],
+   "priority": "high",
+   "evidence": "evidence/round1-R1-red.txt (8/11) → evidence/round1-R1-green.txt (12/12)",
+   "note": "红门以真实还原产物复现（旧 8 行 conf + git restore --staged）。conf 三级缓存：/maintainable/data/ 与 /assets/ immutable 一年、index/sw/manifest no-cache；gzip_static/gzip_vary 保留；站长须知三条（add_header 继承覆盖/正则顺序/include 人工一次）写入注释",
+   "fail_streak": 0
+  },
+  {
+   "id": "R2",
+   "desc": "deploy_wan.sh 对齐 v17.8.6 发布树（conf 的运载工具）",
+   "status": "passed",
+   "deps": [],
+   "priority": "high",
+   "evidence": "evidence/round2-R2-red.txt (5/10) → evidence/round2-R2-green.txt (10/10) → evidence/round2-DRY-deploy.txt (exit 0, IP 脱敏)",
+   "note": "打包 deliverables+遗留单文件 → canonical 网站/（staging 拷贝改名 maintainable/ 保持远端布局）；preflight verify_maintainable_site \"$SITE_DIR\"；冒烟 URL 换 v17.8.6 真实路径。事故：SITE_DIR 初版误指 项目源码/网站 被 DRY 演练抓出并修复",
+   "fail_streak": 0
+  }
+ ],
+ "rounds": [
+  {
+   "n": 1,
+   "focus": "R1",
+   "change": "perf conf 重写（三级缓存分级）+ 首次 git 入库；r1 考卷先红后绿 12/12",
+   "evidence_file": "evidence/round1-R1-red.txt, evidence/round1-R1-green.txt",
+   "evidence_summary": "红 8/11 → 绿 12/12；A2 既有前端胜利以 8 项回归锁钉死",
+   "fail_type": "none",
+   "event": "Mimosa 拦 Bash 直写源码（含 git show 重定向）→ 改走 Write/Edit 通道"
+  },
+  {
+   "n": 2,
+   "focus": "R2",
+   "change": "deploy_wan.sh 重写对齐 canonical 网站/ 树；r2 考卷先红后绿 10/10；DRY 演练全流程 exit 0",
+   "evidence_file": "evidence/round2-R2-red.txt, evidence/round2-R2-green.txt, evidence/round2-DRY-deploy.txt",
+   "evidence_summary": "红 5/10 → 绿 10/10 → DRY exit 0（IP 脱敏）；SITE_DIR 路径 bug 被 DRY 抓出修复",
+   "fail_type": "SITE_DIR 初版误指 项目源码/网站（DRY 演练拦截，未到生产）",
+   "event": null
+  },
+  {
+   "n": 3,
+   "focus": "回归门",
+   "change": "环境修复：网站-lite 陈旧副本归档+从 canonical 重建（sync_lite_once.py）、旧工作区游离测试文件归档出树",
+   "evidence_file": "evidence/round3-gate.txt",
+   "evidence_summary": "首轮套件 2 failures 均为本机遗留假失败（+1 起管道 $? 误读为绿）；修复后三模块 36/36 OK；最终全量门结果回填",
+   "fail_type": "环境遗留 ×2（非本批引入）+ 管道退出码误读 ×1",
+   "event": "检查器自缺陷 ×2 先证伪（sw\\.js 转义坑/注释污染匹配）后修检查器"
+  }
+ ],
+ "dead_ends": [],
+ "baseline_commit": "05eae45 (v17.8.6-1, 工作树与 HEAD 一致)",
+ "rev": 4,
+ "baton": {
+  "focus": "批次3 双条件门达成，EXIT；commit 被 Mimosa 全仓扫描拦截（32H/55M 全为既有工具链，0 项来自本批 diff），15 文件留暂存区待晨会裁决",
+  "next": "晨会三选一（门禁 diff-only / 临时停用 / 复核既有标记）→ 补提交；下一批候选：A4 详情瘦身（16MB×2 实证痛点）→ P3 收藏变更提醒 → F1 检索竞态（v17.9 首修候选）"
+ },
+ "commit_status": {
+  "state": "deferred",
+  "reason": "mimosa_full_tree_scan_preexisting_findings",
+  "staged_files": 15,
+  "note": "与批次1 W1 专节同源；被标记文件均在 HEAD/远端历史中已存在"
+ },
+ "done": true
+}

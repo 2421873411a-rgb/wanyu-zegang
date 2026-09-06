@@ -1,0 +1,13 @@
+FAIL | perf conf 已入库（git ls-files 非空） | untracked: 文件只存在于本机，APPLY_NGINX 在正式仓库是断的
+FAIL | /data/ location 存在（锚定 /maintainable/data/） | missing: conf 无 /data/ 缓存头，回访仍走协商缓存
+FAIL | index.html+sw.js 有 no-cache location（SW/manifest 驱动的前提） | missing
+PASS | conf 保留 gzip_static on（P0-9① 成果不倒退） 
+PASS | data loader 仍为 manifest 驱动 ?sha= URL 
+PASS | 带 sha 走字节校验降级、无 sha 才全量 SHA-256 校验（A2⑤ 校验降级回退） 
+PASS | SW 对 ?sha= JSON 走 cache-first 
+PASS | SW 清理同路径旧 sha 条目（activate 语义） 
+PASS | gzip_static 前提在盘: index.html.gz 
+PASS | gzip_static 前提在盘: sw.js.gz 
+PASS | gzip_static 前提在盘: data/site-manifest.json.gz 
+== 8/11 checks passed ==
+R1-red-exit=1
