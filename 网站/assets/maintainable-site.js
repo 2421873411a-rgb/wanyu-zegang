@@ -33,8 +33,11 @@
     searchPage: 0,
     searchPageSize: 60,
     searchSteal: false,
-    searchSort: 'source',
+    searchSort: 'recruits',
+    searchCompetition: 'all',
     searchDensity: 'comfortable',
+    education: '',
+    matchMajor: '',
     detail: null,
     notice: '',
     renderToken: 0,
@@ -527,7 +530,7 @@
   const renderNav = () => {
     renderCyclePicker();
     renderMobileNav();
-    document.querySelectorAll('[data-maintain-view]').forEach((node) => node.classList.toggle('is-active', node.dataset.maintainView === state.view));
+    document.querySelectorAll('[data-maintain-view]').forEach((node) => { const active = node.dataset.maintainView === state.view; node.classList.toggle('is-active', active); if (active) node.setAttribute('aria-current', 'page'); else node.removeAttribute('aria-current'); });
   };
   const sparkline = (trend, city, cycles) => {
     const values = (cycles || []).map((item) => Number(trend?.[city]?.posts?.[item.cycle])).filter((value) => Number.isFinite(value));
@@ -959,14 +962,27 @@
     const filtered = all.filter((row) => {
       const rawMajor = normalize(row?.zy);
       const readableMajor = normalize(cleanMajorOption(row?.zy));
-      return (!query || normalize(sourceText(row)).includes(query))
-        && (!majorQuery || (tier ? rowTier(row) !== 9 : rawMajor.includes(majorQuery) || readableMajor.includes(majorQuery)))
-        && (!state.city || String(row.city || row.reg || '') === state.city)
-        && (!cityGroup || mapCityFor(row.city || row.reg) === cityGroup)
-        && (!state.exam || examRowMatches(row, state.exam))
-        && (!state.education || educationAllows(state.education, row.xl))
-        && (!state.searchSteal || stealEligible(row))
-        && !profileFail(row);
+      if (query && !normalize(sourceText(row)).includes(query)) return false;
+      if (majorQuery && !(tier ? rowTier(row) !== 9 : rawMajor.includes(majorQuery) || readableMajor.includes(majorQuery))) return false;
+      if (state.city && String(row.city || row.reg || '') !== state.city) return false;
+      if (cityGroup && mapCityFor(row.city || row.reg) !== cityGroup) return false;
+      if (state.exam && !examRowMatches(row, state.exam)) return false;
+      if (state.education && !educationAllows(state.education, row.xl)) return false;
+      if (state.searchSteal && !stealEligible(row)) return false;
+      if (profileFail(row)) return false;
+      if (state.searchCompetition !== 'all') {
+        const recruits = Number(row.num ?? row.recruits ?? 0);
+        const examinees = Number(row.competition_observations?.examinees?.value ?? row.bm ?? 0);
+        if (state.searchCompetition === 'unknown') { if (examinees > 0 && recruits > 0) return false; }
+        else {
+          if (!(examinees > 0 && recruits > 0)) return false;
+          const ratio = examinees / recruits;
+          if (state.searchCompetition === 'fierce' && ratio < 5) return false;
+          if (state.searchCompetition === 'medium' && (ratio < 2 || ratio >= 5)) return false;
+          if (state.searchCompetition === 'easy' && ratio >= 2) return false;
+        }
+      }
+      return true;
     });
     // 计算竞争比统计
     const competitionStats = { fierce: 0, medium: 0, easy: 0, unknown: 0 };
@@ -1013,9 +1029,10 @@
       { key: 'search.exam', label: '考试', value: state.exam },
       { key: 'search.education', label: '学历', value: state.education },
       { key: 'search.steal', label: '捡漏雷达', value: state.searchSteal ? '按竞争比升序' : '' },
+      { key: 'search.competition', label: '竞争比', value: state.searchCompetition === 'all' ? '' : { fierce: '🔥激烈', medium: '⚠️适中', easy: '✅较小', unknown: '❓暂无数据' }[state.searchCompetition] || '' },
     ]);
     const educationLevels = ['本科', '研究生', '大专', '不限'];
-    return `${notice}<section class="maint-hero maint-hero--compact"><div>${viewEyebrow('jobs_search', '岗位检索')}<h1>找到适合你的岗位</h1><p>输入专业、选择城市和学历，快速筛选能报的岗位。点击"查看详情"了解岗位信息。</p></div></section><section class="maint-toolbar maint-toolbar--search"><label>关键词<input id="maint-search-keyword" type="search" value="${escapeHtml(state.keyword)}" placeholder="单位 / 职位 / 专业 / 代码"></label><label>专业<input id="maint-search-major" list="maint-search-major-options" value="${escapeHtml(state.searchMajor)}" placeholder="输入专业，如：法学、计算机"></label><datalist id="maint-search-major-options">${majorOptions.map((value) => `<option value="${escapeHtml(value)}" label="${number(majorCount(catalog, value))}个岗位"></option>`).join('')}</datalist><label>城市<select id="maint-search-city"><option value="">全部城市</option>${cities.map((city) => `<option ${state.city === city ? 'selected' : ''} value="${escapeHtml(city)}">${escapeHtml(city)}</option>`).join('')}</select></label><label>学历<select id="maint-search-education"><option value="">全部学历</option>${educationLevels.map((level) => `<option ${state.education === level ? 'selected' : ''} value="${escapeHtml(level)}">${escapeHtml(level)}</option>`).join('')}</select></label><label>考试<select id="maint-search-exam">${optionMarkup(examScopeOptions, state.exam, '全部考试')}</select></label><label>排序<select id="maint-search-sort"><option value="recruits" ${state.searchSort === 'recruits' ? 'selected' : ''}>招录人数</option><option value="source" ${state.searchSort === 'source' ? 'selected' : ''}>默认顺序</option><option value="city" ${state.searchSort === 'city' ? 'selected' : ''}>城市</option></select></label>${cityGroup ? `<button type="button" class="maint-row-action" data-maint-clear-city-group>清除地图筛选</button>` : ''}${active}<div class="maint-search-stats"><span class="maint-search-stats__total">找到 <strong>${number(filtered.length)}</strong> 个岗位</span><span class="maint-search-stats__fierce" title="竞争比5:1以上">🔥 竞争激烈 ${number(competitionStats.fierce)}个</span><span class="maint-search-stats__medium" title="竞争比2-5:1">⚠️ 竞争适中 ${number(competitionStats.medium)}个</span><span class="maint-search-stats__easy" title="竞争比2:1以下">✅ 竞争较小 ${number(competitionStats.easy)}个</span>${tier ? `<span class="maint-search-stats__tier t1" title="岗位专业要求原文明确包含「${escapeHtml(majorQuery)}」">✔ 明确含 ${number(filtered.filter((row) => rowTier(row) === 1).length)}</span><span class="maint-search-stats__tier t2" title="依据：该岗要求『${escapeHtml(tier.clsName)}』，「${escapeHtml(majorQuery)}」属该专业类（推导，依据可展开原文）">🔁 类内可报·推导 ${number(filtered.filter((row) => rowTier(row) === 2).length)}</span><span class="maint-search-stats__tier t3" title="该岗不限专业">➖ 不限专业 ${number(filtered.filter((row) => rowTier(row) === 3).length)}</span>` : ''}${profileOn ? `<span class="maint-search-stats__tier t1" title="按「我的条件」核对：应届/性别/党员/法考/年龄硬性要求，一票否决；存疑岗位不否决">👤 符合我的条件 ${number(filtered.length)}</span>` : ''}${profileMiss ? '<span class="maint-filter-hint">「我的条件」核对目前覆盖 2026 周期</span>' : ''}</div><div class="maint-search-actions">${!tier && majorQuery ? `<span class="maint-filter-hint">专业目录未收录「${escapeHtml(majorQuery)}」，当前按岗位原文包含匹配；可尝试目录内规范名</span>` : ''}${state.searchSteal ? '<span class="maint-steal-hint">口径：招录 ≥3 人 · 有官方报名观测 · 按竞争比从低到高；竞争比 = 官方报名人数 ÷ 招录数</span>' : ''}<button type="button" data-maint-steal-toggle class="${state.searchSteal ? 'is-active' : ''}" aria-pressed="${state.searchSteal ? 'true' : 'false'}" title="招录≥3人且官方公布报名人数的岗位，按竞争比从低到高">🎯 捡漏雷达</button><button type="button" data-maint-profile-toggle class="${profileOn ? 'is-active' : ''}" aria-expanded="${state.profileOpen ? 'true' : 'false'}" title="填写学历/应届/性别/党员/法考/年龄，全站自动标注可报">👤 我的条件</button><a class="maint-row-action" href="#match" data-maintain-view="match" title="专业+条件一次生成可报榜">⚡ 为我匹配</a><button type="button" data-maint-clear-search>清空筛选</button><button type="button" data-maint-save-filter data-filter-view="jobs_search">保存筛选</button><button type="button" data-maint-export-search>导出结果</button></div>${state.profileOpen ? `<div class="maint-profile-panel"><span class="maint-profile-panel__title">我的条件（仅存本机浏览器）</span><label>性别<select id="maint-profile-gender"><option value="">不限</option><option value="male" ${profile.gender === 'male' ? 'selected' : ''}>男</option><option value="female" ${profile.gender === 'female' ? 'selected' : ''}>女</option></select></label><label>应届身份<select id="maint-profile-fresh"><option value="">不限</option><option value="yes" ${profile.fresh === 'yes' ? 'selected' : ''}>是</option><option value="no" ${profile.fresh === 'no' ? 'selected' : ''}>否</option></select></label><label>政治面貌<select id="maint-profile-party"><option value="">不限</option><option value="yes" ${profile.party === 'yes' ? 'selected' : ''}>党员（含预备）</option><option value="no" ${profile.party === 'no' ? 'selected' : ''}>群众</option></select></label><label>法律职业资格<select id="maint-profile-legal"><option value="">不限</option><option value="yes" ${profile.legal === 'yes' ? 'selected' : ''}>有</option><option value="no" ${profile.legal === 'no' ? 'selected' : ''}>无</option></select></label><label>年龄<input id="maint-profile-age" type="number" min="16" max="60" value="${escapeHtml(profile.age)}" placeholder="周岁"></label><button type="button" class="maint-row-action" data-maint-profile-clear>清除条件</button><span class="maint-filter-hint">硬性要求不满足即隐藏该岗；条件解析存疑的岗位不否决、标「待核对」；最终以官方公告为准</span></div>` : ''}</section><section class="maint-panel"><div class="table-scroll"><table class="maint-table maint-table--search"><thead><tr><th scope="col">城市</th><th scope="col">单位</th><th scope="col">职位</th><th scope="col">专业</th><th scope="col">学历</th><th scope="col">招录</th><th scope="col">竞争</th><th scope="col">操作</th></tr></thead><tbody>${pageRows.map((row) => { const recordId = row.job_id || row.row_id || row.code || ''; const recruits = Number(row.num ?? row.recruits ?? 0); const examinees = Number(row.competition_observations?.examinees?.value ?? row.bm ?? 0); let compBadge = ''; if (examinees > 0 && recruits > 0) { const ratio = (examinees / recruits).toFixed(1); if (examinees / recruits >= 5) compBadge = `<span class="comp-badge comp-fierce" title="报名${examinees}人/招${recruits}人">${ratio}:1 🔥</span>`; else if (examinees / recruits >= 2) compBadge = `<span class="comp-badge comp-medium" title="报名${examinees}人/招${recruits}人">${ratio}:1</span>`; else compBadge = `<span class="comp-badge comp-easy" title="报名${examinees}人/招${recruits}人">${ratio}:1 ✅</span>`; } else { compBadge = '<span class="comp-badge comp-unknown">暂无数据</span>'; } return `<tr data-maint-search-row data-record-id="${escapeHtml(recordId)}"><td>${escapeHtml(row.city)}</td><td>${escapeHtml(row.unit)}</td><td>${escapeHtml(row.zw || row.display_title || '源表未单列披露')}</td><td class="major-cell" title="${escapeHtml(row.zy)}">${escapeHtml(row.zy)}${(() => { const t = rowTier(row); if (!tier || t === 9) return ''; if (t === 1) return '<span class="tier-badge tb1">✔ 明确含</span>'; if (t === 2) return `<span class="tier-badge tb2" title="依据：该岗要求『${escapeHtml(tier.clsName)}』，「${escapeHtml(majorQuery)}」属该专业类（推导）">类内可报·推导</span>`; return '<span class="tier-badge tb3">不限专业</span>'; })()}${profilePending(row) ? '<span class="tier-badge tb2" title="该岗条件解析置信度较低，请以原文核对">待核对</span>' : ''}</td><td>${escapeHtml(row.xl || '—')}</td><td>${escapeHtml(row.num ?? row.recruits ?? '—')}</td><td>${compBadge}</td><td><button type="button" class="maint-row-action" data-maint-position-detail data-record-id="${escapeHtml(recordId)}">查看详情</button></td></tr>`; }).join('') || '<tr><td colspan="8" class="empty">没有找到匹配的岗位 <button type="button" class="maint-row-action" data-maint-clear-search>清空全部筛选</button></td></tr>'}</tbody></table></div><div class="maint-pagination" data-maint-pagination aria-label="分页"><span class="maint-pagination__label">第 ${number(page + 1)} / ${number(pageCount)} 页</span><div class="maint-pagination__buttons"><button type="button" data-maint-search-page="prev" ${page <= 0 ? 'disabled' : ''}>上一页</button><button type="button" data-maint-search-page="next" ${page >= pageCount - 1 ? 'disabled' : ''}>下一页</button></div></div></section>`;
+    return `${notice}<section class="maint-hero maint-hero--compact"><div>${viewEyebrow('jobs_search', '岗位检索')}<h1>找到适合你的岗位</h1><p>输入专业、选择城市和学历，快速筛选能报的岗位。点击"查看详情"了解岗位信息。</p></div></section><section class="maint-toolbar maint-toolbar--search"><label>关键词<input id="maint-search-keyword" type="search" value="${escapeHtml(state.keyword)}" placeholder="单位 / 职位 / 专业 / 代码"></label><label>专业<input id="maint-search-major" list="maint-search-major-options" value="${escapeHtml(state.searchMajor)}" placeholder="输入专业，如：法学、计算机"></label><datalist id="maint-search-major-options">${majorOptions.map((value) => `<option value="${escapeHtml(value)}" label="${number(majorCount(catalog, value))}个岗位"></option>`).join('')}</datalist><label>城市<select id="maint-search-city"><option value="">全部城市</option>${cities.map((city) => `<option ${state.city === city ? 'selected' : ''} value="${escapeHtml(city)}">${escapeHtml(city)}</option>`).join('')}</select></label><label>学历<select id="maint-search-education"><option value="">全部学历</option>${educationLevels.map((level) => `<option ${state.education === level ? 'selected' : ''} value="${escapeHtml(level)}">${escapeHtml(level)}</option>`).join('')}</select></label><label>考试<select id="maint-search-exam">${optionMarkup(examScopeOptions, state.exam, '全部考试')}</select></label><label>排序<select id="maint-search-sort"><option value="recruits" ${state.searchSort === 'recruits' ? 'selected' : ''}>招录人数</option><option value="source" ${state.searchSort === 'source' ? 'selected' : ''}>默认顺序</option><option value="city" ${state.searchSort === 'city' ? 'selected' : ''}>城市</option></select></label>${cityGroup ? `<button type="button" class="maint-row-action" data-maint-clear-city-group>清除地图筛选</button>` : ''}${active}<div class="maint-search-stats"><span class="maint-search-stats__total">找到 <strong>${number(filtered.length)}</strong> 个岗位</span><button type="button" class="maint-search-stats__fierce ${state.searchCompetition === 'fierce' ? 'is-active' : ''}" data-maint-comp-filter="fierce" title="竞争比5:1以上，点击筛选">🔥 竞争激烈 ${number(competitionStats.fierce)}个</button><button type="button" class="maint-search-stats__medium ${state.searchCompetition === 'medium' ? 'is-active' : ''}" data-maint-comp-filter="medium" title="竞争比2-5:1，点击筛选">⚠️ 竞争适中 ${number(competitionStats.medium)}个</button><button type="button" class="maint-search-stats__easy ${state.searchCompetition === 'easy' ? 'is-active' : ''}" data-maint-comp-filter="easy" title="竞争比2:1以下，点击筛选">✅ 竞争较小 ${number(competitionStats.easy)}个</button><button type="button" class="maint-search-stats__unknown ${state.searchCompetition === 'unknown' ? 'is-active' : ''}" data-maint-comp-filter="unknown" title="暂无竞争数据，点击筛选">❓ 暂无数据 ${number(competitionStats.unknown)}个</button>${tier ? `<span class="maint-search-stats__tier t1" title="岗位专业要求原文明确包含「${escapeHtml(majorQuery)}」">✔ 明确含 ${number(filtered.filter((row) => rowTier(row) === 1).length)}</span><span class="maint-search-stats__tier t2" title="依据：该岗要求『${escapeHtml(tier.clsName)}』，「${escapeHtml(majorQuery)}」属该专业类（推导，依据可展开原文）">🔁 类内可报·推导 ${number(filtered.filter((row) => rowTier(row) === 2).length)}</span><span class="maint-search-stats__tier t3" title="该岗不限专业">➖ 不限专业 ${number(filtered.filter((row) => rowTier(row) === 3).length)}</span>` : ''}${profileOn ? `<span class="maint-search-stats__tier t1" title="按「我的条件」核对：应届/性别/党员/法考/年龄硬性要求，一票否决；存疑岗位不否决">👤 符合我的条件 ${number(filtered.length)}</span>` : ''}${profileMiss ? '<span class="maint-filter-hint">「我的条件」核对目前覆盖 2026 周期</span>' : ''}</div><div class="maint-search-actions">${!tier && majorQuery ? `<span class="maint-filter-hint">专业目录未收录「${escapeHtml(majorQuery)}」，当前按岗位原文包含匹配；可尝试目录内规范名</span>` : ''}${state.searchSteal ? '<span class="maint-steal-hint">口径：招录 ≥3 人 · 有官方报名观测 · 按竞争比从低到高；竞争比 = 官方报名人数 ÷ 招录数</span>' : ''}<button type="button" data-maint-steal-toggle class="${state.searchSteal ? 'is-active' : ''}" aria-pressed="${state.searchSteal ? 'true' : 'false'}" title="招录≥3人且官方公布报名人数的岗位，按竞争比从低到高">🎯 捡漏雷达</button><button type="button" data-maint-profile-toggle class="${profileOn ? 'is-active' : ''}" aria-expanded="${state.profileOpen ? 'true' : 'false'}" title="填写学历/应届/性别/党员/法考/年龄，全站自动标注可报">👤 我的条件</button><a class="maint-row-action" href="#match" data-maintain-view="match" title="专业+条件一次生成可报榜">⚡ 为我匹配</a><button type="button" data-maint-clear-search>清空筛选</button><button type="button" data-maint-save-filter data-filter-view="jobs_search">保存筛选</button><button type="button" data-maint-export-search>导出结果</button></div>${state.profileOpen ? `<div class="maint-profile-panel"><span class="maint-profile-panel__title">我的条件（仅存本机浏览器）</span><label>性别<select id="maint-profile-gender"><option value="">不限</option><option value="male" ${profile.gender === 'male' ? 'selected' : ''}>男</option><option value="female" ${profile.gender === 'female' ? 'selected' : ''}>女</option></select></label><label>应届身份<select id="maint-profile-fresh"><option value="">不限</option><option value="yes" ${profile.fresh === 'yes' ? 'selected' : ''}>是</option><option value="no" ${profile.fresh === 'no' ? 'selected' : ''}>否</option></select></label><label>政治面貌<select id="maint-profile-party"><option value="">不限</option><option value="yes" ${profile.party === 'yes' ? 'selected' : ''}>党员（含预备）</option><option value="no" ${profile.party === 'no' ? 'selected' : ''}>群众</option></select></label><label>法律职业资格<select id="maint-profile-legal"><option value="">不限</option><option value="yes" ${profile.legal === 'yes' ? 'selected' : ''}>有</option><option value="no" ${profile.legal === 'no' ? 'selected' : ''}>无</option></select></label><label>年龄<input id="maint-profile-age" type="number" min="16" max="60" value="${escapeHtml(profile.age)}" placeholder="周岁"></label><button type="button" class="maint-row-action" data-maint-profile-clear>清除条件</button><span class="maint-filter-hint">硬性要求不满足即隐藏该岗；条件解析存疑的岗位不否决、标「待核对」；最终以官方公告为准</span></div>` : ''}</section><section class="maint-panel"><div class="table-scroll"><table class="maint-table maint-table--search"><thead><tr><th scope="col">城市</th><th scope="col">单位</th><th scope="col">职位</th><th scope="col">专业</th><th scope="col">学历</th><th scope="col">招录</th><th scope="col">竞争</th><th scope="col">操作</th></tr></thead><tbody>${pageRows.map((row) => { const recordId = row.job_id || row.row_id || row.code || ''; const recruits = Number(row.num ?? row.recruits ?? 0); const examinees = Number(row.competition_observations?.examinees?.value ?? row.bm ?? 0); let compBadge = ''; if (examinees > 0 && recruits > 0) { const ratio = (examinees / recruits).toFixed(1); if (examinees / recruits >= 5) compBadge = `<span class="comp-badge comp-fierce" title="报名${examinees}人/招${recruits}人">${ratio}:1 🔥</span>`; else if (examinees / recruits >= 2) compBadge = `<span class="comp-badge comp-medium" title="报名${examinees}人/招${recruits}人">${ratio}:1</span>`; else compBadge = `<span class="comp-badge comp-easy" title="报名${examinees}人/招${recruits}人">${ratio}:1 ✅</span>`; } else { compBadge = '<span class="comp-badge comp-unknown">暂无数据</span>'; } return `<tr data-maint-search-row data-record-id="${escapeHtml(recordId)}"><td>${escapeHtml(row.city)}</td><td>${escapeHtml(row.unit)}</td><td>${escapeHtml(row.zw || row.display_title || '源表未单列披露')}</td><td class="major-cell" title="${escapeHtml(row.zy)}">${escapeHtml(row.zy)}${(() => { const t = rowTier(row); if (!tier || t === 9) return ''; if (t === 1) return '<span class="tier-badge tb1">✔ 明确含</span>'; if (t === 2) return `<span class="tier-badge tb2" title="依据：该岗要求『${escapeHtml(tier.clsName)}』，「${escapeHtml(majorQuery)}」属该专业类（推导）">类内可报·推导</span>`; return '<span class="tier-badge tb3">不限专业</span>'; })()}${profilePending(row) ? '<span class="tier-badge tb2" title="该岗条件解析置信度较低，请以原文核对">待核对</span>' : ''}</td><td>${escapeHtml(row.xl || '—')}</td><td>${escapeHtml(row.num ?? row.recruits ?? '—')}</td><td>${compBadge}</td><td><button type="button" class="maint-row-action" data-maint-position-detail data-record-id="${escapeHtml(recordId)}">查看详情</button></td></tr>`; }).join('') || '<tr><td colspan="8" class="empty">没有找到匹配的岗位 <button type="button" class="maint-row-action" data-maint-clear-search>清空全部筛选</button></td></tr>'}</tbody></table></div><div class="maint-pagination" data-maint-pagination aria-label="分页"><span class="maint-pagination__label">第 ${number(page + 1)} / ${number(pageCount)} 页</span><div class="maint-pagination__buttons"><button type="button" data-maint-search-page="first" ${page <= 0 ? 'disabled' : ''} title="首页">首页</button><button type="button" data-maint-search-page="prev" ${page <= 0 ? 'disabled' : ''}>上一页</button><button type="button" data-maint-search-page="next" ${page >= pageCount - 1 ? 'disabled' : ''}>下一页</button><button type="button" data-maint-search-page="last" ${page >= pageCount - 1 ? 'disabled' : ''} title="末页">末页</button></div><div class="maint-pagination__jump"><input id="maint-search-jump" type="number" min="1" max="${pageCount}" value="${page + 1}" placeholder="页码" aria-label="跳转页码"><button type="button" data-maint-search-page="jump">跳转</button></div></div></section>`;
   };
   const detailStatusLabel = (status) => ({ verified: '已核验', partial_evidence: '部分证据已核验', source_bundle: '源包接入', derived: '派生指标', registered: '已登记', unpublished_or_unavailable: '未发布或未取得', ambiguous_join: '无法唯一关联', needs_review: '待复核', unavailable: '未取得', suspected_sentinel: '疑似哨兵值', incompatible_scale: '量纲不兼容', not_applicable: '不适用' }[String(status)] || '未知');
   const detailValue = (value, status = '') => {
@@ -1129,7 +1146,7 @@
     row = rowsFor(jobs).find((item) => String(item.job_id || item.row_id || item.code) === String(recordId));
     indexRow = positionIndexRow(positions, recordId);
     }
-    if (!row) { setStatus('岗位详情不存在', 'error'); return; }
+    if (!row) { setStatus('岗位详情不存在', 'error'); throw new Error(`岗位详情不存在: ${recordId}`); }
     const jobHistory = await loadJobHistory().catch(() => null);
     const historyEntry = jobHistory?.jobs?.[jobHistoryKey(row)] || null;
     state.detail = { recordId };
@@ -1320,8 +1337,23 @@
     const jobs = currentRowsPayload();
     if (!store || !jobs) return;
     const all = rowsFor(jobs); const query = normalize(state.keyword); const majorQuery = normalize(state.searchMajor); const cityGroup = state.searchCityGroup;
-    const filtered = all.filter((row) => { const rawMajor = normalize(row?.zy); const readableMajor = normalize(cleanMajorOption(row?.zy)); return (!query || normalize(sourceText(row)).includes(query)) && (!majorQuery || rawMajor.includes(majorQuery) || readableMajor.includes(majorQuery)) && (!state.city || String(row.city || row.reg || '') === state.city) && (!cityGroup || mapCityFor(row.city || row.reg) === cityGroup) && (!state.exam || examRowMatches(row, state.exam))
-      && (!state.education || educationAllows(state.education, row.xl)); });
+    const filtered = all.filter((row) => {
+      const rawMajor = normalize(row?.zy); const readableMajor = normalize(cleanMajorOption(row?.zy));
+      if (query && !normalize(sourceText(row)).includes(query)) return false;
+      if (majorQuery && !(rawMajor.includes(majorQuery) || readableMajor.includes(majorQuery))) return false;
+      if (state.city && String(row.city || row.reg || '') !== state.city) return false;
+      if (cityGroup && mapCityFor(row.city || row.reg) !== cityGroup) return false;
+      if (state.exam && !examRowMatches(row, state.exam)) return false;
+      if (state.education && !educationAllows(state.education, row.xl)) return false;
+      if (state.searchSteal && !stealEligible(row)) return false;
+      if (state.searchCompetition !== 'all') {
+        const recruits = Number(row.num ?? row.recruits ?? 0);
+        const examinees = Number(row.competition_observations?.examinees?.value ?? row.bm ?? 0);
+        if (state.searchCompetition === 'unknown') { if (examinees > 0 && recruits > 0) return false; }
+        else { if (!(examinees > 0 && recruits > 0)) return false; const ratio = examinees / recruits; if (state.searchCompetition === 'fierce' && ratio < 5) return false; if (state.searchCompetition === 'medium' && (ratio < 2 || ratio >= 5)) return false; if (state.searchCompetition === 'easy' && ratio >= 2) return false; }
+      }
+      return true;
+    });
     const blob = new Blob([store.serializeExport(filtered, 'csv')], { type: 'text/csv;charset=utf-8' });
     const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = `wanyu-${state.cycle}-positions.csv`; link.click();
     setTimeout(() => URL.revokeObjectURL(link.href), 0);
@@ -1699,6 +1731,8 @@
       if (key === 'search.city') state.city = '';
       if (key === 'search.cityGroup') state.searchCityGroup = '';
       if (key === 'search.exam') state.exam = '';
+      if (key === 'search.steal') state.searchSteal = false;
+      if (key === 'search.competition') state.searchCompetition = 'all';
       state.searchPage = 0;
       await render();
       return;
@@ -1724,19 +1758,16 @@
     if (event.target.closest('[data-maint-match-go]')) {
       const input = document.getElementById('maint-match-major');
       state.matchMajor = normalize(input?.value || '');
-      render();
-      return;
+      await render(); return;
     }
     if (event.target.closest('[data-maint-profile-toggle]')) {
       state.profileOpen = !state.profileOpen;
-      render();
-      return;
+      await render(); return;
     }
     if (event.target.closest('[data-maint-profile-clear]')) {
       writeProfile({ gender: '', fresh: '', party: '', legal: '', age: '' });
       state.profileOpen = true;
-      render();
-      return;
+      await render(); return;
     }
     if (event.target.closest('[data-maint-clear-search]')) {
       state.keyword = '';
@@ -1745,6 +1776,7 @@
       state.searchCityGroup = '';
       state.exam = '';
       state.searchSteal = false;
+      state.searchCompetition = 'all';
       state.searchPage = 0;
       state.notice = '筛选已清空';
       await render();
@@ -1795,7 +1827,14 @@
       return;
     }
     const searchPageButton = event.target.closest('[data-maint-search-page]');
-    if (searchPageButton && !searchPageButton.disabled) { state.searchPage += searchPageButton.dataset.maintSearchPage === 'next' ? 1 : -1; await render(); return; }
+    if (searchPageButton && !searchPageButton.disabled) {
+      const action = searchPageButton.dataset.maintSearchPage;
+      if (action === 'first') state.searchPage = 0;
+      else if (action === 'last') state.searchPage = Infinity;
+      else if (action === 'jump') { const _input = document.getElementById('maint-search-jump'); const _v = Number(_input?.value); if (_v >= 1) state.searchPage = _v - 1; }
+      else state.searchPage += action === 'next' ? 1 : -1;
+      await render(); return;
+    }
     const loadSnapshotButton = event.target.closest('[data-maint-load-snapshot]');
     if (loadSnapshotButton) {
       const snapshot = window.WanyuUserStore?.loadFilterSnapshots?.().find((item) => item.id === loadSnapshotButton.dataset.snapshotId);
@@ -1822,6 +1861,14 @@
     const examSubFilter = event.target.closest('[data-maint-exam-sub]');
     if (examSubFilter && !examSubFilter.disabled) {
       state.examSub = examSubFilter.dataset.maintExamSub || '';
+      state.searchPage = 0;
+      await render({ instant: true });
+      return;
+    }
+    const compFilter = event.target.closest('[data-maint-comp-filter]');
+    if (compFilter) {
+      const next = compFilter.dataset.maintCompFilter;
+      state.searchCompetition = state.searchCompetition === next ? 'all' : next;
       state.searchPage = 0;
       await render({ instant: true });
       return;
@@ -1862,7 +1909,7 @@
   app.addEventListener('input', (event) => {
     if (event.isComposing) return;
     if (event.target.matches('[data-maint-check-step]')) {
-      const done = new Set(JSON.parse(localStorage.getItem('wanyu.update.checklist.v1') || '[]'));
+      let done; try { done = new Set(JSON.parse(localStorage.getItem('wanyu.update.checklist.v1') || '[]')); } catch { done = new Set(); }
       if (event.target.checked) done.add(event.target.dataset.maintCheckStep); else done.delete(event.target.dataset.maintCheckStep);
       localStorage.setItem('wanyu.update.checklist.v1', JSON.stringify([...done]));
       return;
@@ -1885,7 +1932,7 @@
       case 'maint-profile-fresh':
       case 'maint-profile-party':
       case 'maint-profile-legal': {
-        const key = event.target.id.replace('maint-profile-', '');
+        const key = id.replace('maint-profile-', '');
         const next = readProfile();
         next[key] = value;
         writeProfile(next);
@@ -1915,15 +1962,21 @@
     if (event.target.id === 'maint-search-density') { state.searchDensity = event.target.value === 'compact' ? 'compact' : 'comfortable'; void render({ instant: true }); }
     if (event.target.id === 'maint-search-education') { state.education = event.target.value; state.searchPage = 0; void render({ instant: true }); }
   });
-  addEventListener('hashchange', () => {
+  app.addEventListener('keydown', async (event) => {
+    if (event.key === 'Enter' && event.target.id === 'maint-search-jump') {
+      const _v = Number(event.target.value);
+      if (_v >= 1) { state.searchPage = _v - 1; await render(); }
+    }
+  });
+  addEventListener('hashchange', async () => {
     const hash = (location.hash || '#overview').slice(1);
     const jobMatch = hash.match(/^job\/(.+)$/);
     if (jobMatch) {
-      if (state.manifest) void openDetail(decodeURIComponent(jobMatch[1]), { fromHash: true });
+      if (state.manifest) await openDetail(decodeURIComponent(jobMatch[1]), { fromHash: true });
       return;
     }
     state.view = validViews.has(hash) ? hash : 'overview';
-    void render();
+    await render();
   });
   main.addEventListener('pointermove', (event) => {
     if (!motion.enabled) return;

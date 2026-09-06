@@ -2,7 +2,7 @@
    策略：页面导航与无 sha 的 JSON 走 network-first（在线立即拿新，离线回退缓存）；
    带 ?sha= 的内容寻址 JSON 走 cache-first（manifest 变更 → URL 变更 → 自动失效）；
    其余静态资产 cache-first 并后台刷新（URL 带 ?v= 版本号，改版即失效）。 */
-const VERSION = "wanyu-shell-v49";
+const VERSION = "wanyu-shell-v50";
 const PRECACHE = [
   "index.html",
   "manifest.webmanifest",

@@ -16,7 +16,7 @@
   gap: 5px;
   padding-left: 10px;
   margin-left: 10px;
-  border-left: 1px solid #dce8f8;
+  border-left: 1px solid var(--border-subtle);
 }
 
 /* 考试类别按钮 — 未选中态：浅色主题下清晰可读 */
@@ -24,9 +24,9 @@
   display: flex;
   align-items: center;
   padding: 7px 14px;
-  border: 1px solid #dce8f8;
+  border: 1px solid var(--border-subtle);
   border-radius: 999px;
-  color: #7189aa;
+  color: var(--text-muted);
   background: transparent;
   font-size: 13px;
   font-weight: 500;
@@ -35,16 +35,16 @@
 }
 
 .exam-picker-group button:hover {
-  color: #2f6fd5;
-  background: #eff5ff;
-  border-color: #b9d3f5;
+  color: var(--accent-primary);
+  background: var(--accent-primary-soft);
+  border-color: var(--border-subtle);
 }
 
 /* 选中态：蓝底白字，与周期按钮 is-active 一致 */
 .exam-picker-group button.is-active {
   color: #fff;
-  background: #3a83f7;
-  border-color: #3a83f7;
+  background: var(--accent-primary);
+  border-color: var(--accent-primary);
   box-shadow: 0 2px 6px rgba(58, 131, 247, 0.24);
   font-weight: 600;
 }
@@ -55,16 +55,16 @@
   gap: 5px;
   padding-left: 10px;
   margin-left: 10px;
-  border-left: 1px solid #dce8f8;
+  border-left: 1px solid var(--border-subtle);
 }
 
 .exam-sub-group button {
   display: flex;
   align-items: center;
   padding: 5px 12px;
-  border: 1px dashed #b9d3f5;
+  border: 1px dashed var(--border-subtle);
   border-radius: 999px;
-  color: #7189aa;
+  color: var(--text-muted);
   background: transparent;
   font-size: 12px;
   font-weight: 500;
@@ -73,15 +73,15 @@
 }
 
 .exam-sub-group button:hover:not(:disabled) {
-  color: #2f6fd5;
-  background: #eff5ff;
-  border-color: #b9d3f5;
+  color: var(--accent-primary);
+  background: var(--accent-primary-soft);
+  border-color: var(--border-subtle);
 }
 
 .exam-sub-group button.is-active {
   color: #fff;
-  background: #7c5cfc;
-  border-color: #7c5cfc;
+  background: var(--accent-2);
+  border-color: var(--accent-2);
   font-weight: 600;
 }
 
@@ -147,39 +147,39 @@
 
 /* 深色主题 */
 [data-theme="dark"] .exam-picker-group {
-  border-left-color: rgba(255, 255, 255, 0.2);
+  border-left-color: var(--border-subtle);
 }
 
 [data-theme="dark"] .exam-picker-group button {
-  color: rgba(255, 255, 255, 0.8);
-  border-color: rgba(255, 255, 255, 0.35);
+  color: var(--text-body);
+  border-color: var(--border-subtle);
 }
 
 [data-theme="dark"] .exam-picker-group button:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--accent-primary-soft);
   color: #fff;
 }
 
 [data-theme="dark"] .exam-picker-group button.is-active {
   color: #fff;
-  background: #4b88b4;
+  background: var(--accent-primary);
 }
 
 [data-theme="dark"] .exam-sub-group {
-  border-left-color: rgba(255, 255, 255, 0.2);
+  border-left-color: var(--border-subtle);
 }
 
 [data-theme="dark"] .exam-sub-group button {
-  color: rgba(255, 255, 255, 0.8);
-  border-color: rgba(255, 255, 255, 0.35);
+  color: var(--text-body);
+  border-color: var(--border-subtle);
 }
 
 [data-theme="dark"] .exam-sub-group button:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--accent-primary-soft);
   color: #fff;
 }
 
 [data-theme="dark"] .exam-sub-group button.is-active {
   color: #fff;
-  background: #6d55d8;
+  background: var(--accent-2);
 }
