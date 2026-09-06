@@ -27,7 +27,7 @@ try:
     from .build_changes import build_change_payload
     from .build_major_index import build as build_major_index_index
     from .build_map import build_map_payload
-    from .build_position_index import build_position_index
+    from .build_position_index import _source_status, build_position_index
     from .build_review_queue import build_review_queue
     from .build_scores import build_scores
     from .build_supplement_evidence import build_supplement_evidence
@@ -40,7 +40,7 @@ except ImportError:  # pragma: no cover - supports direct script execution
     from tools.anhui_web.build_changes import build_change_payload
     from tools.anhui_web.build_major_index import build as build_major_index_index
     from tools.anhui_web.build_map import build_map_payload
-    from tools.anhui_web.build_position_index import build_position_index
+    from tools.anhui_web.build_position_index import _source_status, build_position_index
     from tools.anhui_web.build_review_queue import build_review_queue
     from tools.anhui_web.build_scores import build_scores
     from tools.anhui_web.build_supplement_evidence import build_supplement_evidence
@@ -61,6 +61,40 @@ _RELEASE_DOC = json.loads((Path(__file__).resolve().parents[2] / "release.json")
 RELEASE = _RELEASE_DOC["release"]
 ASSET_VERSION = _RELEASE_DOC["asset_version"]
 SW_VERSION = _RELEASE_DOC["service_worker_version"]
+
+# 学历（xl）口径归一：源表同义表述收敛为规范值（2026-09-06 数据质量修复）。
+# 仅做等义归一（大专→专科、硕士研究生及以上→研究生等），不改变门槛语义。
+_XL_NORMALIZE_MAP = {
+    "本科及以上": "本科及以上", "大学本科及以上": "本科及以上",
+    "本科（学士）及以上": "本科及以上", "本科": "本科及以上",
+    "仅限本科": "仅限本科", "研究生": "研究生",
+    "硕士研究生及以上": "研究生", "仅限硕士研究生": "仅限硕士研究生",
+    "研究生及以上": "研究生", "仅限研究生": "仅限研究生",
+    "专科及以上": "专科及以上", "大专及以上": "专科及以上",
+    "大专及本科": "专科及以上", "大专": "专科及以上",
+    "高中（中专）及以上": "高中（中专）及以上", "博士研究生": "博士研究生",
+}
+
+
+def normalize_xl(value: Any) -> str:
+    """归一学历表述；未登记的原样返回（宁缺勿错，绝不臆测）。"""
+    raw = str(value or "").strip()
+    if not raw:
+        return ""
+    return _XL_NORMALIZE_MAP.get(raw.replace(" ", ""), raw)
+
+
+def _apply_xl_normalization(rows: list) -> int:
+    changed = 0
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        old = row.get("xl")
+        new = normalize_xl(old)
+        if new != old:
+            row["xl"] = new
+            changed += 1
+    return changed
 
 
 def _stable_snapshot_date(bundles: dict[str, Any]) -> str:
@@ -288,6 +322,7 @@ def _module_payloads(bundle: Any) -> dict[str, dict[str, object]]:
     base_meta = all_majors.get("meta") if isinstance(all_majors.get("meta"), dict) else {}
     raw_rows = [row for row in (all_majors.get("rows") if isinstance(all_majors.get("rows"), list) else []) if isinstance(row, dict)]
     rows = apply_overrides(raw_rows, load_overrides(ROOT), bundle.cycle)
+    _apply_xl_normalization(rows)
     raw_rows, active_rows, excluded_rows = split_records(rows)
     meta = _lifecycle_meta(raw_rows, active_rows, excluded_rows, base_meta, calibration_meta=base_meta if excluded_rows else None)
     runtime = copy.deepcopy(payload.get("cycleRuntime") or {})
@@ -346,7 +381,17 @@ def _module_payloads(bundle: Any) -> dict[str, dict[str, object]]:
         {"cycle": bundle.cycle, "source_ref": source_ref, "observed_at": observed_at},
     )
     scores = build_scores(bundle.score_lists, bundle.cycle)
-    lite_source = _lite_payload(bundle.cycle, active_rows, meta)
+    lite_source = _lite_payload(
+        bundle.cycle,
+        active_rows,
+        meta,
+        job_index={str(r.get("job_id") or r.get("row_id")): i for i, r in enumerate(raw_rows)},
+        source_info={
+            "source_ref": source_ref,
+            "observed_at": observed_at,
+            "evidence_note": "详情展示源字段；目录清洗不覆盖原始岗位文本",
+        },
+    )
     major_city = _major_city_payload(
         bundle.cycle,
         active_rows,
@@ -544,27 +589,53 @@ def _palette_payload(cycle: str, rows: list[dict[str, Any]]) -> dict[str, object
 _LITE_ROW_KEYS = (
     "job_id", "code", "city", "reg", "exam", "cycle", "unit", "zw", "zy", "bz", "lb",
     "num", "recruits", "xl", "display_title", "competition_observations",
+    # A4-B1：详情抽屉所需列并入 lite（打开详情零整包下载；来源证据为周期级登记）。
+    # source_note 全文不进 lite（抽屉只做官方/非官方分类），行上仅带一位分类码 ss：
+    # v=verified(官方) / b=source_bundle(有来源说明) / d=derived(无)——镜像 _source_status。
+    "xw", "xz", "age", "score_observation", "title_status", "bm",
 )
+_LITE_SOURCE_CODE = {"verified": "v", "source_bundle": "b", "derived": "d"}
 _LITE_META_KEYS = ("cycle", "total", "recruits", "examCounts", "cities", "categories")
 
 
-def _lite_payload(cycle: str, rows: list[dict[str, Any]], source_meta: dict[str, Any]) -> dict[str, object]:
+def _lite_payload(
+    cycle: str,
+    rows: list[dict[str, Any]],
+    source_meta: dict[str, Any],
+    job_index: dict[str, int] | None = None,
+    source_info: dict[str, Any] | None = None,
+) -> dict[str, object]:
     """Build the compact search/ranking index; heavy evidence fields stay in jobs.json.
 
     v17.8.5-RC2：调用方必须传 active 行（jobs_lite 天然 active-only）；
     生命周期元数据（raw_total/excluded/record_status_model）随源 meta 透传。
+    A4-B1：行级补 xw/xz/age/score_observation/title_status/bm/source_note 与
+    ji（jobs.json 行号，供前端重建来源定位）；周期级来源登记（source_ref/
+    observed_at/evidence_note）经 source_info 进 meta，避免每行复制证据对象。
     """
-    lite_rows = [{key: row[key] for key in _LITE_ROW_KEYS if key in row} for row in rows]
+    lite_rows: list[dict[str, Any]] = []
+    for row in rows:
+        lite = {key: row[key] for key in _LITE_ROW_KEYS if key in row}
+        if job_index is not None:
+            ji = job_index.get(str(row.get("job_id") or row.get("row_id")))
+            if ji is not None:
+                lite["ji"] = ji
+        lite["ss"] = _LITE_SOURCE_CODE[_source_status(row)[0]]
+        lite_rows.append(lite)
     meta = {key: source_meta[key] for key in _LITE_META_KEYS if key in source_meta}
     for key in ("raw_total", "excluded", "record_status_model"):
         if key in source_meta:
             meta[key] = source_meta[key]
+    if source_info:
+        for key in ("source_ref", "observed_at", "evidence_note"):
+            if source_info.get(key) is not None:
+                meta[key] = source_info[key]
     return {
         "schema": "wanyu-maintainable-jobs-lite/v1",
         "source_module": "jobs.json",
         "cycle": cycle,
         "allMajors": {"meta": meta, "rows": lite_rows},
-        "boundary_note": "轻索引只保留检索/榜单/地图所需列;资格、成绩与来源证据字段以 jobs.json 原文为准,详情抽屉按需加载。",
+        "boundary_note": "轻索引保留检索、榜单、地图与详情抽屉所需列；来源证据为周期级登记（source_ref/材料取得日期），行级 ss=来源分类码（v/b/d）、locator=ji（jobs.json 行号），排除行走整包回退。",
     }
 
 
@@ -788,6 +859,8 @@ def assemble_maintainable_site(
     previous_rows: list[dict[str, object]] = []
     rows_by_cycle: dict[str, list[dict[str, object]]] = {}
     meta_by_cycle: dict[str, dict[str, object]] = {}
+    raw_rows_by_cycle: dict[str, list[dict[str, object]]] = {}
+    source_info_by_cycle: dict[str, dict[str, object]] = {}
     for cycle in SUPPORTED_CYCLES:
         bundle = bundles[cycle]
         modules = _module_payloads(bundle)
@@ -798,6 +871,14 @@ def assemble_maintainable_site(
         # jobs 模块自身保留 raw 行（含排除行，审计真源）。
         _, active_rows_cycle, excluded_rows_cycle = split_records(current_rows)
         rows_by_cycle[cycle] = active_rows_cycle
+        raw_rows_by_cycle[cycle] = current_rows
+        pos_rows_cycle = (modules.get("positions", {}) or {}).get("rows") or []
+        src0_cycle = (pos_rows_cycle[0].get("source") or {}) if pos_rows_cycle else {}
+        source_info_by_cycle[cycle] = {
+            "source_ref": src0_cycle.get("source_ref"),
+            "observed_at": src0_cycle.get("observed_at"),
+            "evidence_note": src0_cycle.get("note"),
+        }
         modules["changes"] = build_change_payload(previous_cycle, cycle, previous_rows, active_rows_cycle)
         if isinstance(score_payload, dict):
             score_path = output_dir / "archive" / "scores" / f"{cycle}.json"
@@ -855,7 +936,16 @@ def assemble_maintainable_site(
             "schema": derived.get("schema"),
         }
         # palette 已退役（v17.7.1）：命令面板由 jobs_lite 内存派生，builder 不再产出/登记。
-        lite = _lite_payload(cycle, rows_by_cycle[cycle], meta_by_cycle.get(cycle, {}))
+        lite = _lite_payload(
+            cycle,
+            rows_by_cycle[cycle],
+            meta_by_cycle.get(cycle, {}),
+            job_index={
+                str(r.get("job_id") or r.get("row_id")): i
+                for i, r in enumerate(raw_rows_by_cycle.get(cycle, []))
+            },
+            source_info=source_info_by_cycle.get(cycle),
+        )
         lite_path = output_dir / "data" / "cycles" / cycle / "jobs_lite.json"
         lite_encoded = _write_json(lite_path, lite)
         cycle_entries_by_cycle[cycle]["modules"]["jobs_lite"] = {

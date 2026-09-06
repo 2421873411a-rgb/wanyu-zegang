@@ -24,6 +24,8 @@
     changesFilter: 'all',
     examFilter: '全部',
     examSub: '',
+    derivedByCycle: null,
+    examScopeReady: false,
     ranking: { major: '', city: '', exam: '', category: '', metric: 'jobs' },
     keyword: '',
     searchMajor: '',
@@ -715,15 +717,87 @@
   };
   const changeStatusLabel = (status) => ({ added: '新增', withdrawn: '撤回', revised: '字段变更', unchanged: '保持', needs_review: '待复核' }[String(status)] || status);
   const matchingPolicyLabel = (value) => ({ exact_code: '职位代码精确匹配', composite_exact: '考试/城市/代码组合匹配', semantic_candidate_requires_review: '语义候选仅进入待复核' }[String(value)] || String(value || '未说明'));
+  // —— P0-9: exam_scope 预聚合查找（语义镜像 examRowMatches，考试筛选下免加载全量 jobs.json）——
+  // by_exam: {"省考":{jobs,recruits},"国考":{...},"事业编":{jobs,recruits,subs:{"上半年":{...},"下半年":{...}}}}
+  const examBucketTotals = (scope, exam = '全部', sub = '') => {
+    const byExam = scope?.by_exam;
+    if (!byExam) return null;
+    const sum = (a, b) => (a && b ? { jobs: (a.jobs || 0) + (b.jobs || 0), recruits: (a.recruits || 0) + (b.recruits || 0) } : (a || b || null));
+    if (exam === '公务员') {
+      if (sub === '国考') return byExam['国考'] ? { jobs: byExam['国考'].jobs || 0, recruits: byExam['国考'].recruits || 0 } : null;
+      if (sub === '省考') return byExam['省考'] ? { jobs: byExam['省考'].jobs || 0, recruits: byExam['省考'].recruits || 0 } : null;
+      return sub ? null : sum(byExam['省考'], byExam['国考']);
+    }
+    if (exam === '事业编') {
+      const entry = byExam['事业编'];
+      if (!entry) return { jobs: 0, recruits: 0 };
+      if (sub) { const picked = entry.subs?.[sub]; return picked ? { jobs: picked.jobs || 0, recruits: picked.recruits || 0 } : { jobs: 0, recruits: 0 }; }
+      return { jobs: entry.jobs || 0, recruits: entry.recruits || 0 };
+    }
+    return null;
+  };
+  // by_exam_city 城市桶合并；mappedOnly=true 时只保留十六市+省直（竞争热力图/城市对比的 normalizeCity 口径），
+  // false 时保留未归并城市原文（slopeGraph 的 trendCityKey 口径）；
+  // rawCity=true 时读 by_exam_city_raw（含跨市重复收录行的全量行口径）——v17-tools 历史上
+  // 不按 record_status 过滤，为保证工具页数字与旧行为逐字节一致而提供
+  const examScopeCityBucket = (scope, exam = '全部', sub = '', mappedOnly = true, rawCity = false) => {
+    const byCity = (rawCity ? scope?.by_exam_city_raw : scope?.by_exam_city) || null;
+    if (!byCity) return null;
+    const merged = {};
+    const sumInto = (source) => {
+      if (!source) return;
+      Object.entries(source).forEach(([city, stats]) => {
+        if (mappedOnly && !prefectureCities.has(city) && city !== '省直') return;
+        const item = merged[city] || (merged[city] = { jobs: 0, recruits: 0, examinees: 0 });
+        item.jobs += Number(stats?.jobs || 0);
+        item.recruits += Number(stats?.recruits || 0);
+        item.examinees += Number(stats?.examinees || 0);
+      });
+    };
+    if (exam === '公务员') {
+      if (sub === '国考') sumInto(byCity['国考']);
+      else if (sub === '省考') sumInto(byCity['省考']);
+      else if (!sub) { sumInto(byCity['省考']); sumInto(byCity['国考']); }
+      else return null;
+    } else if (exam === '事业编') {
+      const cityMap = byCity['事业编'] || {};
+      if (sub) {
+        const picked = {};
+        Object.entries(cityMap).forEach(([city, entry]) => { const bucket = entry?.subs?.[sub]; if (bucket) picked[city] = bucket; });
+        sumInto(picked);
+      } else sumInto(cityMap);
+    } else return null;
+    return merged;
+  };
   const scopedRowsForCycle = (cycle) => {
+    // P0-9: 优先用 exam_scope 预聚合；数据包缺失时回退全量 jobs 行（保持渲染数字一致）
+    const totals = examBucketTotals(state.derivedByCycle?.[cycle]?.exam_scope, state.examFilter || '全部', state.examSub || '');
+    if (totals) return { posts: Number(totals.jobs || 0), recruits: Number(totals.recruits || 0) };
     const jobs = state.modules.get(`${cycle}:jobs`);
-    return rowsFor(jobs).filter((row) => examRowMatches(row, state.examFilter || '全部', state.examSub || ''));
+    const rows = rowsFor(jobs).filter((row) => examRowMatches(row, state.examFilter || '全部', state.examSub || ''));
+    return { posts: rows.length, recruits: rows.reduce((sum, row) => sum + (Number(row.num ?? row.recruits ?? 0) || 0), 0) };
   };
   const changeSummaryForScope = (payload) => {
     const summary = { added: 0, withdrawn: 0, revised: 0, unchanged: 0, needs_review: 0 };
     const changes = Array.isArray(payload?.changes) ? payload.changes : [];
     const scoped = (state.examFilter || '全部') !== '全部' || Boolean(state.examSub);
     if (!scoped) return payload?.summary || summary;
+    // P0-9: 优先用 change_scope 预聚合分桶（构建期已镜像 examRowMatches 的候选行归类），数据包缺失时回退全量 jobs 行
+    const exam = state.examFilter || '全部';
+    const sub = state.examSub || '';
+    const buckets = state.derivedByCycle?.[payload.target_cycle]?.exam_scope?.change_scope?.[payload.base_cycle];
+    if (buckets) {
+      const addInto = (source) => { if (!source) return; Object.keys(summary).forEach((key) => { summary[key] += Number(source[key] || 0); }); };
+      if (exam === '公务员') {
+        if (sub === '国考') addInto(buckets['国考']);
+        else if (sub === '省考') addInto(buckets['省考']);
+        else { addInto(buckets['省考']); addInto(buckets['国考']); }
+      } else if (exam === '事业编') {
+        const entry = buckets['事业编'];
+        addInto(sub ? entry?.[sub] : entry?.all);
+      }
+      return summary;
+    }
     const baseRows = new Map(rowsFor(state.modules.get(`${payload.base_cycle}:jobs`)).map((row) => [String(row.job_id || row.row_id || row.code || ''), row]));
     const targetRows = new Map(rowsFor(state.modules.get(`${payload.target_cycle}:jobs`)).map((row) => [String(row.job_id || row.row_id || row.code || ''), row]));
     changes.forEach((change) => {
@@ -736,9 +810,22 @@
     return summary;
   };
   const slopeGraph = (trend, cycles, examFilter = '全部', examSub = '') => {
-    // 如果有筛选，需要从jobs数据重新计算
+    // 如果有筛选，需要从各周期数据按考试类别重新统计
     let filteredTrend = trend;
-    if ((examFilter !== '全部' || examSub) && state.modules) {
+    const scoped = examFilter !== '全部' || Boolean(examSub);
+    if (scoped && state.examScopeReady) {
+      // P0-9: 用各周期 derived.json 的 exam_scope 预聚合构建，不再解析全量 jobs 行
+      filteredTrend = {};
+      for (const cycle of cycles) {
+        const bucket = examScopeCityBucket(state.derivedByCycle?.[cycle.cycle]?.exam_scope, examFilter, examSub, false);
+        if (!bucket) continue;
+        Object.entries(bucket).forEach(([city, stats]) => {
+          if (!filteredTrend[city]) filteredTrend[city] = { posts: {}, recruits: {} };
+          filteredTrend[city].posts[cycle.cycle] = Number(stats.jobs || 0);
+          filteredTrend[city].recruits[cycle.cycle] = Number(stats.recruits || 0);
+        });
+      }
+    } else if (scoped && state.modules) {
       filteredTrend = {};
       // 从各周期的jobs数据中按考试类别统计
       for (const cycle of cycles) {
@@ -748,10 +835,10 @@
         rows.forEach(row => {
           const city = trendCityKey(row.city || row.reg);
           if (!city) return;
-          
+
           // 判断是否匹配筛选条件（公务员 = 省考 + 国考）
           const match = examRowMatches(row, examFilter, examSub);
-          
+
           if (match) {
             if (!filteredTrend[city]) filteredTrend[city] = { posts: {}, recruits: {} };
             if (!filteredTrend[city].posts[cycle.cycle]) filteredTrend[city].posts[cycle.cycle] = 0;
@@ -805,9 +892,9 @@
     }).join('');
     const scoped = (state.examFilter || '全部') !== '全部' || Boolean(state.examSub);
     const cycleRows = (state.manifest?.cycles || []).map((item) => {
-      const rows = scopedRowsForCycle(item.cycle);
-      const posts = scoped ? rows.length : Number(item.posts || 0);
-      const recruits = scoped ? rows.reduce((sum, row) => sum + (Number(row.num ?? row.recruits ?? 0) || 0), 0) : Number(item.recruits || 0);
+      const totals = scopedRowsForCycle(item.cycle);
+      const posts = scoped ? totals.posts : Number(item.posts || 0);
+      const recruits = scoped ? totals.recruits : Number(item.recruits || 0);
       return `<tr><th>${escapeHtml(item.cycle)}</th><td>${number(posts)}</td><td>${number(recruits)}</td><td>${number(item.gaps)}</td><td>${number(item.score_unresolved)}</td><td><details class="maint-source-details"><summary>外置岗位模块</summary><code>${escapeHtml(item.modules?.jobs?.data || item.data)}</code></details></td></tr>`;
     }).join('');
     const slope = slopeGraph(derived?.city_trend || {}, state.manifest?.cycles || [], state.examFilter || '全部', state.examSub || '');
@@ -1430,13 +1517,17 @@
       } else if (state.view === 'cycle_compare') {
         const changeCycles = (state.manifest?.cycles || []).filter((item) => item.modules?.changes && item.cycle !== state.manifest?.cycles?.[0]?.cycle);
         const changes = await Promise.all(changeCycles.map((item) => loadModule(item.cycle, 'changes')));
-        let derived = null;
-        try { derived = await loadModule(state.cycle, 'derived'); } catch (error) { derived = null; }
+        // P0-9: 三年趋势各周期只加载 2-8KB 的 derived.json（含 exam_scope 预聚合），考试筛选也不再加载三年全量 jobs.json(34.4MB)
+        const allCycles = state.manifest?.cycles || [];
+        const derivedByCycle = {};
+        await Promise.all(allCycles.map(async (item) => { try { derivedByCycle[item.cycle] = await loadModule(item.cycle, 'derived'); } catch (error) { derivedByCycle[item.cycle] = null; } }));
+        const derived = derivedByCycle[state.cycle] || null;
         state.derivedData = derived; // 保存到state供事件处理使用
-        // P0-9: 三年全量 jobs.json(36MB) 只在考试筛选激活时加载——无筛选时 slopeGraph 只用 2.4KB 的 derived 聚合
+        state.derivedByCycle = derivedByCycle;
         const hasExamScope = (state.examFilter && state.examFilter !== '全部') || Boolean(state.examSub);
-        if (hasExamScope) {
-          const allCycles = state.manifest?.cycles || [];
+        // 考试筛选优先消费 exam_scope 预聚合；数据包缺 exam_scope 时才回退加载全量 jobs.json（旧行为，保证兼容）
+        state.examScopeReady = Boolean(hasExamScope && allCycles.every((item) => derivedByCycle[item.cycle]?.exam_scope));
+        if (hasExamScope && !state.examScopeReady) {
           await Promise.all(allCycles.map(c => loadModule(c.cycle, 'jobs')));
         }
         await loadSalary(); // 加载待遇数据用于城市对比
@@ -1535,7 +1626,12 @@
       if (state.view === 'cycle_compare') {
         const container = document.querySelector('#v17-tools-container');
         if (container && window.renderCompetitionHeatmap && window.renderCityComparison) {
-          const jobs = state.modules.get(`${state.cycle}:jobs`) || state.modules.get(`${state.cycle}:jobs_lite`);
+          let jobs = state.modules.get(`${state.cycle}:jobs`) || state.modules.get(`${state.cycle}:jobs_lite`);
+          if (!jobs && state.examScopeReady) {
+            // P0-9: 考试筛选下用 derived.exam_scope 预聚合驱动工具，不再加载全量 jobs；
+            // rawCity 口径（by_exam_city_raw，含重复收录行）与 v17-tools 旧行为逐字节一致
+            jobs = { preaggCityStats: examScopeCityBucket(state.derivedByCycle?.[state.cycle]?.exam_scope, state.examFilter || '全部', state.examSub || '', true, true) || {} };
+          }
           const salary = state.salaryData;
           if (jobs) {
             let toolsHtml = '';
