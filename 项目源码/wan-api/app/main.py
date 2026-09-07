@@ -1,9 +1,21 @@
+import logging
+
 from fastapi import FastAPI
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
+from sqlalchemy import text
+
 from app.config import settings
-from app.database import init_db, close_db
+from app.database import engine, init_db, close_db
 from app.api.v1 import auth, jobs, user, cycles, salary, audit, admin
+
+# v17.9.12：app 级日志显式落 stderr（gunicorn capture_output 收集）——
+# 此前唯一的审计日志（admin 导入 INFO）因无 handler 被 Python 静默丢弃。
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s %(message)s",
+)
 
 
 @asynccontextmanager
@@ -56,5 +68,18 @@ async def root():
 
 @app.get("/health")
 async def health():
-    """健康检查（携带版本：deploy smoke 靠它证明新代码真正生效）"""
-    return {"status": "ok", "version": settings.APP_VERSION}
+    """健康检查（readiness 语义：含 DB 探活与版本）。
+
+    v17.9.12：此前 DB 宕机仍返回 200，部署 smoke 与探针全绿、故障只能等用户报障。
+    DB 不可达 → 503（版本字段保留，便于排障）。
+    """
+    try:
+        async with engine.connect() as conn:
+            await conn.execute(text("SELECT 1"))
+        db_status = "ok"
+    except Exception:
+        return JSONResponse(
+            status_code=503,
+            content={"status": "degraded", "version": settings.APP_VERSION, "db": "unreachable"},
+        )
+    return {"status": "ok", "version": settings.APP_VERSION, "db": db_status}

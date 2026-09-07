@@ -32,7 +32,7 @@ async def get_salary(
             data[s.city] = {}
         if s.employment_type not in data[s.city]:
             data[s.city][s.employment_type] = {}
-        data[s.city][s.employment_type][s.stage] = float(s.value_wan) if s.value_wan else None
+        data[s.city][s.employment_type][s.stage] = float(s.value_wan) if s.value_wan is not None else None
     
     return data
 
@@ -57,7 +57,7 @@ async def get_salary_ranking(
     return [
         {
             "city": s.city,
-            "value_wan": float(s.value_wan) if s.value_wan else None
+            "value_wan": float(s.value_wan) if s.value_wan is not None else None
         }
         for s in salaries
     ]

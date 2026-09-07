@@ -74,3 +74,4 @@ uvicorn==0.52.4
 watchfiles==1.2.0
 webencodings==0.6.1
 websockets==17.1
+uvloop==0.22.1; sys_platform != "win32" and sys_platform != "cygwin" and platform_python_implementation != "PyPy"

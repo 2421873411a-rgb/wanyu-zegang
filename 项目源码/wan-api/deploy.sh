@@ -184,9 +184,17 @@ JWT_ACCESS_TOKEN_EXPIRE_MINUTES=30
 JWT_REFRESH_TOKEN_EXPIRE_DAYS=7
 CORS_ORIGINS=["https://wan.kaogong.art","http://localhost:8765"]
 STATIC_DATA_PATH=${STATIC_DATA_PATH}
+RATE_LIMIT_BACKEND=redis
 ALLOW_REGISTRATION=true
 ADMIN_EMAIL=${ADMIN_EMAIL:-admin@kaogong.art}
 EOF
+    fi
+    # 每次部署强制刷新 .env 的 APP_VERSION（Round-2 审计 S3：pydantic-settings 中
+    # .env 优先于派生默认，旧值会让 /health 报旧版本 → smoke 必败）。
+    if grep -q '^APP_VERSION=' "${APP_DIR}/.env"; then
+        sed -i "s/^APP_VERSION=.*/APP_VERSION=${APP_VERSION}/" "${APP_DIR}/.env"
+    else
+        printf '\\nAPP_VERSION=%s\\n' "${APP_VERSION}" >> "${APP_DIR}/.env"
     fi
     chown www-data:www-data "$APP_DIR/.env"
     chmod 600 "$APP_DIR/.env"
@@ -201,7 +209,9 @@ setup_service() {
 [Unit]
 Description=WanYu Job API (FastAPI + Gunicorn)
 After=network.target postgresql.service redis.service
-Requires=postgresql.service redis.service
+# redis 仅 Wants：限流 Redis 后端有进程内降级路径，redis 故障不应阻断 API 启动
+Requires=postgresql.service
+Wants=redis.service
 
 [Service]
 Type=notify
@@ -244,6 +254,9 @@ server {
     location /.well-known/acme-challenge/ { root /var/www/certbot; }
     location /api/ {
         limit_req zone=api burst=60 nodelay;
+        # 对齐 ADMIN_IMPORT_MAX_BYTES(64MB)：nginx 默认 1MB 会把 12MB 真实快照
+        # 的管理导入在网关层 413 掉，app 侧逻辑永远够不到（Round-2 审计 S13）。
+        client_max_body_size 64m;
         proxy_pass http://wanyu_api;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
@@ -302,6 +315,17 @@ import_data() {
     if [ -f "${BACKUP_ROOT}/LATEST" ]; then
         alembic current > "${BACKUP_ROOT}/$(cat "${BACKUP_ROOT}/LATEST")/alembic-before.txt"
     fi
+
+    # 数据库快照强制化（Round-2 审计 S2）：迁移前没有数据级还原点不许走 upgrade。
+    local dump_file
+    dump_file="${BACKUP_ROOT}/wanyu_db-$(date +%Y%m%d-%H%M%S).dump"
+    sudo -u postgres pg_dump -Fc wanyu_db > "$dump_file"
+    if [ ! -s "$dump_file" ]; then
+        log_error "pg_dump 产物为空，拒绝在无数据级还原点的情况下执行迁移"
+        exit 1
+    fi
+    log_info "✓ 数据库快照：${dump_file}（保留最近 10 份）"
+    ls -1t "${BACKUP_ROOT}"/wanyu_db-*.dump 2>/dev/null | tail -n +11 | xargs -r rm -f
 
     alembic upgrade head
     python - <<'PY'
@@ -389,6 +413,21 @@ post_deploy_smoke() {
     log_info "✓ 健康/HTTPS/版本(${actual_version})/静态站/强制跳转/岗位数据(${jobs_count}) smoke 全通过"
 }
 
+setup_logrotate() {
+    log_info "配置日志轮转..."
+    cat > /etc/logrotate.d/wanyu-api << 'LROT'
+/var/log/wanyu/*.log {
+    daily
+    rotate 14
+    compress
+    delaycompress
+    missingok
+    notifempty
+    copytruncate
+}
+LROT
+}
+
 main() {
     log_info "开始部署皖域择岗 API..."
     check_root
@@ -398,6 +437,7 @@ main() {
     backup_previous_release
     setup_app_dir
     setup_service
+    setup_logrotate
     setup_nginx
     setup_ssl
     import_data

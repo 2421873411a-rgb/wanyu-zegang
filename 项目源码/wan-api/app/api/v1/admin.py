@@ -4,7 +4,7 @@ import logging
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile, status
-from sqlalchemy import func, select
+from sqlalchemy import func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
@@ -112,11 +112,29 @@ async def update_user(
         raise HTTPException(status_code=404, detail="用户不存在")
 
     demoting = (is_admin is False and user.is_admin) or (is_active is False and user.is_admin and user.is_active)
-    if demoting and await _count_active_admins(db) <= 1 and user.is_admin and user.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="系统必须保留至少一名启用的管理员：请先创建并启用另一名管理员"
+    if demoting and user.is_admin and user.is_active:
+        # 最后管理员保护（v17.9.12 并发加固）：
+        # 1) PG advisory 事务锁串行化"检查+写入"——否则两名管理员并发互降时
+        #    两个守卫可同读旧状态全部放行，清零管理入口；
+        # 2) 计数排除"本次降权目标"：串行化后第二笔守卫看到第一笔已提交的结果，
+        #    目标之外无其他 admin → 拒绝。
+        # SQLite（测试环境）为单写者，advisory lock 不存在则跳过，残余窗口仅理论存在。
+        try:
+            await db.execute(text("SELECT pg_advisory_xact_lock(hashtext('wanyu-last-admin-guard'))"))
+        except Exception:
+            pass
+        others = await db.execute(
+            select(func.count(User.id)).where(
+                User.is_admin.is_(True),
+                User.is_active.is_(True),
+                User.id != user.id,
+            )
         )
+        if int(others.scalar() or 0) < 1:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="系统必须保留至少一名启用的管理员：请先创建并启用另一名管理员"
+            )
 
     if is_admin is not None:
         user.is_admin = is_admin
@@ -168,7 +186,8 @@ async def import_cycle_data(
 
     try:
         data = json.loads(content)
-    except json.JSONDecodeError:
+    except (json.JSONDecodeError, RecursionError, UnicodeDecodeError, ValueError):
+        # RecursionError：超深嵌套 JSON；ValueError 兜底其余解析异常——统一 400 而非 500
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="无效的JSON格式")
     if not isinstance(data, dict):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="JSON 顶层必须是对象")

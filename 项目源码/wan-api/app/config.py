@@ -50,7 +50,9 @@ class Settings(BaseSettings):
     REDIS_URL: str = "redis://localhost:6379/0"
 
     # JWT配置
-    SECRET_KEY: str = "your-secret-key-change-in-production"
+    # v17.9.12：SECRET_KEY 不再有默认值——公开默认密钥=任何非 production 环境可离线伪造
+    # 任意用户 token（审计 R2-T2 实证）。ENV=test 自动注入测试密钥；其余环境缺失/过弱拒启。
+    SECRET_KEY: str = ""
     JWT_ALGORITHM: str = "HS256"
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     JWT_REFRESH_TOKEN_EXPIRE_DAYS: int = 7
@@ -74,6 +76,19 @@ class Settings(BaseSettings):
     # 管理导入上限（字节）：超过直接 413，防止超大 JSON 打爆内存
     ADMIN_IMPORT_MAX_BYTES: int = 64 * 1024 * 1024
 
+    # 限流（v17.9.12：原子化 + 可选 Redis 后端）
+    RATE_LIMIT_BACKEND: str = "memory"  # memory | redis
+    LOGIN_MAX_FAILURES: int = 5
+    LOGIN_WINDOW_SECONDS: int = 300
+    REGISTER_MAX_EVENTS: int = 5
+    REGISTER_WINDOW_SECONDS: int = 300
+    REFRESH_MAX_EVENTS: int = 30
+    REFRESH_WINDOW_SECONDS: int = 60
+    LOGOUT_MAX_EVENTS: int = 10
+    LOGOUT_WINDOW_SECONDS: int = 60
+    # Redis 不可达时进程内兜底按 worker 数收紧的分母上限
+    RATE_LIMIT_FALLBACK_WORKERS: int = 4
+
     model_config = {
         "env_file": ".env",
         "env_file_encoding": "utf-8",
@@ -81,17 +96,28 @@ class Settings(BaseSettings):
 
 
 def _validate_production_safety(settings: "Settings") -> None:
-    """生产安全门：ENV=production 时 SECRET_KEY 绝不允许已知默认值。
+    """SECRET_KEY 安全门（v17.9.12 全面收紧）。
 
-    v17.9.1 S0：config.py 自身保留可运行默认秘密=令牌可伪造；
-    正确姿势是生产启动直接失败，而不是带着公开默认值继续跑。
+    - ENV=test：允许空并注入固定测试密钥（测试需要真实签发/校验 token）。
+    - 其余任何环境：缺失或命中已知公开默认值 → 拒绝启动；
+      长度 <32 字符 → 拒绝启动（此前 'secret' 这类弱密钥在生产也放行）。
     """
-    if settings.ENV.strip().lower() == "production":
-        if settings.SECRET_KEY in _KNOWN_INSECURE_SECRETS:
-            raise RuntimeError(
-                "拒绝启动：ENV=production 但 SECRET_KEY 为已知默认值。"
-                "请在 .env / 环境变量中提供独立随机 SECRET_KEY（openssl rand -hex 32）。"
-            )
+    env = settings.ENV.strip().lower()
+    if env == "test":
+        if not settings.SECRET_KEY:
+            settings.SECRET_KEY = "wanyu-test-only-secret-key-0123456789abcdef"
+        return
+    if not settings.SECRET_KEY:
+        raise RuntimeError(
+            "拒绝启动：SECRET_KEY 缺失。请提供独立随机密钥（openssl rand -hex 32）。"
+        )
+    if settings.SECRET_KEY in _KNOWN_INSECURE_SECRETS:
+        raise RuntimeError(
+            "拒绝启动：SECRET_KEY 为公开已知默认值，任何人可离线伪造任意用户 token。"
+            "请更换（openssl rand -hex 32）。"
+        )
+    if len(settings.SECRET_KEY) < 32:
+        raise RuntimeError("拒绝启动：SECRET_KEY 强度不足（至少 32 字符，建议 openssl rand -hex 32）。")
 
 
 settings = Settings()

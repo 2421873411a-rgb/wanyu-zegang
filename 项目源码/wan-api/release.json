@@ -1,5 +1,5 @@
 {
  "schema": "wanyu-api-release/v1",
- "release": "v17.9.11",
+ "release": "v17.9.12",
  "note": "API 产品版本单一真源；config.APP_VERSION 启动时读取，deploy.sh 注入 .env 并在 smoke 断言。项目级 项目源码/release.json 描述网站产品（v17.9.0），二者相互独立。"
 }

@@ -46,11 +46,13 @@ def _make_engine():
 
 @pytest.fixture(autouse=True)
 def _reset_limiters():
-    rate_limit_module.login_limiter.reset()
-    rate_limit_module.register_limiter.reset()
+    for limiter in (rate_limit_module.login_limiter, rate_limit_module.register_limiter,
+                    rate_limit_module.refresh_limiter, rate_limit_module.logout_limiter):
+        limiter.reset()
     yield
-    rate_limit_module.login_limiter.reset()
-    rate_limit_module.register_limiter.reset()
+    for limiter in (rate_limit_module.login_limiter, rate_limit_module.register_limiter,
+                    rate_limit_module.refresh_limiter, rate_limit_module.logout_limiter):
+        limiter.reset()
 
 
 @pytest_asyncio.fixture(autouse=True)

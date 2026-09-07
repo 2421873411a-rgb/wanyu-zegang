@@ -60,6 +60,8 @@ jobs:
     services:
       postgres:
         image: postgres:16
+      redis:
+        image: redis:7
         env:
           POSTGRES_USER: wanyu_test
           POSTGRES_PASSWORD: test_pass
@@ -92,9 +94,11 @@ jobs:
           alembic downgrade base
           alembic upgrade head
           alembic check
-      - name: PostgreSQL API + 真实并发门禁
+      - name: PostgreSQL API + 真实并发门禁（含 Redis 限流后端）
         env:
           DATABASE_URL: "postgresql+asyncpg://wanyu_test:test_pass@localhost:5432/wanyu_test"
+          REDIS_URL: "redis://localhost:6379/1"
+          RATE_LIMIT_BACKEND: "redis"
           ENV: test
         run: pytest tests/ -q
       - name: production init_db revision gate

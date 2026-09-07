@@ -70,9 +70,16 @@ async def init_db():
                     )
                 # 检查 alembic 当前 revision == head（用 API，不走 subprocess——subprocess
                 # 自身失败时 head="" 会导致 fail-open）
-                row = sync_conn.execute(sa_text("SELECT version_num FROM alembic_version")).fetchone()
-                if not row:
+                # v17.9.12：fetchall——多行（多头迁移/污染版本表）必须拒绝，
+                # fetchone 无 ORDER BY 曾使判定取决于物理行序（审计实测两种结果）。
+                rows = sync_conn.execute(sa_text("SELECT version_num FROM alembic_version")).fetchall()
+                if not rows:
                     raise RuntimeError("alembic_version 表为空——迁移未完成")
+                if len(rows) != 1:
+                    raise RuntimeError(
+                        f"alembic_version 表有 {len(rows)} 行（多头/污染版本表）——拒绝启动，"
+                        "请人工核对迁移历史"
+                    )
                 try:
                     from alembic.config import Config
                     from alembic.script import ScriptDirectory
@@ -81,9 +88,9 @@ async def init_db():
                     heads = script.get_heads()
                     if len(heads) != 1:
                         raise RuntimeError(f"alembic heads 数量异常（{len(heads)}），期望恰好 1 个")
-                    if row[0] != heads[0]:
+                    if rows[0][0] != heads[0]:
                         raise RuntimeError(
-                            f"alembic 版本不一致：DB={row[0][:12]} HEAD={heads[0][:12]}——"
+                            f"alembic 版本不一致：DB={rows[0][0][:12]} HEAD={heads[0][:12]}——"
                             "请运行 alembic upgrade head"
                         )
                 except FileNotFoundError:
