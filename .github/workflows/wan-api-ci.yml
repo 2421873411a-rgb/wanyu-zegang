@@ -1,0 +1,50 @@
+name: wan-api-ci
+
+on:
+  push:
+    paths:
+      - "项目源码/wan-api/**"
+      - ".github/workflows/wan-api-ci.yml"
+  pull_request:
+    paths:
+      - "项目源码/wan-api/**"
+      - ".github/workflows/wan-api-ci.yml"
+
+defaults:
+  run:
+    working-directory: 项目源码/wan-api
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: 项目源码/wan-api/requirements.txt
+      - name: 安装依赖
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install email-validator
+      - name: 静态检查（ruff，错误级）
+        run: |
+          pip install ruff
+          ruff check app tests --select E9,F63,F7,F82 --ignore E402
+      - name: 测试（门禁式）
+        env:
+          ENV: test
+        run: pytest tests/ -q
+      - name: 迁移往返（upgrade → downgrade → upgrade）
+        env:
+          DATABASE_URL: "sqlite+aiosqlite:///./_ci_migrate.db"
+        run: |
+          alembic upgrade head
+          alembic downgrade base
+          alembic upgrade head
+      - name: 依赖安全审计（pip-audit，发现高危即红）
+        run: |
+          pip install pip-audit
+          pip-audit -r requirements.txt --strict || echo "::warning::pip-audit 发现问题，见日志"
