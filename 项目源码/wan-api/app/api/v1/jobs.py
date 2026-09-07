@@ -23,12 +23,13 @@ async def search_jobs(
     sort: str = Query("source", description="排序方式"),
     db: AsyncSession = Depends(get_db)
 ):
-    """搜索岗位"""
+    """搜索岗位（只返回 record_status='active' 的岗位；excluded 是快照下线行，
+    仅审计/管理入口可见）"""
     query = select(Job)
     count_query = select(func.count(Job.id))
-    
+
     # 应用筛选条件
-    filters = []
+    filters = [Job.record_status == "active"]
     if cycle:
         filters.append(Job.cycle == cycle)
     if city:
@@ -91,8 +92,10 @@ async def get_job(
     record_id: str,
     db: AsyncSession = Depends(get_db)
 ):
-    """获取岗位详情"""
-    result = await db.execute(select(Job).where(Job.job_id == record_id))
+    """获取岗位详情（excluded 下线行按不存在处理，404）"""
+    result = await db.execute(
+        select(Job).where(Job.job_id == record_id, Job.record_status == "active")
+    )
     job = result.scalar_one_or_none()
     
     if not job:
@@ -107,8 +110,9 @@ async def get_jobs_by_city(
     cycle: Optional[str] = Query(None),
     db: AsyncSession = Depends(get_db)
 ):
-    """按城市统计岗位数量"""
+    """按城市统计岗位数量（仅 active）"""
     query = select(Job.city, func.count(Job.id).label("count"))
+    query = query.where(Job.record_status == "active")
     if cycle:
         query = query.where(Job.cycle == cycle)
     query = query.group_by(Job.city).order_by(func.count(Job.id).desc())
@@ -124,8 +128,9 @@ async def get_jobs_by_exam(
     cycle: Optional[str] = Query(None),
     db: AsyncSession = Depends(get_db)
 ):
-    """按考试类别统计岗位数量"""
+    """按考试类别统计岗位数量（仅 active）"""
     query = select(Job.exam, func.count(Job.id).label("count"))
+    query = query.where(Job.record_status == "active")
     if cycle:
         query = query.where(Job.cycle == cycle)
     query = query.group_by(Job.exam).order_by(func.count(Job.id).desc())

@@ -1,8 +1,10 @@
 """Mirror State 模型（P1-3：追踪 DB 镜像的是哪版 canonical）"""
 import uuid
-from datetime import datetime
-from sqlalchemy import Column, String, Integer, DateTime
+
+from sqlalchemy import Column, DateTime, Integer, String
+
 from app.database import Base
+from app.utils.time import utcnow_naive
 
 
 class MirrorState(Base):
@@ -17,8 +19,8 @@ class MirrorState(Base):
     source_rows = Column(Integer, default=0)
     active_rows = Column(Integer, default=0)
     recruits = Column(Integer, default=0)
-    imported_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    imported_at = Column(DateTime(timezone=False), default=utcnow_naive, nullable=False)
+    updated_at = Column(DateTime(timezone=False), default=utcnow_naive, onupdate=utcnow_naive, nullable=False)
 
     def __repr__(self):
         return f"<MirrorState cycle={self.cycle} release={self.release}>"
