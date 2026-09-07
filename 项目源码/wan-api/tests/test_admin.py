@@ -43,7 +43,7 @@ async def test_non_admin_cannot_access_admin(client: AsyncClient):
 
 
 async def test_import_writes_rows_and_reconciles(client: AsyncClient):
-    """门禁6：导入必须真实写库——旧实现假成功已删除；响应含对账统计。"""
+    """门禁6：导入必须真实写库——响应含对账统计 + mirror state + 快照替换。"""
     headers = await _admin_headers(client)
     payload = _payload(3)
     r = await client.post("/api/v1/admin/import/2026", headers=headers,
@@ -52,8 +52,10 @@ async def test_import_writes_rows_and_reconciles(client: AsyncClient):
     body = r.json()
     assert body["rows_total"] == 3
     assert body["imported"] == 3
-    assert body["imported"] + body["updated"] + body["skipped"] == body["rows_total"]
+    assert body["updated"] == 0
+    assert body["deactivated"] == 0
     assert len(body["source_sha256"]) == 64
+    assert len(body["job_id_set_sha256"]) == 64
 
     # 数据库真实存在这 3 行
     async with get_test_session_factory()() as session:
@@ -117,3 +119,60 @@ async def test_register_cannot_reach_admin_endpoints_even_with_admin_email(clien
     for path in ("/api/v1/admin/dashboard", "/api/v1/admin/users"):
         r = await client.get(path, headers=_auth(data["access_token"]))
         assert r.status_code == 403
+
+
+async def test_truncated_snapshot_rejected(client: AsyncClient):
+    """P1-1：截断但合法的非空文件必须被 meta 守恒拦住。"""
+    headers = await _admin_headers(client)
+    # meta 说 total=100 但实际只有 3 行
+    payload = {"allMajors": {"meta": {"total": 100, "recruits": 200}, "rows": _payload(3)["allMajors"]["rows"]}}
+    r = await client.post("/api/v1/admin/import/2026", headers=headers,
+                          files={"file": ("jobs.json", json.dumps(payload).encode(), "application/json")})
+    assert r.status_code == 400
+    assert "守恒" in r.json()["detail"] or "rows" in r.json()["detail"]
+
+
+async def test_cycle_mismatch_rejected(client: AsyncClient):
+    """P1-1：job_id 周期不匹配必须拒绝（防止 job-2024-* 混入 2026）。"""
+    headers = await _admin_headers(client)
+    rows = [{"job_id": "job-2024-abcd1234", "code": "100000", "city": "合肥", "exam": "省考",
+             "unit": "测试", "zw": "测试", "zy": "法学", "num": 1, "xl": "本科及以上"}]
+    payload = {"allMajors": {"meta": {"total": 1, "recruits": 1}, "rows": rows}}
+    r = await client.post("/api/v1/admin/import/2026", headers=headers,
+                          files={"file": ("jobs.json", json.dumps(payload).encode(), "application/json")})
+    assert r.status_code == 400
+    assert "周期不匹配" in r.json()["detail"]
+
+
+async def test_duplicate_job_id_rejected(client: AsyncClient):
+    """P1-1：重复 job_id 必须拒绝。"""
+    headers = await _admin_headers(client)
+    base = _payload(1)["allMajors"]["rows"][0]
+    rows = [base, {**base}]  # 两个相同 job_id
+    payload = {"allMajors": {"meta": {"total": 2, "recruits": 2}, "rows": rows}}
+    r = await client.post("/api/v1/admin/import/2026", headers=headers,
+                          files={"file": ("jobs.json", json.dumps(payload).encode(), "application/json")})
+    assert r.status_code == 400
+    assert "duplicate" in r.json()["detail"].lower() or "重复" in r.json()["detail"]
+
+
+async def test_validation_failure_leaves_db_unchanged(client: AsyncClient):
+    """P1-1：校验失败后 DB 一行都不能变化。"""
+    headers = await _admin_headers(client)
+    # 先导入 3 行
+    payload = _payload(3)
+    r1 = await client.post("/api/v1/admin/import/2026", headers=headers,
+                           files={"file": ("jobs.json", json.dumps(payload).encode(), "application/json")})
+    assert r1.status_code == 200
+    async with get_test_session_factory()() as session:
+        count_before = (await session.execute(select(func.count(Job.id)).where(Job.cycle == "2026"))).scalar()
+    # 传入周期不匹配的文件
+    bad_rows = [{"job_id": "job-2024-bad00001", "code": "100000", "city": "合肥", "exam": "省考",
+                 "unit": "测试", "zw": "测试", "zy": "法学", "num": 1, "xl": "本科及以上"}]
+    bad_payload = {"allMajors": {"meta": {"total": 1, "recruits": 1}, "rows": bad_rows}}
+    r2 = await client.post("/api/v1/admin/import/2026", headers=headers,
+                           files={"file": ("jobs.json", json.dumps(bad_payload).encode(), "application/json")})
+    assert r2.status_code == 400
+    async with get_test_session_factory()() as session:
+        count_after = (await session.execute(select(func.count(Job.id)).where(Job.cycle == "2026"))).scalar()
+    assert count_after == count_before
