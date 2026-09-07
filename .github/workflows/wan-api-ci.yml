@@ -60,8 +60,12 @@ jobs:
     services:
       postgres:
         image: postgres:16
+        ports:
+          - 5432:5432
       redis:
         image: redis:7
+        ports:
+          - 6379:6379
         env:
           POSTGRES_USER: wanyu_test
           POSTGRES_PASSWORD: test_pass
