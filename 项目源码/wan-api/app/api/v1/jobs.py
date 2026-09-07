@@ -33,6 +33,7 @@ def _reject_control_chars(*values: Optional[str]) -> None:
 # 跨进程失效由 TTL 兜底，单 worker 部署下导入即重启，天然一致）
 _STATS_CACHE: dict = {}
 _STATS_TTL_SECONDS = 60.0
+_STATS_CACHE_MAX = 64  # cycle 参数无校验曾使键空间无界（3000 匿名请求实测不释放）
 
 
 def _cached(key: str, builder):
@@ -51,6 +52,8 @@ async def _cached_async(key: str, abuilder):
     if hit and now - hit[0] < _STATS_TTL_SECONDS:
         return hit[1]
     value = await abuilder()
+    if len(_STATS_CACHE) >= _STATS_CACHE_MAX:
+        _STATS_CACHE.clear()  # 容量上限：宁可整体失效也不无界增长
     _STATS_CACHE[key] = (now, value)
     return value
 
@@ -62,7 +65,7 @@ def invalidate_stats_cache() -> None:
 
 @router.get("/search", response_model=JobSearchResponse)
 async def search_jobs(
-    cycle: Optional[str] = Query(None, description="周期（2024/2025/2026）"),
+    cycle: Optional[str] = Query(None, max_length=8, description="周期（2024/2025/2026）"),
     keyword: Optional[str] = Query(None, description="搜索关键词"),
     city: Optional[str] = Query(None, description="城市"),
     exam: Optional[str] = Query(None, description="考试类别"),

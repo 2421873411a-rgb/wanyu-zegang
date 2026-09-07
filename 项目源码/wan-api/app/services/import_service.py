@@ -117,6 +117,9 @@ def validate_snapshot(cycle: str, data: Dict[str, Any], max_rows: int = 20000) -
     doc_cycle = data.get("cycle")
     if doc_cycle is not None and str(doc_cycle) != cycle:
         errors.append(f"顶层 cycle={doc_cycle} 与导入周期 {cycle} 不一致")
+    label = data.get("label")
+    if label is not None and (not isinstance(label, str) or len(label) > 64):
+        errors.append("label 非法（要求 ≤64 字符字符串——落库于 cycles.label/mirror_state.release）")
 
     if not meta:
         errors.append("meta 缺失——无守恒锚点的快照必须整体拒绝")

@@ -197,8 +197,8 @@ gunicorn app.main:app -c gunicorn.conf.py
 
 ## 测试
 
-> v17.9.14 起 tests/ 为真实存在的门禁式套件（77 用例；SQLite job 实跑 72+5 专属跳过，
-> PG+Redis job 77 全跑），覆盖：
+> v17.9.15 起 tests/ 为真实存在的门禁式套件（78 用例；SQLite job 实跑 73+5 专属跳过，
+> PG+Redis job 78 全跑），覆盖：
 > 注册不可成为管理员 / 生产 SECRET_KEY 拒绝启动 / refresh 仅 body + 轮换撤销 /
 > 重复收藏数据库拒绝 / 对比≤4 / 管理导入真实写库对账 / 最后管理员保护 / 413 / 登出。
 > 契约详见 `docs/CONTRACT.md`。
