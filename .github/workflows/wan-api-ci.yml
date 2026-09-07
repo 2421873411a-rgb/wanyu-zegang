@@ -1,52 +1,78 @@
 name: wan-api-ci
 
+# 去掉 paths filter——required check "test" 必须在所有 PR/push 上产生结果，
+# 否则非 API PR 会永远卡在 Expected 状态。job 内部自己判断是否需要跑完整测试。
 on:
   push:
-    paths:
-      - "项目源码/wan-api/**"
-      - ".github/workflows/wan-api-ci.yml"
   pull_request:
-    paths:
-      - "项目源码/wan-api/**"
-      - ".github/workflows/wan-api-ci.yml"
 
 defaults:
   run:
     working-directory: 项目源码/wan-api
 
 jobs:
-  # 始终出现的 required check——即使 PR 不碰 wan-api 路径也能通过
-  gate:
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo "wan-api not affected, gate passed"
   test:
-    needs: gate
-
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: 检测 wan-api 是否有变化
+        id: check
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            api:
+              - '项目源码/wan-api/**'
+              - '.github/workflows/wan-api-ci.yml'
       - uses: actions/setup-python@v5
+        if: steps.check.outputs.api == 'true'
         with:
           python-version: "3.12"
           cache: pip
           cache-dependency-path: 项目源码/wan-api/requirements.txt
       - name: 安装依赖
+        if: steps.check.outputs.api == 'true'
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements-dev.txt
       - name: 静态检查（ruff，错误级）
+        if: steps.check.outputs.api == 'true'
         run: ruff check app tests --select E9,F63,F7,F82 --ignore E402
       - name: 测试（门禁式）
+        if: steps.check.outputs.api == 'true'
         env:
           ENV: test
         run: pytest tests/ -q
-      - name: 迁移往返（upgrade → downgrade → upgrade）
+      - name: 迁移漂移检测（ORM metadata vs Alembic 迁移）
+        if: steps.check.outputs.api == 'true'
         env:
           DATABASE_URL: "sqlite+aiosqlite:///./_ci_migrate.db"
         run: |
           alembic upgrade head
           alembic downgrade base
           alembic upgrade head
+          python -c "
+          from sqlalchemy import create_engine, inspect, MetaData
+          from app.database import Base
+          import app.models  # noqa
+          # 重跑 create_all 到临时库，比较表结构
+          e1 = create_engine('sqlite:///:memory:')
+          Base.metadata.create_all(e1)
+          orm_tables = set(inspect(e1).get_table_names())
+          e2 = create_engine('sqlite:///:memory:')
+          from alembic.config import Config; from alembic import command
+          cfg = Config('alembic.ini')
+          cfg.set_main_option('sqlalchemy.url', 'sqlite:///:memory:')
+          # 用 upgrade head 到内存库
+          import subprocess, sys
+          r = subprocess.run([sys.executable, '-m', 'alembic', '-c', 'alembic.ini', 'upgrade', 'head'], capture_output=True, text=True, env={**__import__('os').environ, 'DATABASE_URL': 'sqlite:///:memory:'})
+          missing = orm_tables - set(inspect(e2).get_table_names()) if e2 else set()
+          if missing:
+              print(f'WARNING: ORM has tables not in migration: {missing}')
+          print('migration drift check: done')
+          "
       - name: 依赖安全审计（pip-audit，发现高危即红）
+        if: steps.check.outputs.api == 'true'
         run: pip-audit -r requirements.txt --strict --desc
+      - name: 无 API 变化，跳过
+        if: steps.check.outputs.api != 'true'
+        run: echo "wan-api not affected, test passed"

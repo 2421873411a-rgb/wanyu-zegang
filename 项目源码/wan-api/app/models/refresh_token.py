@@ -20,9 +20,9 @@ class RefreshToken(Base):
     jti = Column(String(36), nullable=False, unique=True)
     family_id = Column(String(36), nullable=False, index=True)
     token_hash = Column(String(64), nullable=False, unique=True, index=True)
-    expires_at = Column(DateTime(timezone=True), nullable=False)
-    revoked_at = Column(DateTime(timezone=True))
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+    expires_at = Column(DateTime(timezone=False), nullable=False)
+    revoked_at = Column(DateTime(timezone=False))
+    created_at = Column(DateTime(timezone=False), default=datetime.utcnow, nullable=False)
 
     __table_args__ = (
         Index("ix_refresh_tokens_user_family", "user_id", "family_id"),

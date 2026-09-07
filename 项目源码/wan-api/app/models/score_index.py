@@ -15,7 +15,7 @@ class ScoreIndex(Base):
     value = Column(Numeric)
     status = Column(String(32))
     raw_data = Column(Text, default='{}')
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime(timezone=False), default=datetime.utcnow, nullable=False)
     
     def __repr__(self):
         return f"<ScoreIndex {self.composite_key}>"

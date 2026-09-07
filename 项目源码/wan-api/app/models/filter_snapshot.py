@@ -16,7 +16,7 @@ class FilterSnapshot(Base):
     filters = Column(Text, default='{}')
     metric = Column(String(32), default="jobs")
     release = Column(String(32), default="")
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime(timezone=False), default=datetime.utcnow, nullable=False)
     
     # 关系
     user = relationship("User", back_populates="filter_snapshots")

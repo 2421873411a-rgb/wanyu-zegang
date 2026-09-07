@@ -17,9 +17,9 @@ class User(Base):
     avatar_url = Column(String(512))
     is_active = Column(Boolean, default=True, nullable=False)
     is_admin = Column(Boolean, default=False, nullable=False)
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
-    updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
-    last_login_at = Column(DateTime(timezone=True))
+    created_at = Column(DateTime(timezone=False), default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime(timezone=False), default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    last_login_at = Column(DateTime(timezone=False))
     
     # 关系
     saved_positions = relationship("SavedPosition", back_populates="user", cascade="all, delete-orphan")

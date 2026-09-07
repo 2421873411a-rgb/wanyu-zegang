@@ -1,8 +1,8 @@
 """0001 initial schema
 
-Revision ID: 65edb8b468f9
+Revision ID: 422c971fb1b1
 Revises: 
-Create Date: 2026-09-07 08:27:20.508423
+Create Date: 2026-09-07 10:14:36.965381
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '65edb8b468f9'
+revision: str = '422c971fb1b1'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -30,8 +30,8 @@ def upgrade() -> None:
     sa.Column('status', sa.String(length=32), nullable=True),
     sa.Column('snapshot_date', sa.String(length=32), nullable=True),
     sa.Column('gaps', sa.Text(), nullable=True),
-    sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
-    sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False),
+    sa.Column('created_at', sa.DateTime(), nullable=False),
+    sa.Column('updated_at', sa.DateTime(), nullable=False),
     sa.PrimaryKeyConstraint('cycle')
     )
     op.create_table('jobs',
@@ -62,8 +62,8 @@ def upgrade() -> None:
     sa.Column('competition_source', sa.String(length=128), nullable=True),
     sa.Column('ratio_comparable', sa.Boolean(), nullable=True),
     sa.Column('source', sa.JSON(), nullable=True),
-    sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
-    sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False),
+    sa.Column('created_at', sa.DateTime(), nullable=False),
+    sa.Column('updated_at', sa.DateTime(), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_jobs_city'), 'jobs', ['city'], unique=False)
@@ -83,8 +83,8 @@ def upgrade() -> None:
     sa.Column('occurrences', sa.Integer(), nullable=True),
     sa.Column('resolution_trigger', sa.Text(), nullable=True),
     sa.Column('status', sa.String(length=32), nullable=True),
-    sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
-    sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False),
+    sa.Column('created_at', sa.DateTime(), nullable=False),
+    sa.Column('updated_at', sa.DateTime(), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_review_events_kind'), 'review_events', ['kind'], unique=False)
@@ -96,7 +96,7 @@ def upgrade() -> None:
     sa.Column('stage', sa.String(length=16), nullable=False),
     sa.Column('value_wan', sa.Numeric(), nullable=True),
     sa.Column('snapshot_year', sa.String(length=8), nullable=True),
-    sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
+    sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('city', 'employment_type', 'stage', 'snapshot_year', name='uq_salary')
     )
@@ -109,7 +109,7 @@ def upgrade() -> None:
     sa.Column('value', sa.Numeric(), nullable=True),
     sa.Column('status', sa.String(length=32), nullable=True),
     sa.Column('raw_data', sa.Text(), nullable=True),
-    sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
+    sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_score_index_composite_key'), 'score_index', ['composite_key'], unique=False)
@@ -123,9 +123,9 @@ def upgrade() -> None:
     sa.Column('avatar_url', sa.String(length=512), nullable=True),
     sa.Column('is_active', sa.Boolean(), nullable=False),
     sa.Column('is_admin', sa.Boolean(), nullable=False),
-    sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
-    sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False),
-    sa.Column('last_login_at', sa.DateTime(timezone=True), nullable=True),
+    sa.Column('created_at', sa.DateTime(), nullable=False),
+    sa.Column('updated_at', sa.DateTime(), nullable=False),
+    sa.Column('last_login_at', sa.DateTime(), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_users_email'), 'users', ['email'], unique=True)
@@ -135,10 +135,12 @@ def upgrade() -> None:
     sa.Column('user_id', sa.String(length=36), nullable=False),
     sa.Column('record_id', sa.String(length=128), nullable=False),
     sa.Column('cycle', sa.String(length=8), nullable=False),
-    sa.Column('position', sa.Integer(), nullable=True),
-    sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
+    sa.Column('position', sa.Integer(), nullable=False),
+    sa.Column('created_at', sa.DateTime(), nullable=False),
+    sa.CheckConstraint('position >= 0 AND position <= 3', name='ck_compare_slot_range'),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('user_id', 'position', name='uq_compare_user_slot'),
     sa.UniqueConstraint('user_id', 'record_id', name='uq_compare_user_record')
     )
     op.create_index(op.f('ix_compare_lists_user_id'), 'compare_lists', ['user_id'], unique=False)
@@ -150,7 +152,7 @@ def upgrade() -> None:
     sa.Column('filters', sa.Text(), nullable=True),
     sa.Column('metric', sa.String(length=32), nullable=True),
     sa.Column('release', sa.String(length=32), nullable=True),
-    sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
+    sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )
@@ -161,9 +163,9 @@ def upgrade() -> None:
     sa.Column('jti', sa.String(length=36), nullable=False),
     sa.Column('family_id', sa.String(length=36), nullable=False),
     sa.Column('token_hash', sa.String(length=64), nullable=False),
-    sa.Column('expires_at', sa.DateTime(timezone=True), nullable=False),
-    sa.Column('revoked_at', sa.DateTime(timezone=True), nullable=True),
-    sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
+    sa.Column('expires_at', sa.DateTime(), nullable=False),
+    sa.Column('revoked_at', sa.DateTime(), nullable=True),
+    sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('jti')
@@ -178,8 +180,8 @@ def upgrade() -> None:
     sa.Column('record_id', sa.String(length=128), nullable=False),
     sa.Column('cycle', sa.String(length=8), nullable=False),
     sa.Column('note', sa.String(length=500), nullable=True),
-    sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
-    sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False),
+    sa.Column('created_at', sa.DateTime(), nullable=False),
+    sa.Column('updated_at', sa.DateTime(), nullable=False),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('user_id', 'record_id', name='uq_saved_user_record')

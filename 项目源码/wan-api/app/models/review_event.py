@@ -17,8 +17,8 @@ class ReviewEvent(Base):
     occurrences = Column(Integer, default=1)
     resolution_trigger = Column(Text)
     status = Column(String(32), default="open")
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
-    updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime(timezone=False), default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime(timezone=False), default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
     
     def __repr__(self):
         return f"<ReviewEvent {self.kind}>"

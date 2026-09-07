@@ -13,7 +13,7 @@ class SalaryData(Base):
     stage = Column(String(16), nullable=False)  # 工龄阶段
     value_wan = Column(Numeric)  # 万元/年
     snapshot_year = Column(String(8), default="2026")
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime(timezone=False), default=datetime.utcnow, nullable=False)
     
     __table_args__ = (
         UniqueConstraint('city', 'employment_type', 'stage', 'snapshot_year', name='uq_salary'),

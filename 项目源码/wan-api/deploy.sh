@@ -6,6 +6,8 @@ set -e
 
 # 配置变量
 APP_DIR="/opt/wanyu/api"
+# P1-9：静态数据目录（canonical 产物部署位置）——bash 脚本自用，不依赖 .env
+STATIC_DATA_PATH="${STATIC_DATA_PATH:-/opt/wanyu/static/maintainable/data}"
 VENV_DIR="${APP_DIR}/venv"
 LOG_DIR="/var/log/wanyu"
 PID_DIR="/var/run/wanyu"

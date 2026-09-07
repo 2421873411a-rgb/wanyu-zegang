@@ -18,7 +18,7 @@ class CompareList(Base):
     record_id = Column(String(128), nullable=False)
     cycle = Column(String(8), nullable=False)
     position = Column(Integer, nullable=False)
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime(timezone=False), default=datetime.utcnow, nullable=False)
 
     __table_args__ = (
         UniqueConstraint("user_id", "record_id", name="uq_compare_user_record"),

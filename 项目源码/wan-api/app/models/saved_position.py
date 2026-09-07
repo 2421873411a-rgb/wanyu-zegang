@@ -14,8 +14,8 @@ class SavedPosition(Base):
     record_id = Column(String(128), nullable=False)
     cycle = Column(String(8), nullable=False)
     note = Column(String(500), default="")
-    created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
-    updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime(timezone=False), default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime(timezone=False), default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
     # v17.9.1 S1：并发收藏竞态由数据库唯一约束兜底
     __table_args__ = (
