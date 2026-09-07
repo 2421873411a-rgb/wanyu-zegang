@@ -377,3 +377,15 @@ async def test_label_over_64_rejected(client: AsyncClient):
     r = await _import(client, headers, payload)
     assert r.status_code == 400
     assert "label" in r.json()["detail"]
+
+
+async def test_per_ip_rate_limit_bucket_independent_of_email(client: AsyncClient):
+    """Round-7 终审加固：换邮箱撞库被 per-IP 桶拦截（与 (ip,email) 桶并联取严）。"""
+    last = None
+    for i in range(31):  # per-IP 桶 30/小时：第 31 次必须 429
+        r = await client.post("/api/v1/auth/login",
+                              json={"email": f"spray{i}@example.com", "password": "wrong-pass-x"})
+        last = r.status_code
+        if r.status_code == 429:
+            break
+    assert last == 429, "换邮箱绕过 per-IP 桶仍然可行"

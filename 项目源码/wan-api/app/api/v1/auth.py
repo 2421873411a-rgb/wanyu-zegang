@@ -15,9 +15,11 @@ from app.models.refresh_token import RefreshToken
 from app.models.user import User
 from app.schemas.user import TokenResponse, UserCreate, UserLogin, UserResponse
 from app.utils.rate_limit import (
+    login_ip_limiter,
     login_limiter,
     logout_limiter,
     refresh_limiter,
+    register_ip_limiter,
     register_limiter,
 )
 from app.utils.security import (
@@ -77,7 +79,11 @@ async def register(user_data: UserCreate, request: Request, db: AsyncSession = D
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="注册功能已关闭")
 
     email = user_data.email.strip().lower()
-    rl_key = f"{_client_ip(request)}:{email}"
+    ip = _client_ip(request)
+    # per-IP 总量桶：单 IP 换邮箱批量注册的绕过面（Round-7 终审加固）
+    if not await register_ip_limiter.check(ip):
+        raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail="尝试过于频繁，请稍后再试")
+    rl_key = f"{ip}:{email}"
     # v17.9.12：原子"记录+判定"——旧的 allow()/hit() 分离在 bcrypt await 窗口内
     # 可被并发全部穿透（审计实测 20/20）。
     if not await register_limiter.check(rl_key):
@@ -108,7 +114,12 @@ async def register(user_data: UserCreate, request: Request, db: AsyncSession = D
 @router.post("/login", response_model=TokenResponse)
 async def login(login_data: UserLogin, request: Request, db: AsyncSession = Depends(get_db)):
     email = login_data.email.strip().lower()
-    rl_key = f"{_client_ip(request)}:{email}"
+    ip = _client_ip(request)
+    # per-IP 失败总量桶：单 IP 换邮箱撞库的绕过面（Round-7 终审加固）
+    if not await login_ip_limiter.check(ip):
+        logger.warning("login rate-limited ip=%s scope=ip", ip)
+        raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail="尝试过于频繁，请稍后再试")
+    rl_key = f"{ip}:{email}"
     if not await login_limiter.check(rl_key):
         logger.warning("login rate-limited ip=%s", _client_ip(request))
         raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail="尝试过于频繁，请稍后再试")
