@@ -2,8 +2,8 @@
  "schema": "wanyu-maturity-sprint/v1",
  "started_on": "2026-09-07",
  "current_round": 1,
- "main_head": "ab5d63d",
- "version": "v17.9.11",
+ "main_head": "5034b01",
+ "version": "v17.9.12",
  "gates_baseline": {
   "sqlite": "35 passed, 2 skipped",
   "postgres": "37 passed",
@@ -51,6 +51,27 @@
    ],
    "extra": "C3 branch protection canonical check 已重绑 Actions app(15368)",
    "ci": "6 checks 真绿（日志实证 e2e/discovery/audit 全执行）"
+  },
+  {
+   "round": 2,
+   "status": "DONE",
+   "pr": "PR#11 merged (5034b01)",
+   "tags": [
+    "v17.9.12"
+   ],
+   "closed": {
+    "P0": 1,
+    "P1": 8,
+    "P2": 16,
+    "P3": 4
+   },
+   "waived": [
+    "弱口令策略(既定取舍)",
+    "/api/docs 开放(文档明示)",
+    "username 变体(无信任决策)"
+   ],
+   "ci": "6 checks 真绿：PG job 71 passed 0 skipped（含 redis:7 真实限流测试）",
+   "incidents": "Actions 多 service 端口合并坑 + aioredis 循环绑定坑，均已修复并留注释"
   }
  ],
  "findings": {
@@ -59,5 +80,5 @@
   "waived": []
  },
  "prs_merged": [],
- "next_focus": "Round 2: 认证安全(含Redis限流实现)/API行为/迁移漂移/供应链/性能 五镜头"
+ "next_focus": "Round 3: 全镜头复审（回归对抗 + 收敛判定）"
 }
