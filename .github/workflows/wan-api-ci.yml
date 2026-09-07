@@ -162,9 +162,5 @@ jobs:
         env:
           DATABASE_URL: "postgresql+asyncpg://wanyu_test:test_pass@localhost:5432/wanyu_test"
           ENV: production
-        run: python -c "
-          import asyncio
-          from app.database import init_db
-          asyncio.run(init_db())
-          print('production init_db: PASS')
-          "
+        run: |
+          python -c "import asyncio; from app.database import init_db; asyncio.run(init_db()); print('production init_db PASS')"
