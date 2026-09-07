@@ -17,8 +17,11 @@ import sys
 import tempfile
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parents[3]          # 仓库根
-PROJECT_SRC = Path(__file__).resolve().parents[2]        # 项目源码/
+WAN_API_ROOT = Path(__file__).resolve().parents[1]        # wan-api/（app 包所在）
+REPO_ROOT = Path(__file__).resolve().parents[3]           # 仓库根
+PROJECT_SRC = Path(__file__).resolve().parents[2]         # 项目源码/
+sys.path.insert(0, str(WAN_API_ROOT))
+
 CANONICAL_DIR = PROJECT_SRC / "canonical" / "cycles"
 STATIC_ROOT = REPO_ROOT / "网站" / "data"
 EXPECTED = {
