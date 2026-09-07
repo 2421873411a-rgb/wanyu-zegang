@@ -28,7 +28,7 @@ class FilterSnapshotCreate(BaseModel):
     view: str = Field(max_length=32)
     filters: Dict[str, Any] = {}
     metric: str = Field(default="jobs", max_length=32)
-    release: str = Field(default="", max_length=64)
+    release: str = Field(default="", max_length=32)  # 与列宽一致（B1：64 曾漏网）
 
 
 class FilterSnapshotResponse(BaseModel):

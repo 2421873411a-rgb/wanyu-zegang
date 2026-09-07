@@ -1,5 +1,21 @@
 # 皖域择岗交付更新日志
 
+## v17.9.14 · Round-4 复审收口（反斜杠转义真落地 + 盲区终扫）· 2026-09-08
+
+### P1
+- **反斜杠转义真落地**：v17.9.13 曾声称"反斜杠纳入 LIKE 转义类"但代码未落地（回归审计用 pinned commit 字节级抓出）——本次真正修入并新增字面反斜杠正反门禁（含反斜杠行精确命中、用户反斜杠不得重臂通配符）。
+
+### P2
+- FilterSnapshot.release max_length 64→32（对齐列宽；v17.9.12 方言漂移修复漏网项）
+- 删除死契约面：JobSearchResponse.facets（恒 null）与零引用的 JobSearchRequest/JobStatsResponse
+- /audit/review-queue 上限 200 条；cycles/salary/audit 冒烟用例入门禁（原三路由仅 1 条覆盖）
+- CI：job 级 timeout-minutes、顶层 permissions contents:read、push 限 main 分支
+- deploy 载荷排除 *.db/tests/docs（开发 wanyu.db 曾会随载荷上生产）；停服窗口前移到解包之前（旧 worker 滚动重生撞新代码的残余窗口）；TimeoutStopSec 45>graceful 30（停服预算不再被吃满）
+- nginx /health 加宽松限流（readiness 探活防刷）
+- README：快速开始去重 cp、测试命令补 ENV=test、用例数更新；CONTRACT 标题/§7 随版本滚动
+- 无效门禁修正：在场排除行级联测试改为同 id（原测试实际走 stale 路径，对目标分支无门禁力）
+
+
 ## v17.9.13 · Round-3 复审收口（回归对抗抓出转义缺陷实现 + 运维窗口）· 2026-09-08
 
 ### P1
@@ -8,7 +24,7 @@
 
 ### P2
 - SECRET_KEY：公开测试密钥入 denylist（正式环境拒启）；ENV 精确匹配 test（' TEST '/'Test' 不再享受豁免）
-- LIKE：反斜杠纳入转义类（生产 PG invalid escape 500 面）
+- LIKE：反斜杠纳入转义类（v17.9.13 曾声称修复但未落地，v17.9.14 补上并加正向/反向门禁；转义符恒不在模式末尾，PG invalid escape 面实际不可达）
 - 限流：Redis Lua 改用 Redis TIME（实例时钟漂移曾整体绕过窗口）；内存 limiter 容量上限+清扫（20 万 key≈150MB 内存 DoS 面）；reset() 非 test 环境拒绝执行（防误扫共享 Redis）
 - 部署：停服窗口（旧 worker 滚动重生撞新代码曾致崩溃循环）；OS 支持矩阵前置断言（python3.12 仅 24.04+ 官方源）
 - 数据：快照"在场排除行"也级联清理幽灵引用；MirrorState.release 空 label 守卫（与 Cycle.label 一致）；bm 浮点校验（契约对齐）；stats 缓存查询移入命中路径+导入失效钩子（原实现零收益纯脏读）

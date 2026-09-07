@@ -164,7 +164,7 @@ setup_app_dir() {
     cd "$SCRIPT_DIR"
     tar --exclude='./.git' --exclude='./.venv' --exclude='./venv' \
         --exclude='__pycache__' --exclude='.pytest_cache' --exclude='.ruff_cache' \
-        --exclude='*.pyc' --exclude='./_ci_migrate.db' --exclude='_audit_probe*' -cf - . | tar -C "$APP_DIR" -xf -
+        --exclude='*.pyc' --exclude='./*.db' --exclude='./_ci_migrate.db' \n        --exclude='_audit_probe*' --exclude='./tests' --exclude='./docs' -cf - . | tar -C "$APP_DIR" -xf -
     cd "$APP_DIR"
 
     # 权限扫除必须在 venv 创建之前：644 扫除会抹掉 venv 可执行位（历史上靠 || true 兜底的根因）。
@@ -235,7 +235,7 @@ ExecReload=/bin/kill -s HUP \$MAINPID
 Restart=on-failure
 RestartSec=5
 KillMode=mixed
-TimeoutStopSec=30
+TimeoutStopSec=45
 NoNewPrivileges=yes
 ProtectSystem=strict
 ProtectHome=yes
@@ -281,6 +281,8 @@ server {
         add_header Cache-Control "no-store, no-cache, must-revalidate";
     }
     location = /health {
+        # readiness 含 DB 探活：宽松限流防公网刷探针制造连接 churn（B7）
+        limit_req zone=api burst=10 nodelay;
         proxy_pass http://wanyu_api/health;
         proxy_set_header Host $host;
         access_log off;
@@ -316,12 +318,6 @@ setup_ssl() {
 
 import_data() {
     log_info "导入数据..."
-    # 停服窗口（Round-3 RA-8）：解包新代码后旧 worker 按 max_requests 滚动重生会加载
-    # 新代码撞旧 schema 崩溃循环；迁移+导入期间显式停服，完成后由 start_service 拉起。
-    if systemctl is-active --quiet "$SERVICE_NAME"; then
-        systemctl stop "$SERVICE_NAME"
-        log_info "已停止 ${SERVICE_NAME}（部署窗口）"
-    fi
     if [ ! -d "${STATIC_DATA_PATH}/cycles" ]; then
         log_error "静态数据目录不存在：${STATIC_DATA_PATH}/cycles"
         exit 1
@@ -453,6 +449,12 @@ main() {
     check_prerequisites
     install_dependencies
     setup_database
+    # 停服窗口前移（Round-4 复审）：解包新代码起旧 worker 滚动重生就会加载新代码撞旧
+    # schema——必须在任何载荷落盘之前停服，迁移/导入完成后由 start_service 拉起。
+    if systemctl is-active --quiet "$SERVICE_NAME"; then
+        systemctl stop "$SERVICE_NAME"
+        log_info "已停止 ${SERVICE_NAME}（部署窗口开始）"
+    fi
     backup_previous_release
     setup_app_dir
     setup_service

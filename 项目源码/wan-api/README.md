@@ -77,7 +77,6 @@ pip install -r requirements.txt
 ```bash
 cp .env.example .env
 echo "SECRET_KEY=$(openssl rand -hex 32)" >> .env
-cp .env.example .env
 # 编辑 .env 文件配置数据库等信息
 ```
 
@@ -198,8 +197,8 @@ gunicorn app.main:app -c gunicorn.conf.py
 
 ## 测试
 
-> v17.9.12 起 tests/ 为真实存在的门禁式套件（71 用例；SQLite job 实跑 66+5 专属跳过，
-> PG+Redis job 71 全跑），覆盖：
+> v17.9.14 起 tests/ 为真实存在的门禁式套件（77 用例；SQLite job 实跑 72+5 专属跳过，
+> PG+Redis job 77 全跑），覆盖：
 > 注册不可成为管理员 / 生产 SECRET_KEY 拒绝启动 / refresh 仅 body + 轮换撤销 /
 > 重复收藏数据库拒绝 / 对比≤4 / 管理导入真实写库对账 / 最后管理员保护 / 413 / 登出。
 > 契约详见 `docs/CONTRACT.md`。
