@@ -1,6 +1,8 @@
 from pydantic_settings import BaseSettings
-from typing import List
+from typing import List, Optional
+import json
 import os
+from pathlib import Path
 
 # v17.9.1 S0：已知默认秘密清单——生产环境命中任一即拒绝启动（fail-closed）
 _KNOWN_INSECURE_SECRETS = {
@@ -10,10 +12,32 @@ _KNOWN_INSECURE_SECRETS = {
 }
 
 
+def _version_from_release_json() -> Optional[str]:
+    """API 版本单一真源：wan-api/release.json 的 release 字段（wanyu-api-release/v1）。
+
+    仓库布局（app/config.py → parents[1] = wan-api/）直接命中；部署布局
+    /opt/wanyu/api 下同样命中（release.json 随载荷部署）；找不到再试项目级
+    release.json，仍无则返回 None 交还 env（deploy.sh 注入）。
+    """
+    marker = Path(__file__).resolve()
+    for parent in marker.parents[:4]:
+        candidate = parent / "release.json"
+        if candidate.is_file():
+            try:
+                doc = json.loads(candidate.read_text(encoding="utf-8"))
+                if doc.get("schema") == "wanyu-api-release/v1":
+                    return str(doc["release"])
+            except (OSError, ValueError, KeyError):
+                continue
+    return None
+
+
 class Settings(BaseSettings):
     # 应用配置
     APP_NAME: str = "皖域择岗 API"
-    APP_VERSION: str = "v17.9.0"
+    # v17.9.11：APP_VERSION 不再手工硬编码——默认从 release.json 单一真源读取，
+    # 部署布局由 deploy.sh 注入 .env。手工版本号曾连续十个版本漂移（v17.9.1~v17.9.10）。
+    APP_VERSION: str = _version_from_release_json() or "unknown"
     # ENV: dev / test / production。production 下强制安全门（SECRET_KEY 不得为已知默认值）
     ENV: str = "dev"
     DEBUG: bool = False

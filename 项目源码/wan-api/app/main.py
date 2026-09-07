@@ -56,5 +56,5 @@ async def root():
 
 @app.get("/health")
 async def health():
-    """健康检查"""
-    return {"status": "ok"}
+    """健康检查（携带版本：deploy smoke 靠它证明新代码真正生效）"""
+    return {"status": "ok", "version": settings.APP_VERSION}

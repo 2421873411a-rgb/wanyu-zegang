@@ -6,7 +6,8 @@ on:
 
 concurrency:
   group: canonical-ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  # main 分支的 run 永不取消：快速连续 merge 时每笔 main 提交都必须有自身完成的绿记录
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 defaults:
   run:
@@ -22,6 +23,9 @@ jobs:
           python-version: "3.12"
           cache: pip
           cache-dependency-path: 项目源码/requirements.txt
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
       - name: 安装 canonical 门禁依赖（fail-closed）
         run: |
           python -m pip install --upgrade pip
@@ -31,14 +35,49 @@ jobs:
         run: python verify_sources.py --manifest-only
       - name: canonical bundle 核心门禁
         run: python tools/anhui_web/validate_canonical_core.py
-      - name: 数据契约与真源纯度门禁
-        run: >-
-          python -m unittest
-          tests.test_data_contract
-          tests.test_source_registry
-          tests.test_record_lifecycle
-          tests.test_doc_truth_gate
-          tests.test_build_input_purity
+      - name: Python 测试门禁（discovery 全量，产物依赖模块显式豁免）
+        run: |
+          # v17.9.11 C1：曾只跑 5 个白名单模块，~20 个活跃模块在门禁之外空转。
+          # 现在 discovery 全量：新模块自动入门禁；往 EXCLUDED 加名字必须写明理由。
+          # EXCLUDED（依赖 git 外构建产物/源数据/真实工作树状态，hosted CI 必然失败，
+          # Round-1 CI 审计在 git-archive 模拟下实测 45 failures）：
+          #   test_anhui_web            依赖 source_data/ 原始源（不入 git）
+          #   test_single_file_legacy   依赖 legacy 单文件构建产物
+          #   test_maintainable_site    依赖网站构建输出
+          #   test_ui_upgrade           依赖 ui_upgrade 构建输出
+          #   test_release_integrity    依赖真实 .git 工作树（dirty 检查）
+          #   test_v14_upgrade_baseline 依赖 v14 升级基线产物
+          #   test_three_year_audit     依赖三年审计构建产物
+          #   test_supplement_integrity 依赖补充包构建产物
+          #   test_map_restore          依赖地图恢复产物
+          #   test_catalog_and_changes  依赖 catalog/changes 构建产物
+          EXCLUDED="test_anhui_web test_single_file_legacy test_maintainable_site test_ui_upgrade test_release_integrity test_v14_upgrade_baseline test_three_year_audit test_supplement_integrity test_map_restore test_catalog_and_changes"
+          FAILED=0
+          for f in tests/test_*.py; do
+            m="$(basename "$f" .py)"
+            if echo " $EXCLUDED " | grep -q " $m "; then
+              echo "--- skip $m (EXCLUDED，见上方理由) ---"
+              continue
+            fi
+            echo "=== gating $m ==="
+            python -m unittest "tests.$m" || FAILED=1
+          done
+          if [ "$FAILED" -ne 0 ]; then
+            echo "Python 测试门禁：FAIL" >&2
+            exit 1
+          fi
+          echo "Python 测试门禁：PASS（discovery 全量，EXCLUDED 见清单）"
+      - name: 前端纯函数层门禁（node --test）
+        run: |
+          # browser smoke 类（major_city_browser_smoke / ui_upgrade_browser_smoke）需真实
+          # 浏览器或构建产物，属发布机门禁；纯函数契约层在此全量锁定。
+          FAILED=0
+          for f in tests/test_wanyu_core.cjs tests/test_datastore_contract.cjs \
+                   tests/test_major_city_index.cjs tests/test_user_store_contract.cjs; do
+            echo "=== node-gating $f ==="
+            node --test "$f" || FAILED=1
+          done
+          exit $FAILED
       - name: 说明外部源发布门禁
         run: |
           echo "Hosted CI 已严格验证 Git 内 canonical bundle + sources.lock manifest。"

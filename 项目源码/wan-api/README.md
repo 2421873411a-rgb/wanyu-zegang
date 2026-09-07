@@ -165,20 +165,25 @@ async def main():
 asyncio.run(main())
 ```
 
-### 导入单个文件
+### 管理端导入单个快照（HTTP）
+
+```bash
+curl -X POST https://<host>/api/v1/admin/import/2026   -H "Authorization: Bearer <admin_token>"   -F "file=@jobs.json"
+```
+快照需通过 fail-closed 校验（meta 守恒、job_id 强格式、排除行证据三件套、
+canonical bundle 必须携带 provenance 指纹），校验失败 400 整包零写入；
+成功返回 imported/updated/deactivated 对账与 mirror_states 摘要。
+
+### 生产引导（三周期原子导入）
 
 ```python
-from app.services.import_service import ImportService, load_json_file
-
-async def import_jobs():
-    data = await load_json_file('path/to/jobs.json')
-    service = ImportService(db)
-    stats = await service.import_cycle_jobs('2026', data)
+from app.services.import_service import import_all_data
+results = await import_all_data(db, data_path=STATIC_DATA_PATH)  # 2024/2025/2026 全部校验通过后单事务写入
 ```
 
 ## 测试
 
-> v17.9.1 起 tests/ 为真实存在的门禁式套件（21 用例），覆盖：
+> v17.9.11 起 tests/ 为真实存在的门禁式套件（SQLite 53 用例 + PG 专属并发/全量 55），覆盖：
 > 注册不可成为管理员 / 生产 SECRET_KEY 拒绝启动 / refresh 仅 body + 轮换撤销 /
 > 重复收藏数据库拒绝 / 对比≤4 / 管理导入真实写库对账 / 最后管理员保护 / 413 / 登出。
 > 契约详见 `docs/CONTRACT.md`。

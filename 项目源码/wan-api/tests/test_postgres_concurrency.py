@@ -5,7 +5,7 @@ import pytest
 from httpx import ASGITransport, AsyncClient
 
 from app.main import app
-from tests.conftest import _auth, _register, using_postgres
+from tests.conftest import _auth, _register, _seed_jobs, using_postgres
 
 pytestmark = [
     pytest.mark.asyncio,
@@ -43,11 +43,13 @@ async def test_compare_four_slot_limit_holds_under_concurrency(client: AsyncClie
     """先占 3 槽，再同时争最后 1 槽；最终列表绝不能超过 4。"""
     data = await _register(client, email="slots@example.com", username="slots")
     headers = _auth(data["access_token"])
-    for i in range(3):
+    # v17.9.11 B3：引用必须是真实 active 岗位——先播种 5 个，占 3 争 2
+    job_ids = await _seed_jobs(5)
+    for jid in job_ids[:3]:
         r = await client.post(
             "/api/v1/user/compare",
             headers=headers,
-            json={"record_id": f"seed-{i}", "cycle": "2026"},
+            json={"record_id": jid, "cycle": "2026"},
         )
         assert r.status_code == 201, r.text
 
@@ -59,7 +61,7 @@ async def test_compare_four_slot_limit_holds_under_concurrency(client: AsyncClie
                 json={"record_id": record_id, "cycle": "2026"},
             )
 
-    r1, r2 = await asyncio.gather(add("race-a"), add("race-b"))
+    r1, r2 = await asyncio.gather(add(job_ids[3]), add(job_ids[4]))
     assert sorted([r1.status_code, r2.status_code]) == [201, 400], (r1.text, r2.text)
     final = await client.get("/api/v1/user/compare", headers=headers)
     assert final.status_code == 200

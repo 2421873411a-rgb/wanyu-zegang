@@ -118,8 +118,14 @@ class V17PerfBudgetTests(unittest.TestCase):
         release = (ROOT / "tools" / "anhui_web" / "release.py").read_text(encoding="utf-8")
         self.assertIn('release.json', release)
         self.assertIsNone(_re.search(r'BUILD_VERSION\s*=\s*"v\d', release), "release.py 不得硬编码版本号")
+        # v17.9.11：不锁具体版本字面量（那会机制性冻结 release.json），改锁同构一致性——
+        # release.json 与网站清单/入口 HTML 的资产版本必须互相咬合。
         release_doc = json.loads((ROOT / "release.json").read_text(encoding="utf-8"))
-        self.assertEqual(release_doc["release"], "v17.9.0")
+        asset_version = release_doc["asset_version"]
+        manifest = json.loads((ROOT / ".." / "网站" / "data" / "site-manifest.json").read_text(encoding="utf-8"))
+        self.assertEqual(manifest.get("release"), release_doc["release"])
+        index_html = (ROOT / ".." / "网站" / "index.html").read_text(encoding="utf-8")
+        self.assertIn(f"?v={asset_version}", index_html)
 
     def test_release_checks_template_asset_parity_and_view_smoke(self) -> None:
         import sys as _sys

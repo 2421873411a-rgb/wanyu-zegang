@@ -1,0 +1,18 @@
+{
+  "name": "皖域择岗档案",
+  "short_name": "皖域择岗",
+  "description": "2024—2026 安徽公考岗位数据工作台：地图、榜单、逐岗检索与审计",
+  "start_url": "index.html",
+  "scope": ".",
+  "display": "standalone",
+  "background_color": "#fafdff",
+  "theme_color": "#3a83f7",
+  "icons": [
+    {
+      "src": "assets/wanyu-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

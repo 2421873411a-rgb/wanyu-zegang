@@ -27,8 +27,14 @@ class Job(Base):
     title_status = Column(String(32))
     display_title = Column(String(256))
     job_status = Column(String(32), default="active")
-    # 快照替换语义：出现在最新快照且非排除行 → active；被快照移除或源标记 duplicate/excluded → excluded
+    # 快照替换语义：出现在最新快照且非排除行 → active；被快照移除或源标记排除态 → excluded。
+    # excluded 是 DB 层派生态（源侧词表见 docs/data-contract/record-status.md），折叠规则：
+    # canonical 的 duplicate/invalid_source/withdrawn/superseded/needs_review → excluded。
     record_status = Column(String(32), default="active", index=True)
+    # 排除审计三件套：为何被排除/证据指向/何时（源侧字符串日期）。校验强制要求，导入即留存。
+    exclusion_reason = Column(String(128))
+    exclusion_evidence = Column(String(256))
+    excluded_at = Column(String(32))
 
     score_observation_status = Column(String(32))
     score_observation_scale_id = Column(String(32))

@@ -1,5 +1,28 @@
 # 皖域择岗交付更新日志
 
+## v17.9.11 · Round-1 深度收口（部署链 + 数据完整性 + CI 门禁 + 版本真源）· 2026-09-07
+
+### 部署链（Round-1 审计 P0×1 / P1×2 全部关闭）
+
+- **P0**：`/var/log/wanyu` 从未 chown 给 www-data，全新机器首次部署必死于 gunicorn 启动——现部署即 `chown www-data:750`；权限扫除改为 venv 创建前执行，废除 `|| true` 兜底。
+- **P1**：DB owner 校验调用了不存在的 `pg_get_userby`（正确为 `pg_get_userbyid`），任何二次部署必炸——已修复并进 linkage 回归锁。
+- **P1**：nginx `alias+try_files`（trac#97 双前缀缺陷）改为 `root /opt/wanyu/static`；smoke 新增静态站 200 与 HTTP→HTTPS 301 断言；certbot 加 `--redirect`。
+- 部署载荷改确定性打包（定位脚本目录 + tar 排除清单）；换血前自动备份旧版本（`/opt/wanyu/backup/`）+ alembic 版本戳 + `docs/ops/RUNBOOK.md` 回滚手册；`create_admin` 可经 `ADMIN_BOOTSTRAP_PASSWORD` 入链；apt 补 curl/sudo + 前置断言。
+
+### 数据完整性（P1×3 关闭 + 一批 P2）
+
+- canonical bundle 必须携带 `provenance.job_id_set_sha256`（删除指纹段绕过校验的 fail-open 已封死）。
+- 复核事件导入幂等化（`kind+cycle+title` upsert）：此前每次重部署 review 队列翻倍（7→14→…）。
+- 收藏/对比 add 时校验引用目标为当前 active 岗位；快照下线行级联清理幽灵引用并留下"为何/何证/何时"三件套（新增 jobs 三列，迁移 0003）。
+- meta 口径必须成对匹配（raw 对 raw、active 对 active，混搭拒绝）；浮点 `num` 拒绝；契约排除词表（withdrawn/superseded/invalid_source/needs_review）与 API 白名单对齐（DB 折叠二值）；`Cycle.snapshot_date` 结构化回填；dashboard active/excluded 双口径；导入响应携带全周期 mirror 摘要。
+
+### CI 门禁与版本真源
+
+- canonical required check 从 5 个白名单模块扩为 discovery 全量（产物依赖 10 模块显式豁免并注明理由）+ 4 个 .cjs 纯函数模块 node --test；真数据端到端（6 快照校验→临时库导入→幂等对账）与 dev-lock pip-audit 进 CI；concurrency 对 main 免取消。
+- API 版本单一真源 `wan-api/release.json`（wanyu-api-release/v1）：config 启动读取、deploy 注入、`/health` 暴露、smoke 断言——v17.9.1~v17.9.10 十个版本"线上到底是哪个版本"不可回答的问题闭环。
+- 契约/README/record-status 文档与实现对齐；僵尸文件清除；`.gitignore` 正式收编 deliverables/。
+
+
 ## v16.2.1 增量 · 岗位地图专业筛选 + 地图交互即时化 · 2026-09-03
 
 ### 岗位地图可按专业看分布

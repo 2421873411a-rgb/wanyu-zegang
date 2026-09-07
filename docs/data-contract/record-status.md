@@ -1,6 +1,8 @@
 # record_status 生命周期契约（wanyu-record-status/v1）
 
-> 生效版本：v17.8.5-RC2。唯一 Python 实现：`项目源码/tools/anhui_web/record_lifecycle.py`。
+> 生效版本：v17.9.11（词表自 v17.8.5-RC2 起未变；v17.9.11 补 DB 层折叠契约）。
+> 唯一 Python 实现：`项目源码/tools/anhui_web/record_lifecycle.py`；
+> API 侧白名单镜像：`项目源码/wan-api/app/services/import_service.py` `_VALID_RECORD_STATUS`。
 > 前端 `isActiveRow()` 只是**防御层**，不是业务正确性的唯一来源（用户模块数据本身必须 active-only）。
 > 排除证据外置构建输入：`项目源码/tools/anhui_web/data/record_status_overrides.json`。
 
@@ -12,6 +14,12 @@ duplicate / invalid_source / withdrawn / superseded / needs_review => 排除出�
 ```
 
 - Python：`record_status_of(row)` / `is_active_record(row)` / `split_records(rows)`。
+- **DB 层折叠（wan-api，v17.9.11）**：导入时上述 5 个排除态与 DB 派生态 `excluded`
+  一律折叠为二值 `record_status ∈ {active, excluded}`；源侧具体排除态连同
+  `exclusion_reason / exclusion_evidence / excluded_at` 三件套原样落库供审计。
+  被后续快照移除的行记 `exclusion_reason='snapshot_removed_in_later_snapshot'`、
+  证据=新快照 source_sha256。公共查询只见 active；excluded 仅管理/审计入口可见。
+  扩展词表必须先改本契约 + `record_lifecycle.ALLOWED_STATUSES` + API 白名单三处。
 - JS（防御层）：`isActiveRow = (row) => !row || !row.record_status || row.record_status === "active"`。
 - 未知新状态值按“排除”处理并必须先补进本契约，禁止前端静默放行。
 

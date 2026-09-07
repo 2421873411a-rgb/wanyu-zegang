@@ -28,21 +28,28 @@ import os
 import re
 from typing import Any, Dict, List, Optional, Set, Tuple
 
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
+from app.models.compare_list import CompareList
 from app.models.cycle import Cycle
 from app.models.job import Job
 from app.models.mirror_state import MirrorState
 from app.models.review_event import ReviewEvent
 from app.models.salary_data import SalaryData
+from app.models.saved_position import SavedPosition
+from app.utils.time import utcnow_naive
 
 JOB_ID_RE = re.compile(r"^job-(\d{4})-[0-9a-f]{20}$")
 CYCLES: Tuple[str, ...] = ("2024", "2025", "2026")
 _ACTIVE_STATUSES = {None, "", "active"}
-_EXCLUDED_STATUSES = {"duplicate", "excluded"}
+# v17.9.11：词表与 docs/data-contract/record-status.md + record_lifecycle.py 对齐
+# （canonical 构建器合法的 invalid_source/withdrawn/superseded/needs_review 曾被
+# API 拒绝整包；DB 层一律折叠为二值 active/excluded，excluded 是 DB 派生态）。
+_EXCLUDED_STATUSES = {"duplicate", "invalid_source", "withdrawn", "superseded", "needs_review", "excluded"}
 _VALID_RECORD_STATUS = _ACTIVE_STATUSES | _EXCLUDED_STATUSES
+STALE_EXCLUSION_REASON = "snapshot_removed_in_later_snapshot"
 
 
 class SnapshotValidationError(Exception):
@@ -66,7 +73,13 @@ def _extract_group(data: Dict[str, Any]) -> Tuple[Optional[Dict[str, Any]], list
 
 
 def _to_int(value: Any) -> Optional[int]:
+    """整数（或整数值的 float）→ int；其余一律 None（调用方判为非法）。
+
+    v17.9.11：3.7 这类浮点招聘人数曾被 int() 静默截断成 3 且守恒按截断值自洽。
+    """
     if isinstance(value, bool) or value is None:
+        return None
+    if isinstance(value, float) and not value.is_integer():
         return None
     try:
         return int(value)
@@ -151,7 +164,8 @@ def validate_snapshot(cycle: str, data: Dict[str, Any], max_rows: int = 20000) -
                 if not isinstance(value, str) or not value.strip():
                     errors.append(f"排除行 {jid} 缺 {field}")
 
-    # ---- meta 守恒：全部必填，兼容 canonical（total=raw）与静态（total=active）约定 ----
+    # ---- meta 守恒：全部必填；且 total/recruits 必须成对同口径（raw 对 raw、active 对 active），
+    # ---- 混搭（如 total=raw + recruits=active）说明标注方自己都不知用的哪套口径，拒绝。
     raw_total = _to_int(meta.get("raw_total"))
     if raw_total is None:
         errors.append("meta.raw_total 缺失")
@@ -165,20 +179,30 @@ def validate_snapshot(cycle: str, data: Dict[str, Any], max_rows: int = 20000) -
         errors.append(f"meta.excluded={meta_excluded} 与排除行数 {excluded_rows} 不一致")
 
     total = _to_int(meta.get("total"))
+    recruits = _to_int(meta.get("recruits"))
     if total is None:
         errors.append("meta.total 缺失")
-    elif total not in (len(rows), active_rows):
-        errors.append(f"meta.total={total} 既不等于全行数 {len(rows)} 也不等于 active 行数 {active_rows}")
-
-    recruits = _to_int(meta.get("recruits"))
     if recruits is None:
         errors.append("meta.recruits 缺失")
-    elif recruits not in (raw_recruits, active_recruits):
-        errors.append(f"meta.recruits={recruits} 既不等于全行 sum(num)={raw_recruits} 也不等于 active sum(num)={active_recruits}")
+    if total is not None and recruits is not None:
+        pair_raw = (total == len(rows)) and (recruits == raw_recruits)
+        pair_active = (total == active_rows) and (recruits == active_recruits)
+        if not (pair_raw or pair_active):
+            errors.append(
+                f"meta.total/recruits 口径不自洽：total={total}、recruits={recruits}"
+                f"（全行 {len(rows)}/{raw_recruits}，active {active_rows}/{active_recruits}）"
+                "——官方两种口径必须成对匹配，禁止混搭"
+            )
 
-    # ---- provenance 指纹（canonical 提供，静态无）：提供即必须匹配 ----
+    # ---- provenance 指纹：canonical bundle（all_majors 键或官方 schema 声明）必须携带——
+    # ---- job_id_set_sha256 是行级篡改的唯一侦测手段，"整段删掉"不算合法输入（v17.9.11 P1）。
+    is_canonical_bundle = isinstance(data.get("all_majors"), dict) or (
+        data.get("schema") == "wanyu-cycle-bundle/v1"
+    )
     provenance = data.get("provenance") or {}
     declared = provenance.get("job_id_set_sha256")
+    if is_canonical_bundle and declared is None:
+        errors.append("canonical bundle 必须携带 provenance.job_id_set_sha256（行集指纹不可缺席）")
     if declared is not None:
         computed = _job_id_set_sha256([str(r.get("job_id") or r.get("row_id") or "") for r in rows if isinstance(r, dict)])
         if declared != computed:
@@ -238,16 +262,28 @@ class ImportService:
                 active_count += 1
                 active_recruits += int(row.get("num") or 0)
 
-        # stale 下线（不物理删除，保留审计痕迹）
+        # stale 下线（不物理删除，保留完整审计痕迹：为何被排除、证据是什么）
         for sid in stale_ids:
-            existing_jobs[sid].record_status = "excluded"
+            stale_job = existing_jobs[sid]
+            stale_job.record_status = "excluded"
+            stale_job.exclusion_reason = STALE_EXCLUSION_REASON
+            stale_job.exclusion_evidence = source_sha256 or None
+            stale_job.excluded_at = utcnow_naive().strftime("%Y-%m-%d")
 
-        await self._update_cycle_meta(cycle, meta, active_count, active_recruits)
+        # 级联清理幽灵引用：被下线岗位不允许继续留在任何用户的收藏/对比列表里
+        # （否则"列表可见、详情 404"永远不一致，伪造 id 还永久占对比槽）。
+        if stale_ids:
+            await self.db.execute(delete(SavedPosition).where(SavedPosition.record_id.in_(stale_ids)))
+            await self.db.execute(delete(CompareList).where(CompareList.record_id.in_(stale_ids)))
+
+        # 周期元数据（快照日期从 label 回填）
+        label = release or str(data.get("label") or "")
+        await self._update_cycle_meta(cycle, meta, active_count, active_recruits, label)
 
         job_id_hash = _job_id_set_sha256(list(incoming_ids))
         await self._upsert_mirror_state(
             cycle=cycle,
-            release=release or str(data.get("label") or ""),
+            release=label,
             source_sha256=source_sha256,
             job_id_set_sha256=job_id_hash,
             source_rows=len(rows),
@@ -298,8 +334,12 @@ class ImportService:
         job.title_status = row.get("title_status")
         job.display_title = row.get("display_title")
         job.job_status = row.get("job_status") or "active"
-        # 重新出现在 active 快照 → 必须 active，绝不继承历史 excluded
+        # 重新出现在 active 快照 → 必须 active，绝不继承历史 excluded；
+        # 同时清空排除证据（active 行没有排除证据可言，exact overwrite）。
         job.record_status = _norm_record_status(row.get("record_status"))
+        job.exclusion_reason = row.get("exclusion_reason")
+        job.exclusion_evidence = row.get("exclusion_evidence")
+        job.excluded_at = row.get("excluded_at")
         job.score_observation_status = so.get("status")
         job.score_observation_scale_id = so.get("scale_id")
         job.score_observation_value = so.get("value")
@@ -311,8 +351,20 @@ class ImportService:
         return job
 
     async def _update_cycle_meta(self, cycle: str, meta: Dict[str, Any],
-                                 active_count: int, active_recruits: int) -> None:
-        """周期元数据：用户口径存 active 数（与静态站一致）；raw 口径在 MirrorState。"""
+                                 active_count: int, active_recruits: int,
+                                 label: str = "") -> None:
+        """周期元数据：用户口径存 active 数（与静态站一致）；raw 口径在 MirrorState。
+
+        v17.9.11：snapshot_date 从 label/meta 的 '快照 YYYY-MM-DD' 结构化回填，
+        不再让快照时点只活在展示字符串里。
+        """
+        snapshot_date = None
+        for text in (label, str(meta.get("cycle") or "")):
+            m = re.search(r"(\d{4}-\d{2}-\d{2})", str(text or ""))
+            if m:
+                snapshot_date = m.group(1)
+                break
+
         result = await self.db.execute(select(Cycle).where(Cycle.cycle == cycle))
         existing = result.scalar_one_or_none()
         score_unresolved = _to_int(meta.get("score_unresolved")) or 0
@@ -320,23 +372,29 @@ class ImportService:
             existing.total_posts = active_count
             existing.total_recruits = active_recruits
             existing.score_unresolved = score_unresolved
+            if label:
+                existing.label = label
+            if snapshot_date:
+                existing.snapshot_date = snapshot_date
         else:
             self.db.add(Cycle(
                 cycle=cycle,
-                label=f"{cycle}年度",
+                label=label or f"{cycle}年度",
                 total_posts=active_count,
                 total_recruits=active_recruits,
                 score_unresolved=score_unresolved,
+                snapshot_date=snapshot_date,
                 status="verified",
             ))
 
     async def _upsert_mirror_state(self, **kwargs: Any) -> None:
+        """无条件覆盖（v17.9.11 去掉 `if v is not None` 死分支：
+        该守卫会将来路不明的 None 变成"保留旧哈希"，与镜像语义相悖）。"""
         result = await self.db.execute(select(MirrorState).where(MirrorState.cycle == kwargs["cycle"]))
         existing = result.scalar_one_or_none()
         if existing:
             for k, v in kwargs.items():
-                if v is not None:
-                    setattr(existing, k, v)
+                setattr(existing, k, v)
         else:
             self.db.add(MirrorState(**kwargs))
 
@@ -376,22 +434,47 @@ class ImportService:
         return count
 
     async def import_review_events(self, data: Dict[str, Any]) -> int:
-        """导入复核事件。data: {"items": [...]}"""
+        """导入复核事件（幂等 upsert by kind+cycle+title）。
+
+        v17.9.11 P1：原实现无条件 add，deploy 每次重跑 import_all_data 都让
+        复核队列翻倍（7→14→…）。现改为同一 (kind, cycle, title) 已存在则
+        exact overwrite 事件内容（status/created_at 保留既有生命周期）。
+        """
         items = data.get("items") or []
+        count = 0
         for item in items:
-            self.db.add(ReviewEvent(
-                kind=item.get("kind", "unknown"),
-                severity=item.get("severity", "medium"),
-                cycle=item.get("cycle"),
-                title=item.get("title"),
-                detail=item.get("detail"),
-                evidence=item.get("evidence"),
-                occurrences=item.get("occurrences", 1),
-                resolution_trigger=item.get("resolution_trigger"),
-                status="open",
-            ))
+            kind = item.get("kind", "unknown")
+            cycle = item.get("cycle")
+            title = item.get("title")
+            result = await self.db.execute(
+                select(ReviewEvent).where(
+                    ReviewEvent.kind == kind,
+                    ReviewEvent.cycle == cycle,
+                    ReviewEvent.title == title,
+                )
+            )
+            existing = result.scalar_one_or_none()
+            if existing:
+                existing.severity = item.get("severity", "medium")
+                existing.detail = item.get("detail")
+                existing.evidence = item.get("evidence")
+                existing.occurrences = item.get("occurrences", 1)
+                existing.resolution_trigger = item.get("resolution_trigger")
+            else:
+                self.db.add(ReviewEvent(
+                    kind=kind,
+                    severity=item.get("severity", "medium"),
+                    cycle=cycle,
+                    title=title,
+                    detail=item.get("detail"),
+                    evidence=item.get("evidence"),
+                    occurrences=item.get("occurrences", 1),
+                    resolution_trigger=item.get("resolution_trigger"),
+                    status="open",
+                ))
+            count += 1
         await self.db.flush()
-        return len(items)
+        return count
 
 
 def _load_json_file(path: str) -> Dict[str, Any]:

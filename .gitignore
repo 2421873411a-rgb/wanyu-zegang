@@ -31,7 +31,6 @@ tools/anhui_web/.deploy_wan.local
 
 # 审计截图存证（~20MB，仅存磁盘：docs/self-iterate/2026-09-07-master-audit/shots）
 docs/self-iterate/2026-09-07-master-audit/shots/
-项目源码/deliverables/
 _密钥_勿入git/
 .release-staging/
 项目源码/tools/anhui_web/.deploy_wan.local
