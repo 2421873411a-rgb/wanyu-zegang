@@ -216,5 +216,8 @@ def _build(scope: str, max_events: int, window_seconds: float):
 # 登录/注册/刷新/登出限流：key 维度见调用方（ip+账号 或 ip）
 login_limiter = _build("login", settings.LOGIN_MAX_FAILURES, settings.LOGIN_WINDOW_SECONDS)
 register_limiter = _build("register", settings.REGISTER_MAX_EVENTS, settings.REGISTER_WINDOW_SECONDS)
+# per-IP 总量桶（Round-7 终审加固：(ip,email) 分桶可被换邮箱绕过做撞库/批量注册）
+login_ip_limiter = _build("login_ip", 30, 3600)
+register_ip_limiter = _build("register_ip", 10, 3600)
 refresh_limiter = _build("refresh", settings.REFRESH_MAX_EVENTS, settings.REFRESH_WINDOW_SECONDS)
 logout_limiter = _build("logout", settings.LOGOUT_MAX_EVENTS, settings.LOGOUT_WINDOW_SECONDS)

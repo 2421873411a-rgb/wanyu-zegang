@@ -3,7 +3,7 @@
  "started_on": "2026-09-07",
  "current_round": 1,
  "main_head": "1faf33a",
- "version": "v17.9.15",
+ "version": "v17.9.16",
  "gates_baseline": {
   "sqlite": "35 passed, 2 skipped",
   "postgres": "37 passed",
@@ -100,6 +100,21 @@
    },
    "clean_round": false,
    "notable": "回归验证以 pinned commit 证实 v17.9.13 声称修复未落地——流程铁律升级：声称修复必须以落盘字节+针对性门禁为准"
+  },
+  {
+   "round": 6,
+   "status": "DONE",
+   "clean_round": true,
+   "pr": "PR#15 merged",
+   "tags": [
+    "v17.9.16"
+   ],
+   "closed": {
+    "P0": 0,
+    "P1": 0,
+    "P2": 9
+   },
+   "notable": "认证/API 审计结论 CLEAN：33/33 对抗探针通过。干净轮×1 达成"
   }
  ],
  "findings": {
@@ -108,5 +123,5 @@
   "waived": []
  },
  "prs_merged": [],
- "next_focus": "Round 5: 干净轮候选×1（数据完整性回归+文档真相+运维视角）"
+ "next_focus": "Round 7: 干净轮×2 确认（换镜头：部署链/数据/安全复审）→ 收敛"
 }

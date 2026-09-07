@@ -45,7 +45,7 @@ check_prerequisites() {
         case "${ID:-}:${VERSION_ID:-}" in
             ubuntu:24.04|ubuntu:24.10|ubuntu:25.*) ;;
             *)
-                log_error "support matrix: Ubuntu 24.04+ only (current: ${PRETTY_NAME:-unknown}); 22.04 needs deadsnakes python3.12, not supported here"
+                log_error "support matrix: Ubuntu 24.04-25.x only (current: ${PRETTY_NAME:-unknown}); python3.12 apt package is pinned"
                 exit 1
                 ;;
         esac

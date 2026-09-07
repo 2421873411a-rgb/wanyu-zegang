@@ -2,7 +2,7 @@
 
 ## 部署前置（全新机器）
 
-- 支持矩阵：Ubuntu 24.04+（deploy.sh 会读取 /etc/os-release 硬校验；22.04 官方源无 python3.12）。
+- 支持矩阵：Ubuntu 24.04–25.x（deploy.sh 读取 /etc/os-release 硬校验；python3.12 apt 包名钉死，22.04 需 PPA 不支持）。
 - 静态数据必须先于部署就位：`/opt/wanyu/static/maintainable/data/` 下含
   `cycles/{2024,2025,2026}/jobs.json`、`salary/anhui.json`、`audit/review-queue.json`
   （来源：网站构建产物）。deploy.sh 在 check_prerequisites 阶段即校验该目录，缺失立即中止。
