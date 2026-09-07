@@ -1,4 +1,4 @@
-# wan-api 与 canonical 数据链的接口契约（v17.9.1 · S6）
+# wan-api 与 canonical 数据链的接口契约（v17.9.4 · S6）
 
 > 一句话：**canonical/cycles/*.json 仍是唯一正式数据真源；wan-api 是用户状态层与读取服务层，永远不产生第二数据真源。**
 
@@ -15,7 +15,7 @@
 1. 请求体必须与 canonical 产物同构（`allMajors.rows`，行含 `job_id/row_id`）；
 2. 大小上限 `ADMIN_IMPORT_MAX_BYTES`（默认 64MB），超限 413；
 3. 写入在单事务内完成；`imported + updated + skipped == rows_total` 对账不符 → 整体回滚；
-4. 响应必须携带 `source_sha256` + 分项计数（假成功在 v17.9.1 已删除，见 admin.py）；
+4. 响应必须携带 `source_sha256` + 分项计数（假成功在 v17.9.4 已删除，见 admin.py）；
 5. 未来任何"动态化"改动（预计算、缓存表、搜索索引）都从 canonical 派生并携带版本号，禁止手工改镜像表数据。
 
 ## 3. 认证契约

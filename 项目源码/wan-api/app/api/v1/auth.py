@@ -11,7 +11,8 @@ from app.models.refresh_token import RefreshToken
 from app.schemas.user import UserCreate, UserLogin, UserResponse, TokenResponse
 from app.utils.security import (
     verify_password, get_password_hash,
-    create_access_token, create_refresh_token, decode_token, sha256_hex
+    create_access_token, create_refresh_token, decode_token, sha256_hex,
+    pwd_context
 )
 from app.dependencies import get_current_user
 from app.config import settings
@@ -133,6 +134,10 @@ async def login(login_data: UserLogin, request: Request, db: AsyncSession = Depe
 
     # 更新最后登录时间
     user.last_login_at = datetime.utcnow()
+
+    # bcrypt 兼容：旧 $2b$ hash 登录成功后自动 rehash 为 bcrypt_sha256
+    if pwd_context.needs_update(user.password_hash):
+        user.password_hash = get_password_hash(login_data.password)
 
     return _issue_session(db, user)
 

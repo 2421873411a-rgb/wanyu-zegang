@@ -87,7 +87,7 @@ setup_app_dir() {
     
     # 安装依赖
     pip install --upgrade pip
-    pip install -r requirements.txt
+    pip install -r requirements.lock.txt
     
     # 创建环境变量文件
     if [ ! -f ${APP_DIR}/.env ]; then

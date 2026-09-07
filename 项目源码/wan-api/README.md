@@ -15,7 +15,7 @@
 
 ## 技术栈
 
-- **后端框架**：FastAPI 0.115.0
+- **后端框架**：FastAPI >=0.141.1
 - **数据库**：PostgreSQL 16 + SQLAlchemy 2.0
 - **缓存**：Redis
 - **认证**：JWT + OAuth2

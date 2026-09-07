@@ -68,22 +68,26 @@ async def init_db():
                         "ENV=production 但 users/alembic_version 表不存在——"
                         "请先运行 alembic upgrade head（deploy.sh 已包含此步骤）。"
                     )
-                # 检查 alembic 当前 revision（应恰好有一个 head）
+                # 检查 alembic 当前 revision == head（用 API，不走 subprocess——subprocess
+                # 自身失败时 head="" 会导致 fail-open）
                 row = sync_conn.execute(sa_text("SELECT version_num FROM alembic_version")).fetchone()
                 if not row:
                     raise RuntimeError("alembic_version 表为空——迁移未完成")
-                # head revision 比对：调用 alembic 命令获取 head，比较是否一致
-                import subprocess, sys
-                result = subprocess.run(
-                    [sys.executable, "-m", "alembic", "heads"],
-                    capture_output=True, text=True
-                )
-                head = result.stdout.strip().split()[0] if result.returncode == 0 else ""
-                if head and row[0] != head:
-                    raise RuntimeError(
-                        f"alembic 版本不一致：DB={row[0][:12]} HEAD={head[:12]}——"
-                        "请运行 alembic upgrade head"
-                    )
+                try:
+                    from alembic.config import Config
+                    from alembic.script import ScriptDirectory
+                    cfg = Config("alembic.ini")
+                    script = ScriptDirectory.from_config(cfg)
+                    heads = script.get_heads()
+                    if len(heads) != 1:
+                        raise RuntimeError(f"alembic heads 数量异常（{len(heads)}），期望恰好 1 个")
+                    if row[0] != heads[0]:
+                        raise RuntimeError(
+                            f"alembic 版本不一致：DB={row[0][:12]} HEAD={heads[0][:12]}——"
+                            "请运行 alembic upgrade head"
+                        )
+                except FileNotFoundError:
+                    raise RuntimeError("alembic.ini 不存在——无法验证迁移版本")
             await conn.run_sync(_check_tables)
         else:
             await conn.run_sync(Base.metadata.create_all)

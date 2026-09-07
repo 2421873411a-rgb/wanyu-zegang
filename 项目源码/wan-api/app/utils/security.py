@@ -9,9 +9,10 @@ from app.config import settings
 
 
 # 密码哈希上下文
-# P2-bcrypt：默认 bcrypt 会静默截断 >72 字节密码（中文/emoji 30 个字符就可能超）。
-# bcrypt_sha256 方案用 SHA-256 预处理把任意长度密码映射到 32 字节，再交给 bcrypt。
-pwd_context = CryptContext(schemes=["bcrypt_sha256"], deprecated="auto")
+# P2-bcrypt：bcrypt_sha256 用 SHA-256 预处理解决 72 字节截断。
+# 保留 bcrypt 作为已弃用方案——旧库中已有的 $2b$ hash 仍可验证，
+# 登录成功后自动 rehash 为 bcrypt_sha256。
+pwd_context = CryptContext(schemes=["bcrypt_sha256", "bcrypt"], deprecated=["bcrypt"])
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:

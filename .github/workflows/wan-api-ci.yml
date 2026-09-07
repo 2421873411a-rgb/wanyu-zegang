@@ -29,11 +29,13 @@ jobs:
           python-version: "3.12"
           cache: pip
           cache-dependency-path: 项目源码/wan-api/requirements.txt
-      - name: 安装依赖
+      - name: 安装依赖（精确版本 lock）
         if: steps.check.outputs.api == 'true'
         run: |
           python -m pip install --upgrade pip
+          pip install -r requirements.lock.txt
           pip install -r requirements-dev.txt
+          pip check
       - name: 静态检查（ruff，错误级）
         if: steps.check.outputs.api == 'true'
         run: ruff check app tests --select E9,F63,F7,F82 --ignore E402
@@ -81,26 +83,34 @@ jobs:
           if extra_in_mig:
               print(f'WARNING: 迁移有但 ORM 没有的表: {extra_in_mig}')
 
-          # 列级对比（nullable、unique、type）
+          # 列级对比（nullable）+ 约束对比（UNIQUE/CHECK/index）
           diffs = []
           for table in orm_tables & mig_tables:
               orm_cols = {c['name']: c for c in inspect(e_orm).get_columns(table)}
               mig_cols = {c['name']: c for c in inspect(e_mig).get_columns(table)}
               for col in set(orm_cols) | set(mig_cols):
-                  o = orm_cols.get(col)
-                  m = mig_cols.get(col)
+                  o = orm_cols.get(col); m = mig_cols.get(col)
                   if not o: diffs.append(f'{table}.{col}: 迁移多余'); continue
                   if not m: diffs.append(f'{table}.{col}: 迁移缺失'); continue
                   if o.get('nullable') != m.get('nullable'):
-                      diffs.append(f'{table}.{col}: nullable ORM={o.get(\"nullable\")} vs MIG={m.get(\"nullable\")}')
+                      diffs.append(f'{table}.{col}: nullable ORM={o.get("nullable")} vs MIG={m.get("nullable")}')
+              orm_uc = {frozenset(c['column_names']) for c in inspect(e_orm).get_unique_constraints(table)}
+              mig_uc = {frozenset(c['column_names']) for c in inspect(e_mig).get_unique_constraints(table)}
+              if orm_uc != mig_uc: diffs.append(f'{table}: UNIQUE ORM={orm_uc} vs MIG={mig_uc}')
+              orm_cc = {c['name']: c.get('sqltext','') for c in inspect(e_orm).get_check_constraints(table)}
+              mig_cc = {c['name']: c.get('sqltext','') for c in inspect(e_mig).get_check_constraints(table)}
+              if orm_cc != mig_cc: diffs.append(f'{table}: CHECK ORM={orm_cc} vs MIG={mig_cc}')
+              orm_ix = {c['name'] for c in inspect(e_orm).get_indexes(table)}
+              mig_ix = {c['name'] for c in inspect(e_mig).get_indexes(table)}
+              if orm_ix != mig_ix: diffs.append(f'{table}: INDEX ORM={orm_ix} vs MIG={mig_ix}')
           if diffs:
               for d in diffs: print(f'DIFF: {d}')
               sys.exit(1)
-          print(f'迁移漂移检测通过: {len(orm_tables)} 表，列级一致')
+          print(f'迁移漂移检测通过: {len(orm_tables)} 表，列+约束+索引一致')
           "
-      - name: 依赖安全审计（pip-audit，发现高危即红）
+      - name: 依赖安全审计（pip-audit，审计精确 lock 版本，发现高危即红）
         if: steps.check.outputs.api == 'true'
-        run: pip-audit -r requirements.txt --strict --desc
+        run: pip-audit -r requirements.lock.txt --strict --desc
       - name: 无 API 变化，跳过
         if: steps.check.outputs.api != 'true'
         run: echo "wan-api not affected, test passed"
