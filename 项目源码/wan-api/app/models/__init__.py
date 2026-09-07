@@ -7,6 +7,7 @@ from app.models.cycle import Cycle
 from app.models.score_index import ScoreIndex
 from app.models.salary_data import SalaryData
 from app.models.review_event import ReviewEvent
+from app.models.refresh_token import RefreshToken
 
 __all__ = [
     "User",
@@ -17,5 +18,6 @@ __all__ = [
     "Cycle",
     "ScoreIndex",
     "SalaryData",
-    "ReviewEvent"
+    "ReviewEvent",
+    "RefreshToken"
 ]
