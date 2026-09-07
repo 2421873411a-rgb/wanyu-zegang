@@ -139,3 +139,28 @@ async def _login(client: AsyncClient, email: str, password: str) -> dict:
 
 def _auth(token: str) -> dict:
     return {"Authorization": f"Bearer {token}"}
+
+
+async def _seed_jobs(count: int = 8, cycle: str = "2026") -> list:
+    """播种 active 岗位（v17.9.11 起：收藏/对比的 record_id 必须指向真实 active 岗位）。
+
+    返回 job_id 列表（job-{cycle}-{i:020x} 格式，与 canonical ID 规则同形）。
+    """
+    from app.models.job import Job
+
+    job_ids = [f"job-{cycle}-{i:020x}" for i in range(count)]
+    async with _TestSessionFactory() as session:
+        for i, jid in enumerate(job_ids):
+            session.add(Job(
+                job_id=jid,
+                cycle=cycle,
+                code=f"1{i:05d}",
+                city="合肥",
+                exam="省考",
+                unit=f"测试单位{i}",
+                zw="测试职位",
+                num=2,
+                record_status="active",
+            ))
+        await session.commit()
+    return job_ids

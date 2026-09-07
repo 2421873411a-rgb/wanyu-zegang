@@ -44,7 +44,7 @@ def _payload(n: int = 3, cycle: str = "2026", key: str = "allMajors") -> dict:
     """静态派生约定：total=active=n、raw_total=n、excluded=0、recruits=active sum(num)。"""
     rows = [_row(cycle, i) for i in range(n)]
     meta = {"total": n, "raw_total": n, "excluded": 0, "recruits": n * 2}
-    return {key: {"meta": meta, "rows": rows}, "cycle": cycle}
+    return {key: {"meta": meta, "rows": rows}, "cycle": cycle, "label": f"{cycle} · 测试"}
 
 
 async def _admin_headers(client: AsyncClient) -> dict:
@@ -311,3 +311,200 @@ async def test_snapshot_semantics_deactivate_reactivate_and_exact_overwrite(clie
 
     search2 = await client.get("/api/v1/jobs/search", params={"cycle": "2026"})
     assert search2.json()["total"] == 3
+
+
+# ============ v17.9.11 Round-1 数据完整性门禁（B1/B2/B3/B4/B5/B6/B7/B9/B10/B11） ============
+
+def _canonical_payload(rows: list, cycle: str = "2026", with_provenance: bool = True) -> dict:
+    """canonical 约定：total=raw、recruits=raw sum；可选携带 provenance。"""
+    raw = sum(int(r["num"]) for r in rows)
+    excluded = sum(1 for r in rows if r.get("record_status") not in (None, "", "active"))
+    payload = {
+        "schema": "wanyu-cycle-bundle/v1",
+        "cycle": cycle,
+        "label": f"{cycle} · 快照 2026-09-07",
+        "all_majors": {"meta": {"total": len(rows), "raw_total": len(rows), "excluded": excluded, "recruits": raw},
+                        "rows": rows},
+    }
+    if with_provenance:
+        from app.services.import_service import _job_id_set_sha256
+        payload["provenance"] = {"job_id_set_sha256": _job_id_set_sha256([r["job_id"] for r in rows])}
+    return payload
+
+
+async def test_canonical_bundle_without_provenance_rejected(client: AsyncClient):
+    """B1：canonical bundle 的行集指纹不可整段缺席（fail-open by omission 已封死）。"""
+    headers = await _admin_headers(client)
+    payload = _canonical_payload([_row("2026", 0)], with_provenance=False)
+    r = await _import(client, headers, payload)
+    assert r.status_code == 400
+    assert "provenance" in r.json()["detail"]
+    assert await _job_count() == 0
+
+
+async def test_meta_convention_mixing_rejected(client: AsyncClient):
+    """B5：total=raw 混 recruits=active 的口径混搭必须拒绝（守恒报警能力）。"""
+    headers = await _admin_headers(client)
+    rows = [_row("2026", 0), _row("2026", 1, record_status="duplicate",
+                                  exclusion_reason="x", exclusion_evidence="e", excluded_at="2026-09-07")]
+    payload = _canonical_payload(rows)
+    payload["all_majors"]["meta"]["recruits"] = 2  # total=raw 但 recruits=active 口径
+    r = await _import(client, headers, payload)
+    assert r.status_code == 400
+    assert "口径不自洽" in r.json()["detail"]
+
+
+async def test_float_num_rejected(client: AsyncClient):
+    """B6：3.7 这类浮点人数不得被 int() 静默截断。"""
+    headers = await _admin_headers(client)
+    payload = _payload(1)
+    payload["allMajors"]["rows"][0]["num"] = 3.7
+    payload["allMajors"]["meta"] = {"total": 1, "raw_total": 1, "excluded": 0, "recruits": 4}
+    r = await _import(client, headers, payload)
+    assert r.status_code == 400
+    assert "num" in r.json()["detail"]
+
+
+async def test_contract_excluded_vocab_accepted_and_folded(client: AsyncClient):
+    """B11：契约词表（withdrawn 等 5 态）合法且 DB 折叠为 excluded；active 行证据为空。"""
+    headers = await _admin_headers(client)
+    rows = [
+        _row("2026", 0),
+        _row("2026", 1, record_status="withdrawn", exclusion_reason="withdrawn_by_dept",
+             exclusion_evidence="official_notice.pdf", excluded_at="2026-09-01"),
+        _row("2026", 2, record_status="needs_review", exclusion_reason="pending",
+             exclusion_evidence="ticket-42", excluded_at="2026-09-02"),
+    ]
+    r = await _import(client, headers, _canonical_payload(rows))
+    assert r.status_code == 200, r.text
+    assert r.json()["deactivated"] == 0
+    async with get_test_session_factory()() as session:
+        ex = (await session.execute(
+            select(Job).where(Job.record_status == "excluded").order_by(Job.job_id)
+        )).scalars().all()
+        assert len(ex) == 2
+        assert {j.exclusion_reason for j in ex} == {"withdrawn_by_dept", "pending"}
+        assert all(j.excluded_at for j in ex)
+        act = (await session.execute(select(Job).where(Job.job_id == rows[0]["job_id"]))).scalar_one()
+        assert act.record_status == "active"
+        assert act.exclusion_reason is None and act.excluded_at is None
+
+
+async def test_stale_rows_carry_snapshot_removal_evidence(client: AsyncClient):
+    """B4：快照移除的下线行必须留下"为何/何证/何时"三件套。"""
+    headers = await _admin_headers(client)
+    r1 = await _import(client, headers, _payload(3))
+    assert r1.status_code == 200
+    r2 = await _import(client, headers, _payload(2))  # 第 3 行被移除
+    assert r2.status_code == 200
+    j2 = _row("2026", 2)["job_id"]
+    async with get_test_session_factory()() as session:
+        job = (await session.execute(select(Job).where(Job.job_id == j2))).scalar_one()
+        assert job.record_status == "excluded"
+        assert job.exclusion_reason == "snapshot_removed_in_later_snapshot"
+        assert job.exclusion_evidence == r2.json()["source_sha256"]
+        assert job.excluded_at
+
+
+async def test_snapshot_replace_cascades_ghost_references(client: AsyncClient):
+    """B3：岗位被下线后，收藏/对比里的幽灵引用必须级联清理。"""
+    from app.models.compare_list import CompareList
+    from app.models.saved_position import SavedPosition
+
+    from tests.conftest import _seed_jobs
+    headers = await _admin_headers(client)
+    data = await _register(client)
+    user_headers = _auth(data["access_token"])
+    (real,) = await _seed_jobs(1)
+
+    r1 = await client.post("/api/v1/user/positions", headers=user_headers,
+                           json={"record_id": real, "cycle": "2026"})
+    assert r1.status_code == 201
+    r2 = await client.post("/api/v1/user/compare", headers=user_headers,
+                           json={"record_id": real, "cycle": "2026"})
+    assert r2.status_code == 201
+
+    # 新快照不再包含该岗位（换成 index 99 的无关岗位）→ 下线 + 级联清理
+    p = _payload(0)
+    p["allMajors"]["rows"] = [_row("2026", 99)]
+    p["allMajors"]["meta"] = {"total": 1, "raw_total": 1, "excluded": 0, "recruits": 2}
+    r3 = await _import(client, headers, p)
+    assert r3.status_code == 200
+    assert r3.json()["deactivated"] >= 1
+
+    async with get_test_session_factory()() as session:
+        saved = (await session.execute(
+            select(SavedPosition).where(SavedPosition.record_id == real))).scalar_one_or_none()
+        cmp_ = (await session.execute(
+            select(CompareList).where(CompareList.record_id == real))).scalar_one_or_none()
+        assert saved is None and cmp_ is None
+        cmp_all = (await session.execute(
+            select(CompareList).where(CompareList.user_id == data["user"]["id"]))).scalars().all()
+        assert len(cmp_all) == 0  # 对比槽位被释放
+
+
+async def test_cycle_snapshot_date_backfilled(client: AsyncClient):
+    """B7：快照日期必须结构化落库，不再只活在 label 字符串。"""
+    from app.models.cycle import Cycle
+
+    headers = await _admin_headers(client)
+    payload = _canonical_payload([_row("2026", 0)])
+    r = await _import(client, headers, payload)
+    assert r.status_code == 200
+    async with get_test_session_factory()() as session:
+        cyc = (await session.execute(select(Cycle).where(Cycle.cycle == "2026"))).scalar_one()
+        assert cyc.snapshot_date == "2026-09-07"
+        assert cyc.label == "2026 · 快照 2026-09-07"
+        assert cyc.total_posts == 1 and cyc.total_recruits == 2
+
+
+async def test_dashboard_reports_dual_counts(client: AsyncClient):
+    """B9：dashboard 的 job_count 必须是 active 口径，excluded 单列。"""
+    headers = await _admin_headers(client)
+    rows = [_row("2026", 0), _row("2026", 1, record_status="duplicate",
+                                  exclusion_reason="x", exclusion_evidence="e", excluded_at="d")]
+    r = await _import(client, headers, _canonical_payload(rows))
+    assert r.status_code == 200
+    dash = (await client.get("/api/v1/admin/dashboard", headers=headers)).json()
+    assert dash["job_count"] == 1
+    assert dash["excluded_count"] == 1
+
+
+async def test_import_response_includes_mirror_summary(client: AsyncClient):
+    """B10：导入响应携带全周期镜像摘要，跨周期版本错位当场可见。"""
+    headers = await _admin_headers(client)
+    r = await _import(client, headers, _payload(1))
+    assert r.status_code == 200
+    body = r.json()
+    assert "mirror_states" in body
+    assert body["mirror_states"]["2026"]["release"] == "2026 · 测试"
+    assert len(body["mirror_states"]["2026"]["job_id_set_sha256"]) == 16
+
+
+async def test_review_events_import_is_idempotent(client: AsyncClient):
+    """B2：复核事件导入必须幂等（v17.9.11 前每次重部署翻倍 7→14）。"""
+    from app.models.review_event import ReviewEvent
+
+    from app.services.import_service import ImportService
+
+    await _admin_headers(client)
+    events = {"items": [{
+        "kind": "dup_gap", "severity": "high", "cycle": "2026",
+        "title": "重复岗位", "detail": "v1", "evidence": "a.txt", "occurrences": 2,
+    }]}
+    async with get_test_session_factory()() as session:
+        svc = ImportService(session)
+        n1 = await svc.import_review_events(events)
+        await session.commit()
+        n2 = await svc.import_review_events(events)
+        await session.commit()
+        assert n1 == n2 == 1
+        rows = (await session.execute(select(ReviewEvent))).scalars().all()
+        assert len(rows) == 1, "重跑不得翻倍"
+        assert rows[0].occurrences == 2
+        # 内容 exact overwrite：改 detail 再导 → DB 更新
+        events["items"][0]["detail"] = "v2"
+        await svc.import_review_events(events)
+        await session.commit()
+        rows = (await session.execute(select(ReviewEvent))).scalars().all()
+        assert len(rows) == 1 and rows[0].detail == "v2"

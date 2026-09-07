@@ -11,6 +11,7 @@ from app.config import settings
 from app.database import get_db
 from app.dependencies import get_admin_user
 from app.models.job import Job
+from app.models.mirror_state import MirrorState
 from app.models.user import User
 from app.services.import_service import ImportService, SnapshotValidationError
 
@@ -39,13 +40,21 @@ async def get_dashboard(
     user_count_result = await db.execute(select(func.count(User.id)))
     user_count = user_count_result.scalar()
 
-    # 岗位统计
-    job_count_result = await db.execute(select(func.count(Job.id)))
+    # 岗位统计（v17.9.11：active 与 excluded 分列，job_count 与 Cycle 表口径一致，
+    # 不再把下线行混进总数误导对账）
+    job_count_result = await db.execute(
+        select(func.count(Job.id)).where(Job.record_status == "active")
+    )
     job_count = job_count_result.scalar()
+    excluded_result = await db.execute(
+        select(func.count(Job.id)).where(Job.record_status == "excluded")
+    )
+    excluded_count = excluded_result.scalar()
 
-    # 各周期岗位数
+    # 各周期岗位数（active 口径）
     cycle_stats_result = await db.execute(
         select(Job.cycle, func.count(Job.id).label("count"))
+        .where(Job.record_status == "active")
         .group_by(Job.cycle)
         .order_by(Job.cycle.desc())
     )
@@ -54,6 +63,7 @@ async def get_dashboard(
     return {
         "user_count": user_count,
         "job_count": job_count,
+        "excluded_count": excluded_count,
         "cycle_stats": cycle_stats
     }
 
@@ -184,6 +194,18 @@ async def import_cycle_data(
             detail="导入对账失败（写入口径与源行数不一致），事务已回滚"
         )
 
+    # v17.9.11：返回全周期镜像摘要——管理员单周期导入造成的跨周期版本错位
+    # 必须当场可见，而不是事后去查 mirror_state 表。
+    mirror_rows = (await db.execute(select(MirrorState).order_by(MirrorState.cycle))).scalars().all()
+    mirror_summary = {
+        m.cycle: {
+            "release": m.release,
+            "source_sha256": (m.source_sha256 or "")[:16],
+            "job_id_set_sha256": (m.job_id_set_sha256 or "")[:16],
+        }
+        for m in mirror_rows
+    }
+
     logger.info(
         "admin import cycle=%s imported=%s updated=%s deactivated=%s rows=%s sha256=%s by=%s",
         cycle, imported, updated, deactivated, rows_total,
@@ -201,4 +223,5 @@ async def import_cycle_data(
         "deactivated": deactivated,
         "active_rows": stats.get("active_rows"),
         "job_id_set_sha256": stats.get("job_id_set_sha256", ""),
+        "mirror_states": mirror_summary,
     }

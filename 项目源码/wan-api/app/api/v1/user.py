@@ -14,8 +14,29 @@ from app.schemas.user_workspace import (
     CompareListCreate, CompareListResponse
 )
 from app.dependencies import get_current_user
+from app.models.job import Job
 
 router = APIRouter()
+
+
+async def _require_active_job(db: AsyncSession, record_id: str, cycle: str) -> None:
+    """收藏/对比的引用目标必须是当前 active 且周期一致的岗位（v17.9.11 P1）。
+
+    原先接受任意字符串：excluded 岗位成为"列表可见、详情 404"的幽灵引用，
+    伪造 id 还会永久占用对比槽位。add 时即拒绝，引用与公共可见面永远一致。
+    """
+    result = await db.execute(
+        select(Job).where(
+            Job.job_id == record_id,
+            Job.cycle == cycle,
+            Job.record_status == "active",
+        )
+    )
+    if result.scalar_one_or_none() is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="岗位不存在或已下线（record_id 必须指向当前 active 岗位且周期一致）"
+        )
 
 
 # ============ 收藏岗位 ============
@@ -42,6 +63,7 @@ async def add_saved_position(
     db: AsyncSession = Depends(get_db)
 ):
     """收藏岗位"""
+    await _require_active_job(db, data.record_id, data.cycle)
     # 检查是否已收藏
     result = await db.execute(
         select(SavedPosition).where(
@@ -184,6 +206,7 @@ async def add_to_compare(
     db: AsyncSession = Depends(get_db)
 ):
     """添加到对比列表"""
+    await _require_active_job(db, data.record_id, data.cycle)
     # 检查是否已在列表中
     result = await db.execute(
         select(CompareList).where(

@@ -6,7 +6,8 @@ on:
 
 concurrency:
   group: wan-api-ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  # main 分支的 run 永不取消：快速连续 merge 时每笔 main 提交都必须有自身完成的绿记录
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 defaults:
   run:
@@ -47,6 +48,12 @@ jobs:
           alembic check
       - name: 生产 runtime lock 安全审计
         run: pip-audit -r requirements.lock.txt --strict --desc
+      - name: 开发环境 lock 安全审计
+        run: pip-audit -r requirements-dev.lock.txt --strict --desc
+      - name: 真数据端到端门禁（canonical+静态 6 快照 → 临时库导入 → 幂等对账）
+        env:
+          ENV: test
+        run: python scripts/e2e_real_data.py
 
   postgres:
     runs-on: ubuntu-latest
