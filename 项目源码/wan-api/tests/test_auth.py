@@ -109,3 +109,37 @@ async def test_login_rate_limited(client: AsyncClient):
 async def test_me_requires_bearer(client: AsyncClient):
     r = await client.get("/api/v1/auth/me")
     assert r.status_code in (401, 403)
+
+
+async def test_legacy_bcrypt_rehash_on_login(client: AsyncClient):
+    """bcrypt 兼容：旧 $2b$ hash 登录成功后自动 rehash 为 bcrypt_sha256。"""
+    from sqlalchemy import select
+    from app.models.user import User
+    from app.utils.security import pwd_context
+    from tests.conftest import get_test_session_factory
+
+    # 注册用户
+    data = await _register(client, email="legacy@example.com", username="legacy")
+    # 伪造旧 bcrypt hash（覆盖 DB 中的 bcrypt_sha256 hash）
+    async with get_test_session_factory()() as session:
+        result = await session.execute(select(User).where(User.email == "legacy@example.com"))
+        user = result.scalar_one()
+        old_hash = pwd_context.hash(_valid_password)
+        # 确认是 bcrypt_sha256 hash（以 $bcrypt-sha256$ 开头）
+        assert user.password_hash.startswith("$bcrypt-sha256$") or user.password_hash.startswith("$2b$")
+        # 强制改为普通 bcrypt hash
+        from passlib.context import CryptContext
+        old_ctx = CryptContext(schemes=["bcrypt"], deprecated="auto")
+        user.password_hash = old_ctx.hash(_valid_password)
+        assert user.password_hash.startswith("$2b$")
+        await session.commit()
+
+    # 登录（旧 bcrypt hash 应该能验证成功）
+    login_data = await _login(client, "legacy@example.com", _valid_password)
+    assert "access_token" in login_data
+
+    # 验证 hash 已被 rehash 为 bcrypt_sha256
+    async with get_test_session_factory()() as session:
+        result = await session.execute(select(User).where(User.email == "legacy@example.com"))
+        user = result.scalar_one()
+        assert user.password_hash.startswith("$bcrypt-sha256$"), f"未 rehash: {user.password_hash[:30]}"
