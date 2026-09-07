@@ -38,7 +38,10 @@ jobs:
       - name: 静态检查（ruff，错误级）
         if: steps.check.outputs.api == 'true'
         run: ruff check app tests --select E9,F63,F7,F82 --ignore E402
-      - name: 测试（门禁式）
+      - name: 部署脚本语法检查（bash -n）
+        if: steps.check.outputs.api == 'true'
+        run: bash -n deploy.sh
+      - name: 测试（门禁式，SQLite）
         if: steps.check.outputs.api == 'true'
         env:
           ENV: test

@@ -26,10 +26,15 @@ jobs:
           filters: |
             canonical:
               - '项目源码/canonical/**'
+              - '项目源码/source_data/**'
               - '项目源码/tools/anhui_web/**'
               - '项目源码/tests/**'
+              - '项目源码/verify_sources.py'
+              - '项目源码/sources.lock.json'
+              - '项目源码/requirements.txt'
               - '网站/**'
               - 'docs/**'
+              - '.github/workflows/canonical-ci.yml'
       - name: 安装依赖
         if: steps.check.outputs.canonical == 'true'
         run: |
