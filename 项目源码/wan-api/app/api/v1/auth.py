@@ -5,6 +5,7 @@ from uuid import uuid4
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel
 from sqlalchemy import select, update
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
@@ -95,7 +96,11 @@ async def register(user_data: UserCreate, request: Request, db: AsyncSession = D
         is_admin=False,
     )
     db.add(user)
-    await db.flush()
+    try:
+        await db.flush()
+    except IntegrityError:
+        # 并发同邮箱竞态兜底（RA-11：UNIQUE 已保证不脏，缺的只是 400 化）
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="该邮箱已被注册")
     logger.info("register ok ip=%s", _client_ip(request))
     return _issue_session(db, user)
 

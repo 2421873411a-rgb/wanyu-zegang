@@ -4,7 +4,8 @@
 > 安全与测试门禁见 `docs/CONTRACT.md`；满足上线前置前不得对公网开放。
 
 
-基于 FastAPI 的动态网站后端，为皖域择岗静态站提供用户系统、数据管理和搜索功能。
+基于 FastAPI 的岗位数据与用户工作台后端。**当前正式站（静态）未接入本 API**——
+线上收藏/对比为浏览器 localStorage，wan-api 为未来动态站预建（用户系统/搜索/管理导入/审计面）。
 
 ## 功能特性
 
@@ -17,7 +18,7 @@
 
 - **后端框架**：FastAPI >=0.141.1
 - **数据库**：PostgreSQL 16 + SQLAlchemy 2.0
-- **缓存**：Redis
+- **限流后端**：memory（默认，单 worker）/ Redis（多 worker；Lua 原子滑动窗，生产默认）
 - **认证**：JWT + OAuth2
 - **部署**：Gunicorn + Nginx + systemd
 
@@ -43,7 +44,7 @@ wan-api/
 │   ├── dependencies.py   # 依赖注入
 │   └── main.py           # 应用入口
 ├── migrations/           # Alembic数据库迁移
-├── tests/                # 门禁式测试套件（pytest；见 docs/CONTRACT.md §4）
+├── tests/                # 门禁式测试套件（pytest；见 docs/CONTRACT.md §5）
 ├── scripts/              # 运维脚本（create_admin.py 等）
 ├── docs/                 # 契约与说明（CONTRACT.md）
 ├── gunicorn.conf.py      # Gunicorn配置
@@ -70,9 +71,12 @@ pip install -r requirements.txt
 
 ### 2. 配置环境变量
 
-复制 `.env.example` 为 `.env` 并修改配置：
+复制 `.env.example` 为 `.env` 并修改配置。**SECRET_KEY 必填**（v17.9.12 门禁：
+缺失/公开默认值/弱密钥一律拒启）：
 
 ```bash
+cp .env.example .env
+echo "SECRET_KEY=$(openssl rand -hex 32)" >> .env
 cp .env.example .env
 # 编辑 .env 文件配置数据库等信息
 ```
@@ -123,67 +127,79 @@ gunicorn app.main:app -c gunicorn.conf.py
 
 ## API接口
 
-### 认证接口
+### 认证
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
-| POST | `/api/v1/auth/register` | 用户注册 |
-| POST | `/api/v1/auth/login` | 用户登录 |
-| GET | `/api/v1/auth/me` | 获取当前用户 |
+| POST | `/api/v1/auth/register` | Register |
+| POST | `/api/v1/auth/login` | Login |
+| POST | `/api/v1/auth/refresh` | Refresh Token |
+| POST | `/api/v1/auth/logout` | Logout |
+| GET | `/api/v1/auth/me` | Get Me |
 
-### 岗位接口
-
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| GET | `/api/v1/jobs/search` | 搜索岗位 |
-| GET | `/api/v1/jobs/{record_id}` | 岗位详情 |
-| GET | `/api/v1/jobs/stats/by-city` | 城市统计 |
-
-### 用户工作台接口
+### 岗位
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
-| GET | `/api/v1/user/positions` | 我的收藏 |
-| POST | `/api/v1/user/positions` | 添加收藏 |
-| DELETE | `/api/v1/user/positions/{record_id}` | 取消收藏 |
+| GET | `/api/v1/jobs/search` | Search Jobs |
+| GET | `/api/v1/jobs/{record_id}` | Get Job |
+| GET | `/api/v1/jobs/stats/by-city` | Get Jobs By City |
+| GET | `/api/v1/jobs/stats/by-exam` | Get Jobs By Exam |
 
-## 数据导入
+### 用户工作台
 
-### 导入JSON数据
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/v1/user/positions` | Get Saved Positions |
+| POST | `/api/v1/user/positions` | Add Saved Position |
+| DELETE | `/api/v1/user/positions/{record_id}` | Remove Saved Position |
+| GET | `/api/v1/user/snapshots` | Get Snapshots |
+| POST | `/api/v1/user/snapshots` | Create Snapshot |
+| DELETE | `/api/v1/user/snapshots/{snapshot_id}` | Delete Snapshot |
+| GET | `/api/v1/user/compare` | Get Compare List |
+| POST | `/api/v1/user/compare` | Add To Compare |
+| DELETE | `/api/v1/user/compare/{record_id}` | Remove From Compare |
 
-```python
-import asyncio
-from app.database import init_db, async_session_factory
-from app.services.import_service import import_all_data
+### 周期
 
-async def main():
-    await init_db()
-    async with async_session_factory() as db:
-        results = await import_all_data(db)
-        print('导入结果:', results)
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/v1/cycles` | Get Cycles |
+| GET | `/api/v1/cycles/{cycle}` | Get Cycle |
 
-asyncio.run(main())
-```
+### 待遇
 
-### 管理端导入单个快照（HTTP）
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/v1/salary` | Get Salary |
+| GET | `/api/v1/salary/ranking` | Get Salary Ranking |
 
-```bash
-curl -X POST https://<host>/api/v1/admin/import/2026   -H "Authorization: Bearer <admin_token>"   -F "file=@jobs.json"
-```
-快照需通过 fail-closed 校验（meta 守恒、job_id 强格式、排除行证据三件套、
-canonical bundle 必须携带 provenance 指纹），校验失败 400 整包零写入；
-成功返回 imported/updated/deactivated 对账与 mirror_states 摘要。
+### 审计
 
-### 生产引导（三周期原子导入）
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/v1/audit/review-queue` | Get Review Queue |
 
-```python
-from app.services.import_service import import_all_data
-results = await import_all_data(db, data_path=STATIC_DATA_PATH)  # 2024/2025/2026 全部校验通过后单事务写入
-```
+### 管理后台
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/v1/admin/dashboard` | Get Dashboard |
+| GET | `/api/v1/admin/users` | Get Users |
+| PUT | `/api/v1/admin/users/{user_id}` | Update User |
+| POST | `/api/v1/admin/import/{cycle}` | Import Cycle Data |
+
+### 其他
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/` | Root |
+| GET | `/health` | Health |
 
 ## 测试
 
-> v17.9.11 起 tests/ 为真实存在的门禁式套件（SQLite 53 用例 + PG 专属并发/全量 55），覆盖：
+> v17.9.12 起 tests/ 为真实存在的门禁式套件（71 用例；SQLite job 实跑 66+5 专属跳过，
+> PG+Redis job 71 全跑），覆盖：
 > 注册不可成为管理员 / 生产 SECRET_KEY 拒绝启动 / refresh 仅 body + 轮换撤销 /
 > 重复收藏数据库拒绝 / 对比≤4 / 管理导入真实写库对账 / 最后管理员保护 / 413 / 登出。
 > 契约详见 `docs/CONTRACT.md`。

@@ -150,6 +150,9 @@ def validate_snapshot(cycle: str, data: Dict[str, Any], max_rows: int = 20000) -
             errors.append(f"{jid}: num 非法（要求非负整数，实际 {row.get('num')!r}）")
             num = 0
         raw_recruits += num
+        bm = _to_int(row.get("bm"))
+        if row.get("bm") is not None and bm is None:
+            errors.append(f"{jid}: bm 非法（要求整数，实际 {row.get('bm')!r}）")
 
         status = row.get("record_status")
         if status not in _VALID_RECORD_STATUS:
@@ -270,11 +273,17 @@ class ImportService:
             stale_job.exclusion_evidence = source_sha256 or None
             stale_job.excluded_at = utcnow_naive().strftime("%Y-%m-%d")
 
-        # 级联清理幽灵引用：被下线岗位不允许继续留在任何用户的收藏/对比列表里
-        # （否则"列表可见、详情 404"永远不一致，伪造 id 还永久占对比槽）。
-        if stale_ids:
-            await self.db.execute(delete(SavedPosition).where(SavedPosition.record_id.in_(stale_ids)))
-            await self.db.execute(delete(CompareList).where(CompareList.record_id.in_(stale_ids)))
+        # 级联清理幽灵引用：被下线岗位不允许继续留在任何用户的收藏/对比列表里。
+        # 下线有两条路：快照移除（stale）与快照内在场但被标记排除态（如 withdrawn）——
+        # 两条路都必须清理，否则"列表可见、详情 404"幽灵与 CONTRACT 承诺不符。
+        incoming_excluded_ids = {
+            str(r.get("job_id") or r.get("row_id"))
+            for r in rows if isinstance(r, dict) and not _row_active(r)
+        }
+        gone_ids = stale_ids | incoming_excluded_ids
+        if gone_ids:
+            await self.db.execute(delete(SavedPosition).where(SavedPosition.record_id.in_(gone_ids)))
+            await self.db.execute(delete(CompareList).where(CompareList.record_id.in_(gone_ids)))
 
         # 周期元数据（快照日期从 label 回填）
         label = release or str(data.get("label") or "")
@@ -283,7 +292,7 @@ class ImportService:
         job_id_hash = _job_id_set_sha256(list(incoming_ids))
         await self._upsert_mirror_state(
             cycle=cycle,
-            release=label,
+            release=label or None,
             source_sha256=source_sha256,
             job_id_set_sha256=job_id_hash,
             source_rows=len(rows),
@@ -388,12 +397,15 @@ class ImportService:
             ))
 
     async def _upsert_mirror_state(self, **kwargs: Any) -> None:
-        """无条件覆盖（v17.9.11 去掉 `if v is not None` 死分支：
-        该守卫会将来路不明的 None 变成"保留旧哈希"，与镜像语义相悖）。"""
+        """镜像状态覆盖。release=None（源包无 label）时保留既有值——与 Cycle.label
+        的空值守卫同策略；其余字段无条件覆盖（镜像语义：新快照是什么就写什么，
+        v17.9.11 已去掉会把"来路不明 None"变成"保留旧哈希"的死分支守卫）。"""
         result = await self.db.execute(select(MirrorState).where(MirrorState.cycle == kwargs["cycle"]))
         existing = result.scalar_one_or_none()
         if existing:
             for k, v in kwargs.items():
+                if v is None and k == "release":
+                    continue
                 setattr(existing, k, v)
         else:
             self.db.add(MirrorState(**kwargs))
@@ -528,4 +540,9 @@ async def import_all_data(db: AsyncSession, data_path: Optional[str] = None) -> 
         results["review_events"] = {"imported": count}
 
     await db.commit()
+    try:
+        from app.api.v1.jobs import invalidate_stats_cache
+        invalidate_stats_cache()
+    except Exception:
+        pass
     return results

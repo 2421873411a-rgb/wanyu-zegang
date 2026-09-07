@@ -19,7 +19,7 @@
    （`raw_total`==行数、`excluded`==排除行数；`total/recruits` 必须成对同口径——
    canonical `total=raw,recruits=raw` 或静态 `total=active,recruits=active`，混搭拒绝）；
    `job_id` 强格式 `^job-(\d{4})-[0-9a-f]{20}$` 且年份==周期、全局唯一；
-   `num/bm` 必须整数（浮点拒绝，不静默截断）；排除行必须携带
+   `num/bm` 提供时必须整数（浮点拒绝，不静默截断）；排除行必须携带
    `exclusion_reason/exclusion_evidence/excluded_at` 三件套；
 3. `record_status` 词表与 `docs/data-contract/record-status.md` 对齐：`active`（含缺失）+
    `duplicate/invalid_source/withdrawn/superseded/needs_review`（+DB 派生态 `excluded`）；
@@ -28,7 +28,8 @@
 5. 快照替换语义：行内字段 exact overwrite（源清空 → DB 清空）；重新出现在 active 快照的行
    强制恢复 active；DB 有但快照没有 → `record_status='excluded'` +
    `exclusion_reason='snapshot_removed_in_later_snapshot'` + 证据=新快照 source_sha256；
-   被下线岗位的收藏/对比引用级联清理（不留"列表可见、详情 404"幽灵）；
+   被下线岗位（快照移除或快照内在场被标记排除态）的收藏/对比引用级联清理
+  （不留"列表可见、详情 404"幽灵）；
 6. 写入单事务；`imported + updated == rows_total` 对账不符 → 500 整体回滚（`skipped` 已废除——
    任何行都不允许静默跳过）；
 7. 响应携带 `source_sha256`、分项计数（含 `deactivated`）、`job_id_set_sha256` 与全周期
@@ -43,13 +44,18 @@
 - refresh token：JSON body 提交（**永不进 query/URL**），服务器端 `refresh_tokens` 表存 sha256，
   轮换即撤销旧 token，检测到已撤销 token 重用 → 撤销整个 family；
 - 生产环境 `ENV=production` + 默认 SECRET_KEY = 拒绝启动（fail-closed）；
-- 登录/注册限流：同 IP+账号 5 次失败 / 5 分钟（进程内实现，多 worker 部署前接 Redis）。
+- 限流（v17.9.12 双后端）：login 5 失败/5 分钟、register 5 次/5 分钟（IP+账号）、
+  refresh 30 次/分、logout 10 次/分（IP）；`RATE_LIMIT_BACKEND=memory|redis`，
+  memory 为原子单步判定，redis 为 Lua 原子滑动窗（多 worker 安全，生产默认），
+  Redis 不可达时 fail-open 降级到按 worker 数收紧的进程内兜底。
 
 ## 4. 版本与部署契约
 
-- 版本单一真源 = `项目源码/release.json` 的 `release`；`config.APP_VERSION` 启动时读它，
+- API 版本单一真源 = `wan-api/release.json`（wanyu-api-release/v1）的 `release`；
+  `config.APP_VERSION` 启动时读它（项目级 `项目源码/release.json` 是网站产品版本，互不捆绑），
   部署布局由 deploy.sh 注入 .env；`/health` 返回 `version`，deploy smoke 断言其等于部署版本；
-- deploy.sh：`set -Eeuo pipefail`、无 `|| true` 吞错、`systemctl restart`、
+- deploy.sh：`set -Eeuo pipefail`、除 read_existing_db_password 显式允许为空的 grep 外
+  无 `|| true` 吞错、`systemctl restart`、
   换血前自动备份旧版本（`/opt/wanyu/backup/`，回滚见 `docs/ops/RUNBOOK.md`）；
 - nginx `/maintainable/` 用 `root`（alias+try_files 是 nginx trac#97 缺陷）；certbot `--redirect`。
 
@@ -79,6 +85,7 @@
 
 - [x] S0-S6（v17.9.x 系列）
 - [x] Round-1 深度收口（v17.9.11：部署链 P0/P1、数据完整性 P1×3、CI 门禁覆盖面、版本单一真源）
+- [x] Round-2 深度收口（v17.9.12：快照 P0、限流原子化+Redis 后端、SECRET_KEY 门禁、可观测性、性能索引）
 - [ ] S8：staging 压测 + 安全回归 + fresh-host 部署演练
 - [ ] 多 worker 前接入 Redis 限流与会话级指标
 - [ ] 线上部署后密钥轮换（SSH 私钥已随交接包分发过）

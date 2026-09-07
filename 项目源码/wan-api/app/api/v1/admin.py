@@ -203,6 +203,9 @@ async def import_cycle_data(
             detail=f"快照校验失败（已拒绝导入，数据库零写入）：{exc}"
         )
 
+    from app.api.v1.jobs import invalidate_stats_cache
+    invalidate_stats_cache()
+
     imported = stats.get("imported", 0)
     updated = stats.get("updated", 0)
     deactivated = stats.get("deactivated", 0)

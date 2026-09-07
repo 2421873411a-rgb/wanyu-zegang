@@ -25,11 +25,15 @@ logger = logging.getLogger("wanyu.rate_limit")
 
 
 class MemoryRateLimiter:
-    """进程内滑动窗口 + 锁定窗口。
+    """进程内滑动窗口 + 锁定窗口 + 容量上限。
 
     check(key) 是原子的"记录+判定"：窗口内事件数已达上限时，置锁定
     （持续一个窗口期，期间拒绝且不追加，保证可恢复性）并返回 False。
+    超过 _MAX_KEYS 时按"最旧活动时间"整键清扫（Round-3 RA-7：distinct key
+    永不回收曾是内存 DoS 面——20 万 key ≈150MB 实测）。
     """
+
+    _MAX_KEYS = 50_000
 
     def __init__(self, max_events: int, window_seconds: float):
         self.max_events = max_events
@@ -38,9 +42,25 @@ class MemoryRateLimiter:
         self._locked_until: dict = {}
         self._lock = Lock()
 
+    def _sweep_if_needed(self, now: float) -> None:
+        if len(self._events) <= self._MAX_KEYS and len(self._locked_until) <= self._MAX_KEYS:
+            return
+        stale = [k for k, q in self._events.items()
+                 if not q or now - q[0] > self.window_seconds]
+        for k in stale:
+            self._events.pop(k, None)
+        stale_locks = [k for k, until in self._locked_until.items() if now >= until]
+        for k in stale_locks:
+            self._locked_until.pop(k, None)
+        if len(self._events) > self._MAX_KEYS:
+            # 仍超限（极端攻击）：按键名排序丢弃最旧的一半，保住进程而非完美计数
+            for k in sorted(self._events)[: len(self._events) // 2]:
+                self._events.pop(k, None)
+
     async def check(self, key: str) -> bool:
         now = time.monotonic()
         with self._lock:
+            self._sweep_if_needed(now)
             locked_until = self._locked_until.get(key)
             if locked_until is not None:
                 if now < locked_until:
@@ -69,7 +89,10 @@ class MemoryRateLimiter:
 
 
 _SLIDING_LUA = """
-local cut = tonumber(ARGV[1]) - tonumber(ARGV[2])
+-- 时钟统一取 Redis 侧 TIME（Round-3 RA-6：应用实例时钟漂移会整体绕过窗口）
+local t = redis.call('TIME')
+local now = t[1] * 1000 + math.floor(t[2] / 1000)
+local cut = now - tonumber(ARGV[2])
 redis.call('ZREMRANGEBYSCORE', KEYS[1], 0, cut)
 if redis.call('EXISTS', KEYS[2]) == 1 then return 0 end
 local n = redis.call('ZCARD', KEYS[1])
@@ -77,7 +100,7 @@ if n >= tonumber(ARGV[3]) then
   redis.call('SET', KEYS[2], '1', 'PX', tonumber(ARGV[2]))
   return 0
 end
-redis.call('ZADD', KEYS[1], ARGV[1], ARGV[1] .. ':' .. redis.call('INCR', KEYS[1] .. ':seq'))
+redis.call('ZADD', KEYS[1], now, now .. ':' .. redis.call('INCR', KEYS[1] .. ':seq'))
 redis.call('PEXPIRE', KEYS[1], tonumber(ARGV[2]))
 redis.call('PEXPIRE', KEYS[1] .. ':seq', tonumber(ARGV[2]))
 return 1
@@ -160,6 +183,11 @@ class RedisRateLimiter:
         都是新循环，缓存的 async 连接在 fixture 上下文里必然失效（曾导致
         flush 静默失败、限流键跨测试累积、注册全 429）。
         """
+        # 仅测试环境允许清空（Round-3 RA-9：rl:* 全库 scan 一旦指向共享/生产
+        # Redis 会清空全部限流状态）
+        if settings.ENV != "test":
+            logger.warning("RedisRateLimiter.reset() 在非 test 环境被拒绝执行")
+            return
         self._fallback.reset()
         self._redis = None
         self._script = None

@@ -1,5 +1,20 @@
 # 皖域择岗交付更新日志
 
+## v17.9.13 · Round-3 复审收口（回归对抗抓出转义缺陷实现 + 运维窗口）· 2026-09-08
+
+### P1
+- **LIKE 转义缺陷实现修复**：v17.9.12 的 _escape_like 替换模板经多层转写损坏为"反斜杠+SOH 控制字符"——含 %/_ 字面量的关键词/专业搜索恒为空且向 SQL 参数注入控制字节；三个独立审计镜头交叉确认。改为 lambda 构造替换（chr(92)），转义集补反斜杠，新增"字面量仍可命中"正向门禁（旧门禁只测 total==0 挡不住此类回归）。
+- **deploy.sh 首次部署必失败修复**：强制的 pg_dump 重定向到从未创建的 /opt/wanyu/backup（首装分支不建目录）——无条件 mkdir。
+
+### P2
+- SECRET_KEY：公开测试密钥入 denylist（正式环境拒启）；ENV 精确匹配 test（' TEST '/'Test' 不再享受豁免）
+- LIKE：反斜杠纳入转义类（生产 PG invalid escape 500 面）
+- 限流：Redis Lua 改用 Redis TIME（实例时钟漂移曾整体绕过窗口）；内存 limiter 容量上限+清扫（20 万 key≈150MB 内存 DoS 面）；reset() 非 test 环境拒绝执行（防误扫共享 Redis）
+- 部署：停服窗口（旧 worker 滚动重生撞新代码曾致崩溃循环）；OS 支持矩阵前置断言（python3.12 仅 24.04+ 官方源）
+- 数据：快照"在场排除行"也级联清理幽灵引用；MirrorState.release 空 label 守卫（与 Cycle.label 一致）；bm 浮点校验（契约对齐）；stats 缓存查询移入命中路径+导入失效钩子（原实现零收益纯脏读）
+- 文档：版本真源路径统一（CONTRACT/RUNBOOK/.env.example→wan-api/release.json）；README 快速开始补 SECRET_KEY 步骤+端点表按 OpenAPI 重生成+定位语改为"为未来动态站预建"；RUNBOOK pg_restore 补提权；交接包 txt 加时点声明；CONTRACT 措辞精度（|| true 豁免、bm/级联表述）
+
+
 ## v17.9.12 · Round-2 深度收口（认证安全 + API 行为 + 运维可观测）· 2026-09-08
 
 ### P0

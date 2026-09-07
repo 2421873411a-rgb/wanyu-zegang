@@ -8,6 +8,8 @@ from pathlib import Path
 _KNOWN_INSECURE_SECRETS = {
     "your-secret-key-change-in-production",
     "your-super-secret-key-change-this-in-production",
+    # v17.9.12 注入的公开测试密钥也绝不允许出现在正式环境（随公开仓库扩散）
+    "wanyu-test-only-secret-key-0123456789abcdef",
     "",
 }
 
@@ -102,8 +104,8 @@ def _validate_production_safety(settings: "Settings") -> None:
     - 其余任何环境：缺失或命中已知公开默认值 → 拒绝启动；
       长度 <32 字符 → 拒绝启动（此前 'secret' 这类弱密钥在生产也放行）。
     """
-    env = settings.ENV.strip().lower()
-    if env == "test":
+    # 精确匹配（Round-3 RA-5）：' TEST '/'Test' 之类笔误绝不享受 test 豁免
+    if settings.ENV == "test":
         if not settings.SECRET_KEY:
             settings.SECRET_KEY = "wanyu-test-only-secret-key-0123456789abcdef"
         return
