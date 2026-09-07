@@ -2,7 +2,11 @@ name: canonical-ci
 
 on:
   push:
+    branches: [main]
   pull_request:
+
+permissions:
+  contents: read
 
 concurrency:
   group: canonical-ci-${{ github.workflow }}-${{ github.ref }}
@@ -16,6 +20,7 @@ defaults:
 jobs:
   canonical:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-python@v6

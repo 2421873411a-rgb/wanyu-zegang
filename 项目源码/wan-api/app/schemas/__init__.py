@@ -1,5 +1,5 @@
 from app.schemas.user import UserCreate, UserLogin, UserResponse, TokenResponse
-from app.schemas.job import JobResponse, JobSearchRequest, JobSearchResponse
+from app.schemas.job import JobResponse, JobSearchResponse
 from app.schemas.user_workspace import (
     SavedPositionCreate, SavedPositionResponse,
     FilterSnapshotCreate, FilterSnapshotResponse,
@@ -8,7 +8,7 @@ from app.schemas.user_workspace import (
 
 __all__ = [
     "UserCreate", "UserLogin", "UserResponse", "TokenResponse",
-    "JobResponse", "JobSearchRequest", "JobSearchResponse",
+    "JobResponse", "", "JobSearchResponse",
     "SavedPositionCreate", "SavedPositionResponse",
     "FilterSnapshotCreate", "FilterSnapshotResponse",
     "CompareListCreate", "CompareListResponse"

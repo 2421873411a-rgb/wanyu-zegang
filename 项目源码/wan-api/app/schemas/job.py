@@ -32,18 +32,6 @@ class JobResponse(BaseModel):
     model_config = {"from_attributes": True}
 
 
-class JobSearchRequest(BaseModel):
-    """岗位搜索请求"""
-    cycle: Optional[str] = None
-    keyword: Optional[str] = None
-    city: Optional[str] = None
-    exam: Optional[str] = None
-    major: Optional[str] = None
-    category: Optional[str] = None
-    page: int = 1
-    page_size: int = 60
-    sort: str = "source"
-
 
 class JobSearchResponse(BaseModel):
     """岗位搜索响应"""
@@ -52,14 +40,5 @@ class JobSearchResponse(BaseModel):
     page_size: int
     pages: int
     items: List[JobResponse]
-    facets: Optional[Dict[str, Any]] = None
 
 
-class JobStatsResponse(BaseModel):
-    """岗位统计响应"""
-    cycle: str
-    total_posts: int
-    total_recruits: int
-    by_city: Dict[str, int]
-    by_exam: Dict[str, int]
-    by_category: Dict[str, int]

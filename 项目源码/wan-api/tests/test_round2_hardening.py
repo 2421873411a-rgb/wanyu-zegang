@@ -274,7 +274,9 @@ async def test_incoming_excluded_row_cascades_ghost_references(client: AsyncClie
                       json={"record_id": real, "cycle": "2026"})
 
     from app.services.import_service import _job_id_set_sha256
-    rows = [dict(_row("2026", 99), record_status="withdrawn",
+    # Round-4 修正：排除行必须就是被收藏的那行（此前收藏 0 号、导入 99 号，
+    # 实际走 stale 路径——门禁对 incoming_excluded 分支无效，回归审计抓出）
+    rows = [dict(_row("2026", 0), record_status="withdrawn",
                  exclusion_reason="r", exclusion_evidence="e", excluded_at="d")]
     payload = {"cycle": "2026",
                "all_majors": {"meta": {"total": 1, "raw_total": 1, "excluded": 1, "recruits": 2},
@@ -297,3 +299,50 @@ async def test_float_bm_rejected(client: AsyncClient):
     r = await _import(client, headers, payload)
     assert r.status_code == 400
     assert "bm" in r.json()["detail"]
+
+
+# ============ Round-4 盲区终扫回归 ============
+
+async def test_snapshot_release_over_32_chars_rejected(client: AsyncClient):
+    """B1：release 与列宽(32)对齐——SQLite 静默、PG 500 的方言漂移类。"""
+    data = await _register(client)
+    headers = _auth(data["access_token"])
+    r = await client.post("/api/v1/user/snapshots", headers=headers,
+                          json={"cycle": "2026", "view": "table", "filters": {},
+                                "release": "r" * 33})
+    assert r.status_code == 422, f"33 字符 release 应 422：{r.status_code}"
+
+
+async def test_cycles_salary_audit_smoke(client: AsyncClient):
+    """B3：三路由冒烟入门禁（此前 70 用例仅 1 条覆盖）。"""
+    await _seed_jobs(1)
+    r1 = await client.get("/api/v1/cycles")
+    assert r1.status_code == 200
+    r2 = await client.get("/api/v1/cycles/2026")
+    assert r2.status_code in (200, 404)  # 空库 404、有导入 200
+    r3 = await client.get("/api/v1/salary")
+    assert r3.status_code == 200 and r3.json() == {}
+    r4 = await client.get("/api/v1/salary/ranking")
+    assert r4.status_code == 200 and r4.json() == []
+    r5 = await client.get("/api/v1/audit/review-queue")
+    assert r5.status_code == 200 and r5.json() == []
+
+
+async def test_backslash_in_keyword_escaped_not_wildcard(client: AsyncClient):
+    """Round-4 P1 正反门禁：反斜杠在转义类内（v17.9.13 曾声称修复未落地）。"""
+    bs = chr(92)
+    async with get_test_session_factory()() as session:
+        # 种子用 chr(92) 构造——字面量 "" 会被写成退格控制字符而非反斜杠（本测试曾因此失效）
+        session.add(Job(job_id="job-2026-cccccccccccccccc0001", cycle="2026", code="91001",
+                        city="合肥", exam="省考", unit="路径a" + bs + "b岗", zw="x", zy="法学",
+                        num=1, record_status="active"))
+        session.add(Job(job_id="job-2026-cccccccccccccccc0002", cycle="2026", code="91002",
+                        city="合肥", exam="省考", unit="axb岗", zw="x", zy="法学",
+                        num=1, record_status="active"))
+        await session.commit()
+    # 正向：字面量 a+backslash+b 精确命中含反斜杠的行
+    r1 = await client.get("/api/v1/jobs/search", params={"keyword": "a" + bs + "b"})
+    assert r1.json()["total"] == 1, f"字面反斜杠匹配失效：{r1.json()}"
+    # 反向：用户反斜杠不得重臂通配符——a+backslash+% 不产生通配符扩张
+    r2 = await client.get("/api/v1/jobs/search", params={"keyword": "a" + bs + "%"})
+    assert r2.json()["total"] == 0, "用户反斜杠重臂了通配符"

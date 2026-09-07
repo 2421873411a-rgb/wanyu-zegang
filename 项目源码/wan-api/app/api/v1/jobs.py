@@ -13,7 +13,9 @@ router = APIRouter()
 
 # v17.9.12：用户输入里的 % _ \ 是 LIKE 通配符/转义符，必须转义后才能参与模糊匹配
 # （keyword='%%' 曾语义变成"匹配全部"）；控制字符（含 NUL）在 asyncpg 下会直接 500。
-_LIKE_ESC = re.compile(r"([\%_])")
+# 转义集必须含反斜杠自身（用户输入的反斜杠会充当 ESCAPE 字符重臂通配符，
+# 生产 PG 还会报 invalid escape）——v17.9.13 曾声称修了但代码未落地，回归审计抓出。
+_LIKE_ESC = re.compile(r"([\\%_])")
 
 
 def _escape_like(value: str) -> str:

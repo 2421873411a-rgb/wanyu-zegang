@@ -2,8 +2,8 @@
  "schema": "wanyu-maturity-sprint/v1",
  "started_on": "2026-09-07",
  "current_round": 1,
- "main_head": "5034b01",
- "version": "v17.9.12",
+ "main_head": "850a3c3",
+ "version": "v17.9.13",
  "gates_baseline": {
   "sqlite": "35 passed, 2 skipped",
   "postgres": "37 passed",
@@ -72,6 +72,20 @@
    ],
    "ci": "6 checks 真绿：PG job 71 passed 0 skipped（含 redis:7 真实限流测试）",
    "incidents": "Actions 多 service 端口合并坑 + aioredis 循环绑定坑，均已修复并留注释"
+  },
+  {
+   "round": 3,
+   "status": "DONE",
+   "pr": "PR#12 merged (850a3c3)",
+   "tags": [
+    "v17.9.13"
+   ],
+   "closed": {
+    "P1": 2,
+    "P2": 14
+   },
+   "clean_round": false,
+   "notable": "回归对抗抓出 v17.9.12 自身引入的转义缺陷实现（三镜头交叉确认）；heredoc 多层转写教训已入库"
   }
  ],
  "findings": {
@@ -80,5 +94,5 @@
   "waived": []
  },
  "prs_merged": [],
- "next_focus": "Round 3: 全镜头复审（回归对抗 + 收敛判定）"
+ "next_focus": "Round 4: 复审 v17.9.13 修复 + 盲区终扫（目标：干净轮×1）"
 }

@@ -2,7 +2,11 @@ name: wan-api-ci
 
 on:
   push:
+    branches: [main]
   pull_request:
+
+permissions:
+  contents: read
 
 concurrency:
   group: wan-api-ci-${{ github.workflow }}-${{ github.ref }}
@@ -16,6 +20,7 @@ defaults:
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-python@v6

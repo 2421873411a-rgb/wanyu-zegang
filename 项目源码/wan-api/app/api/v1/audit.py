@@ -16,7 +16,8 @@ async def get_review_queue(
     db: AsyncSession = Depends(get_db)
 ):
     """获取复核队列"""
-    query = select(ReviewEvent)
+    # v17.9.14：无上限全表返回→默认 100 条封顶（review_events 无界增长防御）
+    query = select(ReviewEvent).limit(200)
     
     if kind:
         query = query.where(ReviewEvent.kind == kind)
