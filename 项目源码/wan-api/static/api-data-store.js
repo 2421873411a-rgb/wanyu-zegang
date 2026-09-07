@@ -1,3 +1,9 @@
+/*
+ * DEPRECATED（v17.9.12 说明）：本文件的 API-first 加载路径从未被任何页面接入，
+ * 且其中 /cycles/{cycle}/{module}、/map、/audit/three-year 三个端点在 wan-api 中
+ * 不存在（真实消费面 = 静态 JSON fallback）。文档见 项目源码/wan-api/docs/CONTRACT.md。
+ * 在后端补齐聚合端点之前，请勿在新页面中引用本模块。
+ */
 /**
  * APIDataStore - 动态网站数据加载层
  * 封装现有DataStore，优先从API获取数据，失败时fallback到静态JSON

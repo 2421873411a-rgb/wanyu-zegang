@@ -1,6 +1,8 @@
 import math
+import re
+import time
 from typing import Optional
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, or_, and_
 from app.database import get_db
@@ -8,6 +10,36 @@ from app.models.job import Job
 from app.schemas.job import JobResponse, JobSearchResponse
 
 router = APIRouter()
+
+# v17.9.12：用户输入里的 % _ \ 是 LIKE 通配符/转义符，必须转义后才能参与模糊匹配
+# （keyword='%%' 曾语义变成"匹配全部"）；控制字符（含 NUL）在 asyncpg 下会直接 500。
+_LIKE_ESC = re.compile(r"([\%_])")
+
+
+def _escape_like(value: str) -> str:
+    return _LIKE_ESC.sub(r"\", value)
+
+
+def _reject_control_chars(*values: Optional[str]) -> None:
+    for v in values:
+        if v and any(ord(c) < 0x20 for c in v):
+            raise HTTPException(status_code=422, detail="输入包含非法控制字符")
+
+
+# v17.9.12：统计结果进程内 TTL 缓存（数据只在导入后变化，每次全表聚合 ~90ms 纯浪费；
+# 跨进程失效由 TTL 兜底，单 worker 部署下导入即重启，天然一致）
+_STATS_CACHE: dict = {}
+_STATS_TTL_SECONDS = 60.0
+
+
+def _cached(key: str, builder):
+    hit = _STATS_CACHE.get(key)
+    now = time.monotonic()
+    if hit and now - hit[0] < _STATS_TTL_SECONDS:
+        return hit[1]
+    value = builder()
+    _STATS_CACHE[key] = (now, value)
+    return value
 
 
 @router.get("/search", response_model=JobSearchResponse)
@@ -18,13 +50,14 @@ async def search_jobs(
     exam: Optional[str] = Query(None, description="考试类别"),
     major: Optional[str] = Query(None, description="专业"),
     category: Optional[str] = Query(None, description="岗位类别"),
-    page: int = Query(1, ge=1, description="页码"),
+    page: int = Query(1, ge=1, le=10000, description="页码（上限防御深翻页与溢出）"),
     page_size: int = Query(60, ge=1, le=200, description="每页数量"),
     sort: str = Query("source", description="排序方式"),
     db: AsyncSession = Depends(get_db)
 ):
     """搜索岗位（只返回 record_status='active' 的岗位；excluded 是快照下线行，
     仅审计/管理入口可见）"""
+    _reject_control_chars(keyword, major, city, exam, category)
     query = select(Job)
     count_query = select(func.count(Job.id))
 
@@ -39,15 +72,16 @@ async def search_jobs(
     if category:
         filters.append(Job.lb == category)
     if major:
-        # 专业模糊搜索
-        filters.append(Job.zy.ilike(f"%{major}%"))
+        # 专业模糊搜索（通配符已转义）
+        filters.append(Job.zy.ilike(f"%{_escape_like(major)}%", escape="\\"))
     if keyword:
-        # 关键词搜索（职位名称、单位、专业）
+        # 关键词搜索（职位名称、单位、专业；通配符已转义）
+        kw = _escape_like(keyword)
         keyword_filter = or_(
-            Job.unit.ilike(f"%{keyword}%"),
-            Job.zw.ilike(f"%{keyword}%"),
-            Job.zy.ilike(f"%{keyword}%"),
-            Job.code.ilike(f"%{keyword}%")
+            Job.unit.ilike(f"%{kw}%", escape="\\"),
+            Job.zw.ilike(f"%{kw}%", escape="\\"),
+            Job.zy.ilike(f"%{kw}%", escape="\\"),
+            Job.code.ilike(f"%{kw}%", escape="\\")
         )
         filters.append(keyword_filter)
     
@@ -116,11 +150,13 @@ async def get_jobs_by_city(
     if cycle:
         query = query.where(Job.cycle == cycle)
     query = query.group_by(Job.city).order_by(func.count(Job.id).desc())
-    
+
+    def _build() -> dict:
+        return {row.city: row.count for row in db_sync_result.all() if row.city}
+
     result = await db.execute(query)
-    rows = result.all()
-    
-    return {row.city: row.count for row in rows if row.city}
+    db_sync_result = result
+    return _cached(f"city:{cycle or '*'}", _build)
 
 
 @router.get("/stats/by-exam")
@@ -134,8 +170,10 @@ async def get_jobs_by_exam(
     if cycle:
         query = query.where(Job.cycle == cycle)
     query = query.group_by(Job.exam).order_by(func.count(Job.id).desc())
-    
+
+    def _build() -> dict:
+        return {row.exam: row.count for row in db_sync_result.all() if row.exam}
+
     result = await db.execute(query)
-    rows = result.all()
-    
-    return {row.exam: row.count for row in rows if row.exam}
+    db_sync_result = result
+    return _cached(f"exam:{cycle or '*'}", _build)

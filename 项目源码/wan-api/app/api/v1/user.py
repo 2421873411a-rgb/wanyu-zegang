@@ -1,3 +1,4 @@
+import json
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.exc import IntegrityError
@@ -127,14 +128,27 @@ async def get_snapshots(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
-    """获取我的筛选快照"""
+    """获取我的筛选快照（filters 列为 Text 存 JSON 字符串，读出时反序列化）"""
     result = await db.execute(
         select(FilterSnapshot)
         .where(FilterSnapshot.user_id == current_user.id)
         .order_by(FilterSnapshot.created_at.desc())
     )
     snapshots = result.scalars().all()
-    return [FilterSnapshotResponse.model_validate(s) for s in snapshots]
+    items = []
+    for s in snapshots:
+        items.append(_snapshot_response(s))
+    return items
+
+
+def _snapshot_response(s) -> "FilterSnapshotResponse":
+    """filters 列是 Text 存 JSON 字符串——先反序列化再构造响应模型
+    （model_validate 会直接校验 ORM 属性，str→Dict 在构造期就炸，这正是 P0 读路径）。"""
+    return FilterSnapshotResponse(
+        id=s.id, cycle=s.cycle, view=s.view,
+        filters=json.loads(s.filters or "{}"),
+        metric=s.metric, release=s.release, created_at=s.created_at,
+    )
 
 
 @router.post("/snapshots", response_model=FilterSnapshotResponse, status_code=status.HTTP_201_CREATED)
@@ -143,19 +157,32 @@ async def create_snapshot(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
-    """保存筛选快照"""
+    """保存筛选快照（v17.9.12 P0：filters 序列化为 JSON 字符串落 Text 列。
+
+    原实现把 dict 直接绑到 Text 列 → 写路径 100% 500；读路径 str→Dict 校验
+    二次 500；前端静默吞错造成"已保存"假象。另加防滥用上限：单份 ≤32KB、
+    每用户 ≤50 份。
+    """
+    filters_json = json.dumps(data.filters, ensure_ascii=False)
+    if len(filters_json.encode("utf-8")) > 32 * 1024:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="筛选快照过大（>32KB）")
+    count_result = await db.execute(
+        select(func.count(FilterSnapshot.id)).where(FilterSnapshot.user_id == current_user.id)
+    )
+    if int(count_result.scalar() or 0) >= 50:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="筛选快照数量已达上限（50）")
     snapshot = FilterSnapshot(
         user_id=current_user.id,
         cycle=data.cycle,
         view=data.view,
-        filters=data.filters,
+        filters=filters_json,
         metric=data.metric,
         release=data.release
     )
     db.add(snapshot)
     await db.flush()
-    
-    return FilterSnapshotResponse.model_validate(snapshot)
+
+    return _snapshot_response(snapshot)
 
 
 @router.delete("/snapshots/{snapshot_id}", status_code=status.HTTP_204_NO_CONTENT)

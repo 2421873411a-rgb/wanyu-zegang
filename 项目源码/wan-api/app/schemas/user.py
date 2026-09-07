@@ -9,7 +9,7 @@ class UserCreate(BaseModel):
     username: str = Field(min_length=2, max_length=64)
     # v17.9.1 S2：密码策略——10~128 位，且必须同时含字母与数字（上限防 bcrypt 截断与 DoS）
     password: str = Field(min_length=10, max_length=128)
-    display_name: Optional[str] = None
+    display_name: Optional[str] = Field(default=None, max_length=128)
 
     @field_validator("password")
     @classmethod

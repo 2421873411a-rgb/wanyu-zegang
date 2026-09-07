@@ -6,22 +6,27 @@ deploy.sh 每次换血前会把旧版本代码备份到服务器 `/opt/wanyu/bac
 `/opt/wanyu/backup/LATEST` 记录最近一次备份时间戳；迁移升级前的 alembic 版本戳写在
 `/opt/wanyu/backup/<时间戳>/alembic-before.txt`。
 
-1. 回滚代码：
+⚠️ **顺序铁律（v17.9.12 修正）**：必须**先降数据库、后回滚代码**。
+旧代码的 migrations 目录里没有新 revision，先 rsync 旧代码再 downgrade 会报
+"Can't locate revision"——恰在最需要回滚的时刻走不通。
+
+1. 回滚数据库（先做；用"当前仍在位的新代码"执行 downgrade）：
    ```bash
    ts=$(cat /opt/wanyu/backup/LATEST)
+   cat /opt/wanyu/backup/$ts/alembic-before.txt   # 确认旧版本号
+   cd /opt/wanyu/api && source venv/bin/activate
+   alembic downgrade <旧版本号>
+   ```
+   数据已损坏时的彻底恢复：`pg_dump` 快照（deploy.sh 迁移前自动生成并校验非空）→
+   `pg_restore -d wanyu_db --clean --if-exists <快照文件>`。
+2. 回滚代码：
+   ```bash
    rsync -a --delete --exclude 'venv' --exclude '.env' /opt/wanyu/backup/$ts/ /opt/wanyu/api/
    systemctl restart wanyu-api
    curl -sf http://127.0.0.1:8000/health   # 核对 version 字段回到旧版本
    ```
    venv 无需重建（依赖按 runtime lock 安装，回滚目标版本的 lock 与现 venv 一致时可复用；
    若回滚跨越依赖变更，删掉 venv 后 `python3.12 -m venv venv && venv/bin/pip install -r requirements.lock.txt`）。
-2. 回滚数据库（仅当新版本包含已升级的迁移且旧代码不兼容新表结构时）：
-   ```bash
-   cat /opt/wanyu/backup/$ts/alembic-before.txt   # 确认旧版本号
-   cd /opt/wanyu/api && source venv/bin/activate
-   alembic downgrade <旧版本号>
-   ```
-   更彻底的恢复：`pg_dump` 备份（部署前必须先做，见下）→ `psql` 恢复。
 3. 数据库快照（每次部署前强制）：
    ```bash
    sudo -u postgres pg_dump -Fc wanyu_db > /opt/wanyu/backup/wanyu_db-$(date +%Y%m%d-%H%M%S).dump

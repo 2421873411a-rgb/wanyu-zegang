@@ -1,4 +1,4 @@
-from sqlalchemy import JSON, Boolean, Column, DateTime, Integer, Numeric, String, Text
+from sqlalchemy import JSON, Boolean, Column, DateTime, Index, Integer, Numeric, String, Text, text as sa_text
 
 from app.database import Base
 from app.utils.time import utcnow_naive
@@ -6,6 +6,20 @@ from app.utils.time import utcnow_naive
 
 class Job(Base):
     __tablename__ = "jobs"
+    # v17.9.12 迁移 0004 同款索引（GIN trgm 仅 PG 语义；env.py 在非 PG 方言下
+    # 会把它们排除出 autogenerate 比较，避免 SQLite 漂移误报）
+    # 注：复合索引 ix_jobs_record_status_num 由迁移 0004 独占管理（textual 列表达
+    # 与 ORM 元数据比较不相等，见 env.py include_object 排除清单），模型不声明。
+    __table_args__ = (
+        Index('ix_jobs_unit_trgm', 'unit', postgresql_using='gin',
+              postgresql_ops={'unit': 'gin_trgm_ops'}),
+        Index('ix_jobs_zw_trgm', 'zw', postgresql_using='gin',
+              postgresql_ops={'zw': 'gin_trgm_ops'}),
+        Index('ix_jobs_zy_trgm', 'zy', postgresql_using='gin',
+              postgresql_ops={'zy': 'gin_trgm_ops'}),
+        Index('ix_jobs_code_trgm', 'code', postgresql_using='gin',
+              postgresql_ops={'code': 'gin_trgm_ops'}),
+    )
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     job_id = Column(String(128), unique=True, nullable=False, index=True)

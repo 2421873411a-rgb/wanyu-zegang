@@ -1,5 +1,38 @@
 # 皖域择岗交付更新日志
 
+## v17.9.12 · Round-2 深度收口（认证安全 + API 行为 + 运维可观测）· 2026-09-08
+
+### P0
+- 用户筛选快照端点（/api/v1/user/snapshots）修复：filters JSON 序列化成对处理——此前 POST/GET 双向 100% 500 且前端静默吞错；新增 ≤32KB/50 份防滥用上限与 CRUD 门禁测试。
+
+### P1 ×8
+- 登录限流原子化（check-then-hit 竞态封死：修复前 20 并发错密码 20/20 穿透，现 ≤5 过其余 429）
+- 限流 Redis 后端（Lua 原子滑动窗 + 锁定键，多 worker 安全；不可达时 fail-open 到收紧的进程内兜底；CI postgres job 挂 redis:7 实测）
+- SECRET_KEY 全面收紧（无默认值：正式环境缺失/公开默认值/<32 字符一律拒启）
+- pg_dump 强制化（迁移前自动快照+非空校验+保留 10 份）
+- .env APP_VERSION 每次部署强制刷新（旧值曾使二次部署 smoke 必败）
+- app 级审计日志落地（logging 显式配置 + gunicorn capture_output；admin 导入/登录失败/限流命中进日志）
+- /health readiness 语义（含 DB SELECT 1，宕机 503）
+- 搜索性能：GIN trgm 索引（unit/zw/zy/code，pg_trgm 终于用上；此前 keyword 全表扫 168-294ms 实测）+ (record_status,num DESC) 复合索引（sort=recruits 深翻页 371ms→索引化）+ page 上限
+
+### P2/P3 簇
+- refresh 轮换乐观锁（UPDATE rowcount 判定，SQLite 不再双花，任何后端语义一致）
+- LIKE 通配符转义（%%/_ 语义漏洞）+ 控制字符/NUL 422
+- 迁移 0004：record_status 回填+server_default（0002 无回填窗口封死）
+- init_db alembic_version 多行拒启（曾 fail-open 且结果取决于物理行序）
+- 最后管理员保护加 advisory lock 串行化（并发互降清零窗口）
+- salary 零值不再被 falsy 吞成 null（回归"零不冒充未知"数据原则）
+- schema 长度上限对齐列宽（SQLite 测不出、PG 会 500 的方言漂移类）
+- RecursionError/UnicodeDecodeError 统一 400；CompareListCreate 移除误导性 position 字段
+- email 注册/登录统一小写归一
+- stats 端点 60s TTL 缓存（~90ms/次的无效全表聚合）
+- deploy.sh：nginx client_max_body_size 64m（默认 1MB 曾挡死 12MB 真实快照导入）、
+  logrotate、redis Requires→Wants、forwarded_allow_ips 显式化
+- RUNBOOK 回滚顺序修正（先 downgrade 后回滚代码——原顺序在迁移不兼容时必然失败）
+- dev lock 补 uvloop（CI/生产事件循环一致）；runtime lock uvloop marker 对齐上游
+- api-data-store.js 幻端点标注 DEPRECATED（真实消费面=静态 JSON）
+
+
 ## v17.9.11 · Round-1 深度收口（部署链 + 数据完整性 + CI 门禁 + 版本真源）· 2026-09-07
 
 ### 部署链（Round-1 审计 P0×1 / P1×2 全部关闭）

@@ -1,3 +1,8 @@
+import os
+# 迁移工具上下文默认按 test 语义加载 app 配置（SECRET_KEY 门禁针对应用启动，
+# 不应阻断 alembic；显式导出的 ENV 仍被尊重，生产下 .env 会提供完整配置）。
+os.environ.setdefault("ENV", "test")
+
 import asyncio
 from logging.config import fileConfig
 from sqlalchemy import pool
@@ -23,12 +28,29 @@ from app.config import settings as _app_settings  # noqa: E402
 config.set_main_option("sqlalchemy.url", _app_settings.DATABASE_URL)
 
 
+def _include_object(obj, name, type_, reflected, compare_to):
+    """非 PG 方言下排除 PG 专属的 GIN trgm 索引（迁移里用方言分支创建），
+    避免 SQLite 的 autogenerate/check 把它们当成漂移。"""
+    if type_ == "index" and name in ("ix_jobs_record_status_num",):
+        # 迁移 0004 独占管理（textual 'num DESC' 与 ORM 元数据比较恒不相等）
+        return False
+    if type_ == "index" and name and name.endswith("_trgm"):
+        from alembic import context as _ctx
+        try:
+            if _ctx.get_context().dialect.name != "postgresql":
+                return False
+        except Exception:
+            pass
+    return True
+
+
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode."""
     url = config.get_main_option("sqlalchemy.url")
     context.configure(
         url=url,
         target_metadata=target_metadata,
+        include_object=_include_object,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
     )
@@ -38,7 +60,8 @@ def run_migrations_offline() -> None:
 
 
 def do_run_migrations(connection: Connection) -> None:
-    context.configure(connection=connection, target_metadata=target_metadata)
+    context.configure(connection=connection, target_metadata=target_metadata,
+                      include_object=_include_object)
 
     with context.begin_transaction():
         context.run_migrations()
