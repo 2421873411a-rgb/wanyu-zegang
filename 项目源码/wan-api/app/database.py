@@ -48,19 +48,28 @@ async def get_db() -> AsyncSession:
 
 
 async def init_db():
-    """初始化数据库（创建所有表）。
+    """启动时 schema 检查与 dev 自动建表。
 
-    v17.9.1 S4：生产环境的 schema 唯一管理者是 Alembic migration
-    （deploy.sh 只执行 `alembic upgrade head`）；create_all 仅保留给
-    dev/test 环境——生产下建表动作直接被拒绝，防止 schema 双真源。
+    生产（ENV=production）：schema 由 Alembic 管理（deploy.sh 先跑 upgrade head），
+    启动时只检查核心表存在→不存在说明迁移没跑→拒绝启动（fail-closed）。
+    开发/测试：自动 create_all。
     """
-    if settings.ENV.strip().lower() == "production":
-        raise RuntimeError(
-            "拒绝 create_all：ENV=production 的 schema 由 Alembic 管理"
-            "（先运行 alembic upgrade head）。如确需重建请用迁移。"
-        )
+    from sqlalchemy import inspect as sa_inspect
+
+    env = settings.ENV.strip().lower()
     async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+        if env == "production":
+            def _check_tables(sync_conn):
+                inspector = sa_inspect(sync_conn)
+                tables = set(inspector.get_table_names())
+                if "users" not in tables or "alembic_version" not in tables:
+                    raise RuntimeError(
+                        "ENV=production 但 users/alembic_version 表不存在——"
+                        "请先运行 alembic upgrade head（deploy.sh 已包含此步骤）。"
+                    )
+            await conn.run_sync(_check_tables)
+        else:
+            await conn.run_sync(Base.metadata.create_all)
 
 
 async def close_db():

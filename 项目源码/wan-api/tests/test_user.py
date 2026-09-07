@@ -42,9 +42,9 @@ async def test_compare_unique_constraint_at_db_level(client: AsyncClient):
     data = await _register(client)
     async with get_test_session_factory()() as session:
         uid = data["user"]["id"]
-        session.add(CompareList(user_id=uid, record_id="job-2026-x", cycle="2026"))
+        session.add(CompareList(user_id=uid, record_id="job-2026-x", cycle="2026", position=0))
         await session.commit()
-        session.add(CompareList(user_id=uid, record_id="job-2026-x", cycle="2026"))
+        session.add(CompareList(user_id=uid, record_id="job-2026-x", cycle="2026", position=0))
         with pytest.raises(IntegrityError):
             await session.commit()
 

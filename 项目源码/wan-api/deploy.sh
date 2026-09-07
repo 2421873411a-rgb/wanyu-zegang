@@ -93,6 +93,7 @@ setup_app_dir() {
         cat > ${APP_DIR}/.env << EOF
 DATABASE_URL=postgresql+asyncpg://wanyu_user:${DB_PASSWORD}@localhost:5432/wanyu_db
 REDIS_URL=redis://localhost:6379/0
+ENV=production
 SECRET_KEY=$(openssl rand -hex 32)
 JWT_ALGORITHM=HS256
 JWT_ACCESS_TOKEN_EXPIRE_MINUTES=30
@@ -167,6 +168,8 @@ server {
     listen [::]:443 ssl http2;
     server_name wan.kaogong.art;
 
+    # P1-9：证书文件由 certbot 预生成（先 setup_ssl 再 setup_nginx），
+    # 此处用 include 活证书路径，首次部署时证书已存在
     ssl_certificate /etc/letsencrypt/live/wan.kaogong.art/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/wan.kaogong.art/privkey.pem;
     ssl_protocols TLSv1.2 TLSv1.3;
@@ -191,6 +194,13 @@ server {
 
         # API不缓存
         add_header Cache-Control "no-store, no-cache, must-revalidate";
+    }
+
+    # P1-9：健康检查（FastAPI /health → Nginx 可达）
+    location = /health {
+        proxy_pass http://wanyu_api/health;
+        proxy_set_header Host $host;
+        access_log off;
     }
 
     # 静态站
@@ -236,13 +246,21 @@ setup_ssl() {
 # 导入数据
 import_data() {
     log_info "导入数据..."
-    
+
+    # P1-9：静态数据目录必须存在（canonical 产物已部署到位）——缺失即 fail-closed，
+    # 不启动一个空数据库 API（否则 /jobs/search 无数据、导入静默跳过）
+    if [ ! -d "${STATIC_DATA_PATH}/cycles" ]; then
+        log_error "静态数据目录不存在：${STATIC_DATA_PATH}/cycles"
+        log_error "请先部署 canonical 产物到 ${STATIC_DATA_PATH}（deploy_wan.sh 或手动同步 网站/data/）"
+        exit 1
+    fi
+
     cd ${APP_DIR}
     source venv/bin/activate
-    
+
     # 运行数据库迁移
     alembic upgrade head
-    
+
     # 导入数据
     python -c "
 import asyncio
@@ -276,8 +294,10 @@ main() {
     setup_database
     setup_app_dir
     setup_service
-    setup_nginx
+    # P1-9：先获取证书再写 HTTPS 配置——新服务器无证书时 nginx -t 会因
+    # 证书文件不存在而失败；certbot standalone 模式先拿证书，再写含 ssl 的站点配置
     setup_ssl
+    setup_nginx
     import_data
     start_service
     

@@ -1,0 +1,6 @@
+# === 开发/测试额外依赖（CI / contributors 用）===
+-r requirements.txt
+pytest==8.3.3
+pytest-asyncio==0.24.0
+ruff==0.8.6
+pip-audit==2.7.3

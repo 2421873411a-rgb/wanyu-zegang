@@ -13,7 +13,7 @@ _KNOWN_INSECURE_SECRETS = {
 class Settings(BaseSettings):
     # 应用配置
     APP_NAME: str = "皖域择岗 API"
-    APP_VERSION: str = "1.0.0"
+    APP_VERSION: str = "v17.9.0"
     # ENV: dev / test / production。production 下强制安全门（SECRET_KEY 不得为已知默认值）
     ENV: str = "dev"
     DEBUG: bool = False

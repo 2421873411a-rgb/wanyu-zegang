@@ -144,7 +144,11 @@ async def _rotate_refresh(db: AsyncSession, presented: str) -> TokenResponse:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="无效的刷新令牌")
 
     token_hash = sha256_hex(presented)
-    result = await db.execute(select(RefreshToken).where(RefreshToken.token_hash == token_hash))
+    # P1-7：FOR UPDATE 锁定行——两个 worker 同时拿同一个 refresh token 时，
+    # 后到的 SELECT 会等先到的 UPDATE commit 后再读（已是 revoked → 触发重用检测）。
+    result = await db.execute(
+        select(RefreshToken).where(RefreshToken.token_hash == token_hash).with_for_update()
+    )
     record = result.scalar_one_or_none()
 
     if record is None:

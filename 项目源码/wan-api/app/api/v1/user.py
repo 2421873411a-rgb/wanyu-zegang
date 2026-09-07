@@ -197,22 +197,24 @@ async def add_to_compare(
             detail="该岗位已在对比列表中"
         )
     
-    # 检查数量限制（最多4个）
-    count_result = await db.execute(
-        select(func.count(CompareList.id)).where(CompareList.user_id == current_user.id)
+    # P1-8：四槽模型——数据库 CHECK(0..3) + UNIQUE(user_id,position) 保证并发 ≤4
+    # 不再靠应用层 count（并发窗口可突破），改找最小空闲槽位
+    occupied_result = await db.execute(
+        select(CompareList.position).where(CompareList.user_id == current_user.id)
     )
-    count = count_result.scalar()
-    if count >= 4:
+    occupied = {row for row in occupied_result.scalars().all()}
+    free_slots = [s for s in range(4) if s not in occupied]
+    if not free_slots:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="对比列表最多4个岗位"
         )
-    
+
     item = CompareList(
         user_id=current_user.id,
         record_id=data.record_id,
         cycle=data.cycle,
-        position=data.position or count
+        position=free_slots[0]
     )
     db.add(item)
     try:
