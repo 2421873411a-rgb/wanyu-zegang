@@ -1,7 +1,8 @@
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func
 from app.database import get_db
 from app.models.user import User
 from app.models.saved_position import SavedPosition
@@ -61,8 +62,15 @@ async def add_saved_position(
         note=data.note
     )
     db.add(position)
-    await db.flush()
-    
+    try:
+        await db.flush()
+    except IntegrityError:
+        # v17.9.1 S1：并发下 check-then-insert 的竞态由数据库 UNIQUE(user_id, record_id) 兜底
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="该岗位已收藏"
+        )
+
     return SavedPositionResponse.model_validate(position)
 
 
@@ -207,8 +215,16 @@ async def add_to_compare(
         position=data.position or count
     )
     db.add(item)
-    await db.flush()
-    
+    try:
+        await db.flush()
+    except IntegrityError:
+        # v17.9.1 S1：并发竞态由 UNIQUE(user_id, record_id) 兜底；上限 4 由应用层在
+        # 同一事务内 count 校验（固定槽位设计可彻底消除竞态，见 S6 契约文档备注）
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="该岗位已在对比列表中"
+        )
+
     return CompareListResponse.model_validate(item)
 
 

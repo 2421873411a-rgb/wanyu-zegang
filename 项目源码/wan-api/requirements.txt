@@ -6,6 +6,7 @@ python-multipart==0.0.9
 # 数据库
 sqlalchemy[asyncio]==2.0.35
 asyncpg==0.29.0
+aiosqlite==0.20.0
 alembic==1.13.2
 
 # 缓存
@@ -14,7 +15,7 @@ redis[hiredis]==5.1.0
 # 认证
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
-bcrypt==4.2.0
+bcrypt==4.0.1
 
 # 数据验证
 pydantic==2.9.2

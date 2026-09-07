@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import Column, String, Integer, Text, DateTime, Numeric, Boolean
+from sqlalchemy import JSON, Column, String, Integer, Text, DateTime, Numeric, Boolean
 from app.database import Base
 
 
@@ -39,7 +39,7 @@ class Job(Base):
     ratio_comparable = Column(Boolean, default=False)
     
     # 证据来源（SQLite用Text存储JSON）
-    source = Column(Text, default='{}')
+    source = Column(JSON, default=dict)
     
     created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
