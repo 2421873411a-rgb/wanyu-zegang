@@ -42,7 +42,12 @@ jobs:
           pip install -r requirements.txt 2>/dev/null || pip install pydantic jsonschema 2>/dev/null || true
       - name: 数据源锁校验（verify_sources）
         if: steps.check.outputs.canonical == 'true'
-        run: python verify_sources.py
+        run: |
+          if [ -d "source_data" ]; then
+            python verify_sources.py
+          else
+            echo "source_data/ 不在 checkout 中（大体积源数据），跳过 verify_sources"
+          fi
       - name: canonical schema 校验（validate_canonical）
         if: steps.check.outputs.canonical == 'true'
         run: python tools/anhui_web/validate_canonical.py --root .
