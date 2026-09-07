@@ -72,9 +72,9 @@ def test_gunicorn_worker_class_importable():
     spec.loader.exec_module(mod)
     assert mod.worker_class == "uvicorn_worker.UvicornWorker"
     if sys.platform != "win32":
-        from gunicorn.util import import_class
-
-        assert import_class(mod.worker_class) is not None
+        # 直接 import 字符串指向的目标类（不依赖 gunicorn 内部工具函数——
+        # gunicorn 23 的 util 并无 import_class，本门禁首轮 CI 红灯已实证）。
+        from uvicorn_worker import UvicornWorker  # noqa: F401
 
 
 def test_runtime_lock_contains_deploy_hard_dependencies():
