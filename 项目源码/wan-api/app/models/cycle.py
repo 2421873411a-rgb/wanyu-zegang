@@ -1,12 +1,12 @@
-from datetime import datetime
-from sqlalchemy import Column, String, Integer, DateTime, Text
+from sqlalchemy import Column, DateTime, Integer, String, Text
+
 from app.database import Base
+from app.utils.time import utcnow_naive
 
 
 class Cycle(Base):
-    """周期元数据模型"""
     __tablename__ = "cycles"
-    
+
     cycle = Column(String(8), primary_key=True)
     label = Column(String(64), nullable=False)
     total_posts = Column(Integer, default=0, nullable=False)
@@ -15,9 +15,9 @@ class Cycle(Base):
     evidence_level = Column(String(32), default="verified")
     status = Column(String(32), default="verified")
     snapshot_date = Column(String(32))
-    gaps = Column(Text, default='[]')
-    created_at = Column(DateTime(timezone=False), default=datetime.utcnow, nullable=False)
-    updated_at = Column(DateTime(timezone=False), default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
-    
+    gaps = Column(Text, default="[]")
+    created_at = Column(DateTime(timezone=False), default=utcnow_naive, nullable=False)
+    updated_at = Column(DateTime(timezone=False), default=utcnow_naive, onupdate=utcnow_naive, nullable=False)
+
     def __repr__(self):
         return f"<Cycle {self.cycle}>"

@@ -10,10 +10,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import settings
 from app.database import get_db
 from app.dependencies import get_admin_user
-from app.models.cycle import Cycle
 from app.models.job import Job
 from app.models.user import User
-from app.services.import_service import ImportService
+from app.services.import_service import ImportService, SnapshotValidationError
 
 logger = logging.getLogger("wanyu.admin")
 
@@ -124,13 +123,14 @@ async def import_cycle_data(
     admin: User = Depends(get_admin_user),
     db: AsyncSession = Depends(get_db)
 ):
-    """导入周期岗位数据（快照替换，强校验后才允许写库）。
+    """导入周期岗位数据（快照替换，fail-closed 强校验后才允许写库）。
 
-    v17.9.9 P1-1/P1-2/P1-3：
-    - 校验全部在写库前完成（job_id 格式/周期一致性/重复/meta 守恒）
-    - 截断但合法的非空文件会被 meta 守恒拦住
-    - job_id 周期不匹配会被拒绝（防止 job-2024-* 混入 2026）
-    - 快照替换：DB 中该周期已有但快照中没有的行 → record_status='excluded'
+    v17.9.10：
+    - 校验全部在写库前完成（meta 必填守恒 / job_id 强格式 ^job-<cycle>-<20hex> /
+      重复 / 排除行证据 / provenance 指纹）；任一违规 → 400、零写入
+    - 同时接受 canonical 键 all_majors 与静态派生键 allMajors
+    - 快照替换：exact overwrite（源清空 → DB 清空）、重新出现自动恢复 active、
+      DB 有但快照没有 → record_status='excluded'
     - mirror_state 持久化：追踪 DB 镜像的是哪版 canonical
     """
     if cycle not in _IMPORTABLE_CYCLES:
@@ -149,7 +149,7 @@ async def import_cycle_data(
         received += len(chunk)
         if received > max_bytes:
             raise HTTPException(
-                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                status_code=status.HTTP_413_CONTENT_TOO_LARGE,
                 detail=f"上传超过上限（{max_bytes // (1024 * 1024)}MB），已拒绝"
             )
         chunks.append(chunk)
@@ -160,33 +160,33 @@ async def import_cycle_data(
         data = json.loads(content)
     except json.JSONDecodeError:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="无效的JSON格式")
+    if not isinstance(data, dict):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="JSON 顶层必须是对象")
 
-    # P1-1：强校验（全部在写库前完成）
-    from app.services.import_service import validate_snapshot
-    violations = validate_snapshot(cycle, data)
-    if violations:
+    # 快照替换（事务内：校验→写入→stale 下线→mirror state）；校验失败 → 400 零写入
+    service = ImportService(db)
+    try:
+        stats = await service.snapshot_replace(cycle, data, source_sha256=source_sha256)
+    except SnapshotValidationError as exc:
+        await db.rollback()
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"快照校验失败（{len(violations)} 项违规）：{'；'.join(violations[:5])}"
+            detail=f"快照校验失败（已拒绝导入，数据库零写入）：{exc}"
         )
 
-    # 快照替换导入（事务内：新行+全量更新+缺失行 deactivate+mirror state）
-    service = ImportService(db)
-    release = (data.get('allMajors') or {}).get('meta', {}).get('release', '')
-    stats = await service.snapshot_replace(
-        cycle=cycle,
-        data=data,
-        source_sha256=source_sha256,
-        release=release,
-    )
-
-    imported = stats.get('imported', 0)
-    updated = stats.get('updated', 0)
-    deactivated = stats.get('deactivated', 0)
+    imported = stats.get("imported", 0)
+    updated = stats.get("updated", 0)
+    deactivated = stats.get("deactivated", 0)
+    rows_total = stats.get("incoming_rows", 0)
+    if imported + updated != rows_total:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="导入对账失败（写入口径与源行数不一致），事务已回滚"
+        )
 
     logger.info(
         "admin import cycle=%s imported=%s updated=%s deactivated=%s rows=%s sha256=%s by=%s",
-        cycle, imported, updated, deactivated, stats.get('incoming_rows', 0),
+        cycle, imported, updated, deactivated, rows_total,
         source_sha256[:16], admin.username,
     )
 
@@ -195,9 +195,10 @@ async def import_cycle_data(
         "cycle": cycle,
         "file_name": file.filename,
         "source_sha256": source_sha256,
-        "rows_total": stats.get('incoming_rows', 0),
+        "rows_total": rows_total,
         "imported": imported,
         "updated": updated,
         "deactivated": deactivated,
-        "job_id_set_sha256": stats.get('job_id_set_sha256', ''),
+        "active_rows": stats.get("active_rows"),
+        "job_id_set_sha256": stats.get("job_id_set_sha256", ""),
     }

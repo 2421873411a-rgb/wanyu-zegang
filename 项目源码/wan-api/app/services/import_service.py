@@ -1,81 +1,188 @@
 """
-数据导入服务（v17.9.9：强校验 + 全字段覆盖 + 缺失行 deactivate + mirror state）
+数据导入服务（v17.9.10 统一版：fail-closed 校验 + 快照替换 + 生产三周期原子导入）
 
-P1-1：快照导入前必须通过全部校验，否则数据库零写入：
-  - job_id 格式校验（job-{cycle}-*）
-  - job_id 周期一致性（job_id 中的 cycle 必须与 URL cycle 一致）
-  - duplicate job_id 检测
-  - meta metrics 守恒（raw_posts/recruits 与 rows 一致性）
-  - canonical schema 基本校验（allMajors.rows 非空、meta 存在）
+三条铁律：
 
-P1-2：snapshot replace（不是 partial upsert）：
-  - 传入的 rows 是该周期的完整快照
-  - DB 中该周期已有但快照中没有的行 → record_status='excluded'
-  - 不会跨周期删除/修改
+1. fail-closed 校验（validate_snapshot）：导入前必须全部通过，否则零写入。
+   - 同时接受 canonical 键 all_majors 与静态派生键 allMajors（唯一真源只有 canonical，
+     静态键仅为部署存量兼容；两者 meta 约定不同，分别校验）
+   - meta 必填：raw_total / excluded / total / recruits 全部存在且与行级守恒
+     （canonical 约定 total=全行数、recruits=全行 sum(num)；
+       静态约定 total=active 行数、recruits=active sum(num)——两种都必须自洽）
+   - job_id 强格式 ^job-(\\d{4})-[0-9a-f]{20}$ 且年份与周期一致（不再"解析不了就放过"）
+   - record_status 只允许已知值；排除行必须携带 exclusion_reason/evidence/excluded_at
+   - 顶层 cycle 字段（若存在）必须与导入周期一致
 
-P1-3：全字段覆盖（_update_job_from_row 不再只更新部分字段）
+2. snapshot replace（snapshot_replace）：快照是该周期的完整真像。
+   - 行内字段 exact overwrite（源清空 → DB 清空，不做 `new or old` 残留）
+   - 重新出现在 active 快照中的行 → 强制恢复 active（不继承历史 excluded）
+   - DB 有但快照没有 → record_status='excluded'（保留审计痕迹，不物理删除）
+
+3. 生产引导（import_all_data）：三周期（2024/2025/2026）+ 待遇 + 复核事件。
+   - 全部文件先读取、先校验；任何一个缺失/校验失败 → 整体拒绝、零写入
+   - 全部通过后单事务写入并一次性 commit
 """
 import hashlib
+import json
+import os
 import re
-from typing import Any, Dict, List, Set
+from typing import Any, Dict, List, Optional, Set, Tuple
 
-from sqlalchemy import func, select
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import settings
 from app.models.cycle import Cycle
 from app.models.job import Job
 from app.models.mirror_state import MirrorState
+from app.models.review_event import ReviewEvent
+from app.models.salary_data import SalaryData
+
+JOB_ID_RE = re.compile(r"^job-(\d{4})-[0-9a-f]{20}$")
+CYCLES: Tuple[str, ...] = ("2024", "2025", "2026")
+_ACTIVE_STATUSES = {None, "", "active"}
+_EXCLUDED_STATUSES = {"duplicate", "excluded"}
+_VALID_RECORD_STATUS = _ACTIVE_STATUSES | _EXCLUDED_STATUSES
 
 
-def _job_id_cycle(job_id: str) -> str:
-    """从 job_id 提取周期：job-2026-xxx → '2026'"""
-    m = re.match(r'^job-(\d{4})-', str(job_id or ''))
-    return m.group(1) if m else ''
+class SnapshotValidationError(Exception):
+    """快照校验失败（fail-closed：调用方必须拒绝导入）"""
+
+    def __init__(self, errors: List[str]):
+        self.errors = errors
+        super().__init__("; ".join(errors[:5]) + (f"（共 {len(errors)} 条）" if len(errors) > 5 else ""))
+
+
+def _extract_group(data: Dict[str, Any]) -> Tuple[Optional[Dict[str, Any]], list, Dict[str, Any]]:
+    """兼容 canonical 键 all_majors 与静态派生键 allMajors，返回 (group, rows, meta)。"""
+    group = data.get("all_majors")
+    if not isinstance(group, dict):
+        group = data.get("allMajors")
+    if not isinstance(group, dict):
+        return None, [], {}
+    rows = group.get("rows")
+    meta = group.get("meta")
+    return group, rows if isinstance(rows, list) else [], meta if isinstance(meta, dict) else {}
+
+
+def _to_int(value: Any) -> Optional[int]:
+    if isinstance(value, bool) or value is None:
+        return None
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _row_active(row: Dict[str, Any]) -> bool:
+    return row.get("record_status") in _ACTIVE_STATUSES
+
+
+def _norm_record_status(value: Any) -> str:
+    """DB 只存显式二值：active / excluded（canonical 的 None/duplicate 在此归一）。"""
+    return "active" if value in _ACTIVE_STATUSES else "excluded"
 
 
 def _job_id_set_sha256(job_ids: List[str]) -> str:
-    """计算 job_id 集合的确定性 SHA-256（排序后拼接）"""
-    blob = '\n'.join(sorted(job_ids)).encode('utf-8')
+    """job_id 集合的确定性 SHA-256（与 canonical provenance 同算法：排序后按行拼接）"""
+    blob = "\n".join(sorted(job_ids)).encode("utf-8")
     return hashlib.sha256(blob).hexdigest()
 
 
 def validate_snapshot(cycle: str, data: Dict[str, Any], max_rows: int = 20000) -> List[str]:
-    """校验快照数据，返回违规列表（空=通过）。不修改任何状态。"""
+    """校验快照数据，返回违规列表（空=通过）。纯函数，不修改任何状态。"""
     errors: List[str] = []
+    group, rows, meta = _extract_group(data)
 
-    rows = (data.get('allMajors') or {}).get('rows')
-    if not isinstance(rows, list) or not rows:
-        errors.append('allMajors.rows 缺失或为空')
-        return errors
+    if group is None:
+        return ["缺少 all_majors/allMajors 数据组"]
+    if not rows:
+        return ["rows 缺失或为空——截断快照必须整体拒绝"]
     if len(rows) > max_rows:
-        errors.append(f'rows 数量 {len(rows)} 超过上限 {max_rows}')
+        errors.append(f"rows 数量 {len(rows)} 超过上限 {max_rows}")
 
-    meta = (data.get('allMajors') or {}).get('meta') or {}
+    doc_cycle = data.get("cycle")
+    if doc_cycle is not None and str(doc_cycle) != cycle:
+        errors.append(f"顶层 cycle={doc_cycle} 与导入周期 {cycle} 不一致")
 
-    # job_id 格式 + 周期一致性 + 重复检测
-    seen_ids: Set[str] = set()
+    if not meta:
+        errors.append("meta 缺失——无守恒锚点的快照必须整体拒绝")
+        return errors
+
+    # ---- 行级：job_id 强格式 + 周期一致 + 唯一 + num/record_status 合法 ----
+    seen: Set[str] = set()
+    active_rows = 0
+    active_recruits = 0
+    raw_recruits = 0
+    excluded_rows = 0
     for i, row in enumerate(rows):
-        jid = str(row.get('job_id') or row.get('row_id') or '')
-        if not jid:
-            errors.append(f'第 {i} 行缺少 job_id/row_id')
+        if not isinstance(row, dict):
+            errors.append(f"rows[{i}] 不是对象")
             continue
-        id_cycle = _job_id_cycle(jid)
-        if id_cycle and id_cycle != cycle:
-            errors.append(f'job_id 周期不匹配：{jid}（期望 {cycle}，实际 {id_cycle}）')
-        if jid in seen_ids:
-            errors.append(f'duplicate job_id: {jid}')
-        seen_ids.add(jid)
+        jid = row.get("job_id") or row.get("row_id")
+        if not isinstance(jid, str) or not jid:
+            errors.append(f"rows[{i}] 缺少 job_id")
+            continue
+        m = JOB_ID_RE.fullmatch(jid)
+        if not m:
+            errors.append(f"job_id 格式非法：{jid}（要求 job-{cycle}-<20位hex>）")
+        elif m.group(1) != cycle:
+            errors.append(f"job_id 周期不匹配：{jid}（期望 {cycle}）")
+        if jid in seen:
+            errors.append(f"job_id 重复：{jid}")
+        seen.add(jid)
 
-    # meta metrics 守恒
-    meta_total = meta.get('total') or meta.get('raw_posts') or meta.get('raw_total')
-    meta_recruits = meta.get('recruits')
-    if meta_total is not None and int(meta_total) != len(rows):
-        errors.append(f'meta.total={meta_total} 但实际 rows={len(rows)}')
-    if meta_recruits is not None:
-        actual_recruits = sum(int(r.get('num') or 0) for r in rows)
-        if int(meta_recruits) != actual_recruits:
-            errors.append(f'meta.recruits={meta_recruits} 但实际 sum(num)={actual_recruits}')
+        num = _to_int(row.get("num"))
+        if num is None or num < 0:
+            errors.append(f"{jid}: num 非法（要求非负整数，实际 {row.get('num')!r}）")
+            num = 0
+        raw_recruits += num
+
+        status = row.get("record_status")
+        if status not in _VALID_RECORD_STATUS:
+            errors.append(f"{jid}: record_status 非法：{status!r}")
+        if _row_active(row):
+            active_rows += 1
+            active_recruits += num
+        else:
+            excluded_rows += 1
+            for field in ("exclusion_reason", "exclusion_evidence", "excluded_at"):
+                value = row.get(field)
+                if not isinstance(value, str) or not value.strip():
+                    errors.append(f"排除行 {jid} 缺 {field}")
+
+    # ---- meta 守恒：全部必填，兼容 canonical（total=raw）与静态（total=active）约定 ----
+    raw_total = _to_int(meta.get("raw_total"))
+    if raw_total is None:
+        errors.append("meta.raw_total 缺失")
+    elif raw_total != len(rows):
+        errors.append(f"meta.raw_total={raw_total} 与行数 {len(rows)} 不一致")
+
+    meta_excluded = _to_int(meta.get("excluded"))
+    if meta_excluded is None:
+        errors.append("meta.excluded 缺失")
+    elif meta_excluded != excluded_rows:
+        errors.append(f"meta.excluded={meta_excluded} 与排除行数 {excluded_rows} 不一致")
+
+    total = _to_int(meta.get("total"))
+    if total is None:
+        errors.append("meta.total 缺失")
+    elif total not in (len(rows), active_rows):
+        errors.append(f"meta.total={total} 既不等于全行数 {len(rows)} 也不等于 active 行数 {active_rows}")
+
+    recruits = _to_int(meta.get("recruits"))
+    if recruits is None:
+        errors.append("meta.recruits 缺失")
+    elif recruits not in (raw_recruits, active_recruits):
+        errors.append(f"meta.recruits={recruits} 既不等于全行 sum(num)={raw_recruits} 也不等于 active sum(num)={active_recruits}")
+
+    # ---- provenance 指纹（canonical 提供，静态无）：提供即必须匹配 ----
+    provenance = data.get("provenance") or {}
+    declared = provenance.get("job_id_set_sha256")
+    if declared is not None:
+        computed = _job_id_set_sha256([str(r.get("job_id") or r.get("row_id") or "") for r in rows if isinstance(r, dict)])
+        if declared != computed:
+            errors.append("provenance.job_id_set_sha256 与行集不一致")
 
     return errors
 
@@ -87,174 +194,144 @@ class ImportService:
         self.db = db
 
     async def snapshot_replace(self, cycle: str, data: Dict[str, Any],
-                                source_sha256: str = '',
-                                release: str = '',
-                                dry_run: bool = False) -> Dict[str, Any]:
-        """快照替换导入（P1-1/P1-2/P1-3）。
+                               source_sha256: str = "",
+                               release: str = "",
+                               dry_run: bool = False) -> Dict[str, Any]:
+        """快照替换导入。校验失败抛 SnapshotValidationError（零写入）。
 
-        校验通过后：DB 中该周期已有但快照中没有的行 → record_status='excluded'；
-        快照中的行全字段写入（create 或全量 update）。
-        dry_run=True 只返回 would_change 统计，不修改 DB。
+        dry_run=True 只返回 would_* 统计，不修改 DB。
         """
-        rows = (data.get('allMajors') or {}).get('rows')
-        meta = (data.get('allMajors') or {}).get('meta') or {}
-        incoming_ids = {str(r.get('job_id') or r.get('row_id') or '') for r in rows}
+        errors = validate_snapshot(cycle, data)
+        if errors:
+            raise SnapshotValidationError(errors)
 
-        # 查询 DB 中该周期已有行
-        existing_result = await self.db.execute(
-            select(Job).where(Job.cycle == cycle)
-        )
+        _, rows, meta = _extract_group(data)
+        incoming_ids = {str(r.get("job_id") or r.get("row_id")) for r in rows}
+
+        existing_result = await self.db.execute(select(Job).where(Job.cycle == cycle))
         existing_jobs = {j.job_id: j for j in existing_result.scalars().all()}
         existing_ids = set(existing_jobs.keys())
 
-        stale_ids = existing_ids - incoming_ids  # DB 有但快照没有
-        new_ids = incoming_ids - existing_ids     # 快照有但 DB 没有
-        update_ids = incoming_ids & existing_ids  # 两边都有
-
-        imported = len(new_ids)
-        updated = len(update_ids)
-        deactivated = len(stale_ids)
+        stale_ids = existing_ids - incoming_ids
+        new_ids = incoming_ids - existing_ids
+        update_ids = incoming_ids & existing_ids
 
         if dry_run:
             return {
-                'would_import': imported,
-                'would_update': updated,
-                'would_deactivate': deactivated,
-                'incoming_rows': len(rows),
-                'existing_rows': len(existing_ids),
+                "would_import": len(new_ids),
+                "would_update": len(update_ids),
+                "would_deactivate": len(stale_ids),
+                "incoming_rows": len(rows),
+                "existing_rows": len(existing_ids),
             }
 
-        # 写入：新行 + 全量更新
+        active_count = 0
+        active_recruits = 0
         for row in rows:
-            jid = str(row.get('job_id') or row.get('row_id') or '')
-            if not jid:
-                continue
-            if jid in existing_jobs:
-                self._full_update(existing_jobs[jid], row, cycle)
+            jid = str(row.get("job_id") or row.get("row_id"))
+            job = existing_jobs.get(jid)
+            if job is not None:
+                self._full_update(job, row, cycle)
             else:
                 self.db.add(self._create_job(row, cycle))
+            if _row_active(row):
+                active_count += 1
+                active_recruits += int(row.get("num") or 0)
 
-        # deactivate stale（不物理删除，保留审计痕迹）
+        # stale 下线（不物理删除，保留审计痕迹）
         for sid in stale_ids:
-            if sid in existing_jobs:
-                existing_jobs[sid].record_status = 'excluded'
+            existing_jobs[sid].record_status = "excluded"
 
-        # 周期元数据
-        await self._update_cycle_meta(cycle, meta, len(rows))
+        await self._update_cycle_meta(cycle, meta, active_count, active_recruits)
 
-        # mirror state 持久化
         job_id_hash = _job_id_set_sha256(list(incoming_ids))
-        actual_recruits = sum(int(r.get('num') or 0) for r in rows)
         await self._upsert_mirror_state(
             cycle=cycle,
-            release=release,
+            release=release or str(data.get("label") or ""),
             source_sha256=source_sha256,
             job_id_set_sha256=job_id_hash,
             source_rows=len(rows),
-            active_rows=len(rows),
-            recruits=actual_recruits,
+            active_rows=active_count,
+            recruits=active_recruits,
         )
 
         await self.db.flush()
-
         return {
-            'imported': imported,
-            'updated': updated,
-            'deactivated': deactivated,
-            'incoming_rows': len(rows),
-            'existing_rows': len(existing_ids),
-            'job_id_set_sha256': job_id_hash,
+            "imported": len(new_ids),
+            "updated": len(update_ids),
+            "deactivated": len(stale_ids),
+            "active_rows": active_count,
+            "incoming_rows": len(rows),
+            "existing_rows": len(existing_ids),
+            "job_id_set_sha256": job_id_hash,
         }
 
     def _create_job(self, row: Dict[str, Any], cycle: str) -> Job:
-        """创建 Job（全字段）"""
-        co = row.get('competition_observations') or {}
-        so = row.get('score_observation') or {}
-        return Job(
-            job_id=row.get('job_id') or row.get('row_id'),
-            cycle=cycle,
-            code=row.get('code'),
-            city=row.get('city') or row.get('reg'),
-            exam=row.get('exam'),
-            unit=row.get('unit'),
-            zw=row.get('zw') or row.get('display_title'),
-            zy=row.get('zy'),
-            num=row.get('num'),
-            xl=row.get('xl'),
-            xw=row.get('xw'),
-            xz=row.get('xz'),
-            age=row.get('age'),
-            bz=row.get('bz'),
-            lb=row.get('lb'),
-            bm=row.get('bm'),
-            title_status=row.get('title_status'),
-            display_title=row.get('display_title'),
-            job_status=row.get('job_status', 'active'),
-            record_status=row.get('record_status', 'active'),
-            score_observation_status=so.get('status'),
-            score_observation_value=so.get('value'),
-            competition_metric_type=co.get('metric_type'),
-            competition_base=co.get('base'),
-            competition_source=co.get('source'),
-            ratio_comparable=row.get('ratio_comparable', False),
-            source=row.get('source', {}),
-        )
+        return self._apply_row(Job(job_id=str(row.get("job_id") or row.get("row_id")), cycle=cycle), row, cycle)
 
-    def _full_update(self, job: Job, row: Dict[str, Any], cycle: str):
-        """全字段更新（P1-3：不再只更新部分字段）"""
-        co = row.get('competition_observations') or {}
-        so = row.get('score_observation') or {}
+    def _full_update(self, job: Job, row: Dict[str, Any], cycle: str) -> None:
+        self._apply_row(job, row, cycle)
+
+    def _apply_row(self, job: Job, row: Dict[str, Any], cycle: str) -> Job:
+        """exact overwrite：源是什么就写什么（源清空 → DB 清空），绝不 `new or old` 残留。"""
+        so = row.get("score_observation") or {}
+        co = row.get("competition_observations") or {}
+        metric_type = row.get("competition_metric_type")
+        metric_obs = co.get(metric_type) if isinstance(metric_type, str) and metric_type else None
+        metric_obs = metric_obs if isinstance(metric_obs, dict) else {}
+
         job.cycle = cycle
-        job.code = row.get('code') or job.code
-        job.city = row.get('city') or row.get('reg') or job.city
-        job.exam = row.get('exam') or job.exam
-        job.unit = row.get('unit') or job.unit
-        job.zw = row.get('zw') or row.get('display_title') or job.zw
-        job.zy = row.get('zy') or job.zy
-        job.num = row.get('num') if row.get('num') is not None else job.num
-        job.xl = row.get('xl') or job.xl
-        job.xw = row.get('xw') or job.xw
-        job.xz = row.get('xz') or job.xz
-        job.age = row.get('age') or job.age
-        job.bz = row.get('bz') or job.bz
-        job.lb = row.get('lb') or job.lb
-        job.bm = row.get('bm') if row.get('bm') is not None else job.bm
-        job.title_status = row.get('title_status') or job.title_status
-        job.display_title = row.get('display_title') or job.display_title
-        job.job_status = row.get('job_status') or job.job_status
-        job.record_status = row.get('record_status') or job.record_status
-        job.score_observation_status = so.get('status') or job.score_observation_status
-        job.score_observation_value = so.get('value') if so.get('value') is not None else job.score_observation_value
-        job.competition_metric_type = co.get('metric_type') or job.competition_metric_type
-        job.competition_base = co.get('base') if co.get('base') is not None else job.competition_base
-        job.competition_source = co.get('source') or job.competition_source
-        job.ratio_comparable = row.get('ratio_comparable', job.ratio_comparable)
-        if row.get('source'):
-            job.source = row['source']
+        job.code = row.get("code")
+        job.city = row.get("city") or row.get("reg")
+        job.exam = row.get("exam")
+        job.unit = row.get("unit")
+        job.zw = row.get("zw") or row.get("display_title")
+        job.zy = row.get("zy")
+        job.num = _to_int(row.get("num"))
+        job.xl = row.get("xl")
+        job.xw = row.get("xw")
+        job.xz = row.get("xz")
+        job.age = row.get("age")
+        job.bz = row.get("bz")
+        job.lb = row.get("lb") or row.get("dirText")
+        job.bm = _to_int(row.get("bm"))
+        job.title_status = row.get("title_status")
+        job.display_title = row.get("display_title")
+        job.job_status = row.get("job_status") or "active"
+        # 重新出现在 active 快照 → 必须 active，绝不继承历史 excluded
+        job.record_status = _norm_record_status(row.get("record_status"))
+        job.score_observation_status = so.get("status")
+        job.score_observation_scale_id = so.get("scale_id")
+        job.score_observation_value = so.get("value")
+        job.competition_metric_type = metric_type
+        job.competition_base = _to_int(metric_obs.get("value"))
+        job.competition_source = metric_obs.get("status")
+        job.ratio_comparable = bool(row.get("ratio_comparable", False))
+        job.source = row.get("source") or {}
+        return job
 
-    async def _update_cycle_meta(self, cycle: str, meta: Dict[str, Any], row_count: int):
-        """更新周期元数据"""
+    async def _update_cycle_meta(self, cycle: str, meta: Dict[str, Any],
+                                 active_count: int, active_recruits: int) -> None:
+        """周期元数据：用户口径存 active 数（与静态站一致）；raw 口径在 MirrorState。"""
         result = await self.db.execute(select(Cycle).where(Cycle.cycle == cycle))
         existing = result.scalar_one_or_none()
+        score_unresolved = _to_int(meta.get("score_unresolved")) or 0
         if existing:
-            existing.total_posts = meta.get('total') or meta.get('raw_posts') or row_count
-            existing.total_recruits = meta.get('recruits', 0)
-            existing.score_unresolved = meta.get('score_unresolved', 0)
+            existing.total_posts = active_count
+            existing.total_recruits = active_recruits
+            existing.score_unresolved = score_unresolved
         else:
             self.db.add(Cycle(
                 cycle=cycle,
-                label=f'{cycle}年度',
-                total_posts=meta.get('total') or meta.get('raw_posts') or row_count,
-                total_recruits=meta.get('recruits', 0),
-                score_unresolved=meta.get('score_unresolved', 0),
-                status='verified',
+                label=f"{cycle}年度",
+                total_posts=active_count,
+                total_recruits=active_recruits,
+                score_unresolved=score_unresolved,
+                status="verified",
             ))
 
-    async def _upsert_mirror_state(self, **kwargs):
-        """持久化 mirror state（P1-3：追踪 DB 镜像的是哪版 canonical）"""
-        result = await self.db.execute(
-            select(MirrorState).where(MirrorState.cycle == kwargs['cycle'])
-        )
+    async def _upsert_mirror_state(self, **kwargs: Any) -> None:
+        result = await self.db.execute(select(MirrorState).where(MirrorState.cycle == kwargs["cycle"]))
         existing = result.scalar_one_or_none()
         if existing:
             for k, v in kwargs.items():
@@ -262,3 +339,110 @@ class ImportService:
                     setattr(existing, k, v)
         else:
             self.db.add(MirrorState(**kwargs))
+
+    async def import_salary_data(self, data: Dict[str, Any]) -> int:
+        """导入待遇数据。data: {"series": {类型: {城市: {阶段: 值}}}, "stages": [...]}"""
+        series = data.get("series") or {}
+        stages = set(data.get("stages") or [])
+        snapshot_year = str(data.get("snapshot") or "2026")
+
+        count = 0
+        for emp_type, cities in series.items():
+            for city, values in cities.items():
+                for stage, value in values.items():
+                    if stages and stage not in stages:
+                        continue
+                    result = await self.db.execute(
+                        select(SalaryData).where(
+                            SalaryData.city == city,
+                            SalaryData.employment_type == emp_type,
+                            SalaryData.stage == stage,
+                            SalaryData.snapshot_year == snapshot_year,
+                        )
+                    )
+                    existing = result.scalar_one_or_none()
+                    if existing:
+                        existing.value_wan = value
+                    else:
+                        self.db.add(SalaryData(
+                            city=city,
+                            employment_type=emp_type,
+                            stage=stage,
+                            value_wan=value,
+                            snapshot_year=snapshot_year,
+                        ))
+                    count += 1
+        await self.db.flush()
+        return count
+
+    async def import_review_events(self, data: Dict[str, Any]) -> int:
+        """导入复核事件。data: {"items": [...]}"""
+        items = data.get("items") or []
+        for item in items:
+            self.db.add(ReviewEvent(
+                kind=item.get("kind", "unknown"),
+                severity=item.get("severity", "medium"),
+                cycle=item.get("cycle"),
+                title=item.get("title"),
+                detail=item.get("detail"),
+                evidence=item.get("evidence"),
+                occurrences=item.get("occurrences", 1),
+                resolution_trigger=item.get("resolution_trigger"),
+                status="open",
+            ))
+        await self.db.flush()
+        return len(items)
+
+
+def _load_json_file(path: str) -> Dict[str, Any]:
+    with open(path, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+async def import_all_data(db: AsyncSession, data_path: Optional[str] = None) -> Dict[str, Any]:
+    """生产引导导入（deploy.sh 调用，签名与 v17.9.8 保持兼容）。
+
+    三周期 + 待遇 + 复核事件。任何文件缺失或任何快照校验失败 → 整体拒绝、零写入；
+    全部通过后单事务写入，最后一次 commit。
+    """
+    if data_path is None:
+        data_path = settings.STATIC_DATA_PATH
+
+    # 阶段 1：全部读取 + 全部校验（fail-closed，任何问题零写入）
+    prepared: List[Tuple[str, str, Dict[str, Any]]] = []
+    missing: List[str] = []
+    for cycle in CYCLES:
+        path = os.path.join(data_path, "cycles", cycle, "jobs.json")
+        if not os.path.exists(path):
+            missing.append(path)
+            continue
+        prepared.append((cycle, path, _load_json_file(path)))
+    if missing:
+        raise RuntimeError(f"缺少周期数据文件（三周期缺一不可）: {', '.join(missing)}")
+
+    for cycle, path, data in prepared:
+        errors = validate_snapshot(cycle, data)
+        if errors:
+            raise SnapshotValidationError([f"{cycle}({os.path.basename(path)}): {e}" for e in errors])
+
+    # 阶段 2：单事务写入
+    service = ImportService(db)
+    results: Dict[str, Any] = {}
+    for cycle, path, data in prepared:
+        with open(path, "rb") as f:
+            source_sha256 = hashlib.sha256(f.read()).hexdigest()
+        stats = await service.snapshot_replace(cycle, data, source_sha256=source_sha256)
+        results[f"cycle_{cycle}"] = stats
+
+    salary_path = os.path.join(data_path, "salary", "anhui.json")
+    if os.path.exists(salary_path):
+        count = await service.import_salary_data(_load_json_file(salary_path))
+        results["salary"] = {"imported": count}
+
+    review_path = os.path.join(data_path, "audit", "review-queue.json")
+    if os.path.exists(review_path):
+        count = await service.import_review_events(_load_json_file(review_path))
+        results["review_events"] = {"imported": count}
+
+    await db.commit()
+    return results

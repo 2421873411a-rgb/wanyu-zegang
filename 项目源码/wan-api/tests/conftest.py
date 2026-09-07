@@ -1,23 +1,18 @@
-"""wan-api 测试套件（v17.9.1 S3：门禁式——下面场景锁死，进 main 前必须全绿）。
+"""wan-api 门禁测试公共 fixture。
 
-覆盖用户定义的门禁场景：
-1. 普通用户绝不能自注册成 admin（含 ADMIN_EMAIL 命中）
-2. 默认 SECRET_KEY 不允许生产启动
-3. refresh 不接受 query token（只走 JSON body）
-4. 重复收藏/对比必须数据库拒绝（UNIQUE 兜底）
-5. 对比列表永远 ≤4（func.count 路径可用，回归 NameError 修复）
-6. 管理员导入：结构不符/非法周期必须失败，成功必须真实写库且行数对账
-7. 最后管理员不能被降权/禁用
-8. 超大 JSON upload 返回 413
-9. refresh 轮换/重用检测/登出（family 撤销）
+SQLite job 每个用例使用独立临时库；PostgreSQL job 直接使用 CI 提供的
+DATABASE_URL，并在每个用例前 TRUNCATE 全部业务表。这样既保留 Alembic
+创建的真实 PostgreSQL schema，又保证用例之间严格隔离。
 """
-import asyncio
 from typing import AsyncIterator
+
+import os
+import tempfile
 
 import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
-from sqlalchemy import select
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from app.database import Base, get_db
@@ -25,23 +20,22 @@ from app.main import app
 from app.models import *  # noqa: F401,F403 — 注册全部模型进 metadata
 from app.models.user import User
 from app.utils import rate_limit as rate_limit_module
-from app.config import settings
-
-import os
-import tempfile
 
 _test_engine = None
 _TestSessionFactory = None
 
 
 def get_test_session_factory():
-    """测试期会话工厂访问器（fixture 在导入后才赋值全局，须走函数取）"""
+    """测试期会话工厂访问器。"""
     return _TestSessionFactory
 
 
+def using_postgres() -> bool:
+    """当前测试是否运行在真实 PostgreSQL。"""
+    return os.environ.get("DATABASE_URL", "").startswith("postgresql")
+
+
 def _make_engine():
-    # CI postgres job 传 DATABASE_URL=postgresql+asyncpg://... 时直接用 PostgreSQL；
-    # 本地/SQLite CI 不传或传 sqlite 时用临时文件 SQLite。
     db_url = os.environ.get("DATABASE_URL", "")
     if db_url.startswith("postgresql"):
         return create_async_engine(db_url), None
@@ -61,13 +55,20 @@ def _reset_limiters():
 
 @pytest_asyncio.fixture(autouse=True)
 async def _db() -> AsyncIterator[None]:
+    """每个用例使用干净数据；PG 不重建 schema，确保验证 Alembic 产物。"""
     global _test_engine, _TestSessionFactory
     _test_engine, _path = _make_engine()
     _TestSessionFactory = async_sessionmaker(_test_engine, expire_on_commit=False)
-    # PG 共享库：每个测试前清表再重建（SQLite 每次新文件，PG 需要手动清理）
+
     async with _test_engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
-        await conn.run_sync(Base.metadata.create_all)
+        if using_postgres():
+            # PostgreSQL job 在 pytest 前已经 alembic upgrade head。
+            # 这里只清业务数据，不 drop/create，避免测试绕过迁移 schema。
+            table_names = ", ".join(f'"{table.name}"' for table in Base.metadata.sorted_tables)
+            if table_names:
+                await conn.execute(text(f"TRUNCATE TABLE {table_names} RESTART IDENTITY CASCADE"))
+        else:
+            await conn.run_sync(Base.metadata.create_all)
 
     async def override_get_db():
         async with _TestSessionFactory() as session:
@@ -86,7 +87,7 @@ async def _db() -> AsyncIterator[None]:
         try:
             os.remove(_path)
         except PermissionError:
-            pass  # Windows：aiosqlite 连接释放晚于 dispose，临时文件交给 %TEMP% 清理
+            pass
 
 
 @pytest_asyncio.fixture
@@ -99,7 +100,12 @@ async def client() -> AsyncIterator[AsyncClient]:
 _valid_password = "abc1234567"
 
 
-async def _register(client: AsyncClient, email: str = "u1@example.com", username: str = "u1", password: str = None) -> dict:
+async def _register(
+    client: AsyncClient,
+    email: str = "u1@example.com",
+    username: str = "u1",
+    password: str | None = None,
+) -> dict:
     resp = await client.post("/api/v1/auth/register", json={
         "email": email,
         "username": username,
@@ -112,8 +118,14 @@ async def _register(client: AsyncClient, email: str = "u1@example.com", username
 async def _make_admin(email: str = "admin@example.com", username: str = "admin1") -> dict:
     """直接在库里造一个管理员（模拟 CLI 引导后的状态）。"""
     from app.utils.security import get_password_hash
+
     async with _TestSessionFactory() as session:
-        user = User(email=email, username=username, password_hash=get_password_hash(_valid_password), is_admin=True)
+        user = User(
+            email=email,
+            username=username,
+            password_hash=get_password_hash(_valid_password),
+            is_admin=True,
+        )
         session.add(user)
         await session.commit()
         return {"email": email, "password": _valid_password}
