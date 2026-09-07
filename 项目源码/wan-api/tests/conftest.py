@@ -64,7 +64,9 @@ async def _db() -> AsyncIterator[None]:
     global _test_engine, _TestSessionFactory
     _test_engine, _path = _make_engine()
     _TestSessionFactory = async_sessionmaker(_test_engine, expire_on_commit=False)
+    # PG 共享库：每个测试前清表再重建（SQLite 每次新文件，PG 需要手动清理）
     async with _test_engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
 
     async def override_get_db():
