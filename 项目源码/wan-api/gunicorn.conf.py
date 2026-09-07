@@ -11,8 +11,8 @@ bind = "127.0.0.1:8000"
 
 # Worker配置
 # 4核CPU: 2 * 4 + 1 = 9，但考虑到内存限制，使用较少的worker
-workers = int(os.environ.get("WANYU_WEB_CONCURRENCY", min(multiprocessing.cpu_count() * 2 + 1, 4)))
-worker_class = "uvicorn.workers.UvicornWorker"
+workers = int(os.environ.get("WANYU_WEB_CONCURRENCY", 1))  # 默认 1：进程内 auth limiter 与 worker 数一致；接 Redis 后可提高
+worker_class = "uvicorn_worker.UvicornWorker"
 worker_connections = 1000
 
 # 超时配置

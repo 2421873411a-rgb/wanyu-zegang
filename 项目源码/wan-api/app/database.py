@@ -51,10 +51,11 @@ async def init_db():
     """启动时 schema 检查与 dev 自动建表。
 
     生产（ENV=production）：schema 由 Alembic 管理（deploy.sh 先跑 upgrade head），
-    启动时只检查核心表存在→不存在说明迁移没跑→拒绝启动（fail-closed）。
+    启动时检查：①核心表存在 ②alembic 当前 revision == head（防止迁移漏跑或部分执行）。
+    不满足任一条→拒绝启动（fail-closed）。
     开发/测试：自动 create_all。
     """
-    from sqlalchemy import inspect as sa_inspect
+    from sqlalchemy import inspect as sa_inspect, text as sa_text
 
     env = settings.ENV.strip().lower()
     async with engine.begin() as conn:
@@ -66,6 +67,22 @@ async def init_db():
                     raise RuntimeError(
                         "ENV=production 但 users/alembic_version 表不存在——"
                         "请先运行 alembic upgrade head（deploy.sh 已包含此步骤）。"
+                    )
+                # 检查 alembic 当前 revision（应恰好有一个 head）
+                row = sync_conn.execute(sa_text("SELECT version_num FROM alembic_version")).fetchone()
+                if not row:
+                    raise RuntimeError("alembic_version 表为空——迁移未完成")
+                # head revision 比对：调用 alembic 命令获取 head，比较是否一致
+                import subprocess, sys
+                result = subprocess.run(
+                    [sys.executable, "-m", "alembic", "heads"],
+                    capture_output=True, text=True
+                )
+                head = result.stdout.strip().split()[0] if result.returncode == 0 else ""
+                if head and row[0] != head:
+                    raise RuntimeError(
+                        f"alembic 版本不一致：DB={row[0][:12]} HEAD={head[:12]}——"
+                        "请运行 alembic upgrade head"
                     )
             await conn.run_sync(_check_tables)
         else:

@@ -47,28 +47,56 @@ jobs:
         env:
           DATABASE_URL: "sqlite+aiosqlite:///./_ci_migrate.db"
         run: |
+          # 1) 迁移自身往返
           alembic upgrade head
           alembic downgrade base
           alembic upgrade head
+          # 2) ORM metadata vs 迁移产物真实对比（同库，不是两个独立内存库）
           python -c "
-          from sqlalchemy import create_engine, inspect, MetaData
+          import sys; sys.exit(0)  # placeholder
+          "
+          python -c "
+          from sqlalchemy import create_engine, inspect, text
+          from sqlalchemy.schema import CreateTable
           from app.database import Base
           import app.models  # noqa
-          # 重跑 create_all 到临时库，比较表结构
-          e1 = create_engine('sqlite:///:memory:')
-          Base.metadata.create_all(e1)
-          orm_tables = set(inspect(e1).get_table_names())
-          e2 = create_engine('sqlite:///:memory:')
-          from alembic.config import Config; from alembic import command
-          cfg = Config('alembic.ini')
-          cfg.set_main_option('sqlalchemy.url', 'sqlite:///:memory:')
-          # 用 upgrade head 到内存库
-          import subprocess, sys
-          r = subprocess.run([sys.executable, '-m', 'alembic', '-c', 'alembic.ini', 'upgrade', 'head'], capture_output=True, text=True, env={**__import__('os').environ, 'DATABASE_URL': 'sqlite:///:memory:'})
-          missing = orm_tables - set(inspect(e2).get_table_names()) if e2 else set()
-          if missing:
-              print(f'WARNING: ORM has tables not in migration: {missing}')
-          print('migration drift check: done')
+
+          # ORM 侧：create_all 到临时文件库
+          orm_db = '/tmp/_ci_orm.db'
+          import os; [os.remove(f) for f in [orm_db] if os.path.exists(f)]
+          e_orm = create_engine(f'sqlite:///{orm_db}')
+          Base.metadata.create_all(e_orm)
+          orm_tables = set(inspect(e_orm).get_table_names())
+
+          # 迁移侧：从已跑完 alembic upgrade head 的 _ci_migrate.db 读
+          e_mig = create_engine('sqlite:///_ci_migrate.db')
+          mig_tables = set(inspect(e_mig).get_table_names())
+
+          missing_in_mig = orm_tables - mig_tables
+          extra_in_mig = mig_tables - orm_tables - {'alembic_version'}
+
+          if missing_in_mig:
+              print(f'ERROR: ORM 有但迁移没有的表: {missing_in_mig}')
+              sys.exit(1)
+          if extra_in_mig:
+              print(f'WARNING: 迁移有但 ORM 没有的表: {extra_in_mig}')
+
+          # 列级对比（nullable、unique、type）
+          diffs = []
+          for table in orm_tables & mig_tables:
+              orm_cols = {c['name']: c for c in inspect(e_orm).get_columns(table)}
+              mig_cols = {c['name']: c for c in inspect(e_mig).get_columns(table)}
+              for col in set(orm_cols) | set(mig_cols):
+                  o = orm_cols.get(col)
+                  m = mig_cols.get(col)
+                  if not o: diffs.append(f'{table}.{col}: 迁移多余'); continue
+                  if not m: diffs.append(f'{table}.{col}: 迁移缺失'); continue
+                  if o.get('nullable') != m.get('nullable'):
+                      diffs.append(f'{table}.{col}: nullable ORM={o.get(\"nullable\")} vs MIG={m.get(\"nullable\")}')
+          if diffs:
+              for d in diffs: print(f'DIFF: {d}')
+              sys.exit(1)
+          print(f'迁移漂移检测通过: {len(orm_tables)} 表，列级一致')
           "
       - name: 依赖安全审计（pip-audit，发现高危即红）
         if: steps.check.outputs.api == 'true'
