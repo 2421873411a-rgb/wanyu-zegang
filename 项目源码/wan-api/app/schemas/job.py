@@ -29,8 +29,7 @@ class JobResponse(BaseModel):
     competition_metric_type: Optional[str] = None
     competition_base: Optional[int] = None
     
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}
 
 
 class JobSearchRequest(BaseModel):

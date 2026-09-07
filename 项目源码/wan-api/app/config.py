@@ -50,9 +50,10 @@ class Settings(BaseSettings):
     # 管理导入上限（字节）：超过直接 413，防止超大 JSON 打爆内存
     ADMIN_IMPORT_MAX_BYTES: int = 64 * 1024 * 1024
 
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
+    model_config = {
+        "env_file": ".env",
+        "env_file_encoding": "utf-8",
+    }
 
 
 def _validate_production_safety(settings: "Settings") -> None:
