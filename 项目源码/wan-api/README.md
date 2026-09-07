@@ -1,5 +1,9 @@
 # 皖域择岗 API
 
+> ⚠️ **EXPERIMENTAL / NOT FOR PRODUCTION**：wan-api 处于原型态，
+> 安全与测试门禁见 `docs/CONTRACT.md`；满足上线前置前不得对公网开放。
+
+
 基于 FastAPI 的动态网站后端，为皖域择岗静态站提供用户系统、数据管理和搜索功能。
 
 ## 功能特性
@@ -33,15 +37,15 @@ wan-api/
 │   ├── models/           # 数据库模型
 │   ├── schemas/          # Pydantic验证模型
 │   ├── services/         # 业务服务
-│   ├── middleware/       # 中间件
 │   ├── utils/            # 工具函数
 │   ├── config.py         # 配置文件
 │   ├── database.py       # 数据库连接
 │   ├── dependencies.py   # 依赖注入
 │   └── main.py           # 应用入口
 ├── migrations/           # Alembic数据库迁移
-├── static/               # 前端静态文件
-├── tests/                # 测试用例
+├── tests/                # 门禁式测试套件（pytest；见 docs/CONTRACT.md §4）
+├── scripts/              # 运维脚本（create_admin.py 等）
+├── docs/                 # 契约与说明（CONTRACT.md）
 ├── gunicorn.conf.py      # Gunicorn配置
 ├── requirements.txt      # Python依赖
 ├── deploy.sh             # 部署脚本
@@ -77,7 +81,7 @@ cp .env.example .env
 
 ```bash
 # 启动FastAPI开发服务器
-uvicorn wan-api.main:app --reload --host 127.0.0.1 --port 8000
+uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 
 # 或使用启动脚本
 ./start.sh
@@ -114,7 +118,7 @@ export DATABASE_URL=postgresql+asyncpg://wanyu_user:password@localhost:5432/wany
 alembic upgrade head
 
 # 5. 启动Gunicorn
-gunicorn wan-api.main:app -c gunicorn.conf.py
+gunicorn app.main:app -c gunicorn.conf.py
 ```
 
 ## API接口
@@ -174,6 +178,11 @@ async def import_jobs():
 
 ## 测试
 
+> v17.9.1 起 tests/ 为真实存在的门禁式套件（21 用例），覆盖：
+> 注册不可成为管理员 / 生产 SECRET_KEY 拒绝启动 / refresh 仅 body + 轮换撤销 /
+> 重复收藏数据库拒绝 / 对比≤4 / 管理导入真实写库对账 / 最后管理员保护 / 413 / 登出。
+> 契约详见 `docs/CONTRACT.md`。
+
 ```bash
 # 运行所有测试
 pytest
@@ -221,7 +230,7 @@ sudo systemctl status postgresql
 
 修改Gunicorn配置或使用不同端口：
 ```bash
-gunicorn wan-api.main:app --bind 127.0.0.1:8001
+gunicorn app.main:app --bind 127.0.0.1:8001
 ```
 
 ### 3. 权限问题

@@ -16,6 +16,12 @@ if config.config_file_name is not None:
 
 target_metadata = Base.metadata
 
+# v17.9.1 S4：迁移 URL 以应用配置为唯一真源（.env / 环境变量），alembic.ini 里的
+# sqlalchemy.url 仅为离线兜底——避免迁移目标与运行库漂移。
+from app.config import settings as _app_settings  # noqa: E402
+
+config.set_main_option("sqlalchemy.url", _app_settings.DATABASE_URL)
+
 
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode."""
