@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from typing import Optional, Tuple
 from uuid import uuid4
 
-from jose import JWTError, jwt
+import jwt
 from passlib.context import CryptContext
 from app.config import settings
 
@@ -58,5 +58,5 @@ def decode_token(token: str) -> Optional[dict]:
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
         return payload
-    except JWTError:
+    except (jwt.exceptions.PyJWTError, jwt.exceptions.DecodeError, jwt.exceptions.ExpiredSignatureError):
         return None
