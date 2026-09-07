@@ -2,8 +2,8 @@
  "schema": "wanyu-maturity-sprint/v1",
  "started_on": "2026-09-07",
  "current_round": 1,
- "main_head": "850a3c3",
- "version": "v17.9.13",
+ "main_head": "ee906f2",
+ "version": "v17.9.14",
  "gates_baseline": {
   "sqlite": "35 passed, 2 skipped",
   "postgres": "37 passed",
@@ -86,6 +86,20 @@
    },
    "clean_round": false,
    "notable": "回归对抗抓出 v17.9.12 自身引入的转义缺陷实现（三镜头交叉确认）；heredoc 多层转写教训已入库"
+  },
+  {
+   "round": 4,
+   "status": "DONE",
+   "pr": "PR#13 merged (ee906f2)",
+   "tags": [
+    "v17.9.14"
+   ],
+   "closed": {
+    "P1": 2,
+    "P2": 13
+   },
+   "clean_round": false,
+   "notable": "回归验证以 pinned commit 证实 v17.9.13 声称修复未落地——流程铁律升级：声称修复必须以落盘字节+针对性门禁为准"
   }
  ],
  "findings": {
@@ -94,5 +108,5 @@
   "waived": []
  },
  "prs_merged": [],
- "next_focus": "Round 4: 复审 v17.9.13 修复 + 盲区终扫（目标：干净轮×1）"
+ "next_focus": "Round 5: 干净轮候选×1（数据完整性回归+文档真相+运维视角）"
 }
