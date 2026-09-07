@@ -8,7 +8,7 @@ from app.schemas.user_workspace import (
 
 __all__ = [
     "UserCreate", "UserLogin", "UserResponse", "TokenResponse",
-    "JobResponse", "", "JobSearchResponse",
+    "JobResponse", "JobSearchResponse",
     "SavedPositionCreate", "SavedPositionResponse",
     "FilterSnapshotCreate", "FilterSnapshotResponse",
     "CompareListCreate", "CompareListResponse"

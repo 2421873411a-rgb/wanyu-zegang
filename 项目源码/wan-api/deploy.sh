@@ -50,6 +50,10 @@ check_prerequisites() {
                 ;;
         esac
     fi
+    if [ ! -d "${STATIC_DATA_PATH}/cycles" ]; then
+        log_error "部署前置缺失：静态数据目录 ${STATIC_DATA_PATH}/cycles 不存在。请先放置 canonical 派生数据（cycles/ salary/ audit/），见 docs/ops/RUNBOOK.md"
+        exit 1
+    fi
     local cmd
     for cmd in curl sudo openssl python3 tar; do
         command -v "$cmd" >/dev/null || {
@@ -164,7 +168,8 @@ setup_app_dir() {
     cd "$SCRIPT_DIR"
     tar --exclude='./.git' --exclude='./.venv' --exclude='./venv' \
         --exclude='__pycache__' --exclude='.pytest_cache' --exclude='.ruff_cache' \
-        --exclude='*.pyc' --exclude='./*.db' --exclude='./_ci_migrate.db' \n        --exclude='_audit_probe*' --exclude='./tests' --exclude='./docs' -cf - . | tar -C "$APP_DIR" -xf -
+        --exclude='*.pyc' --exclude='./*.db' --exclude='./_ci_migrate.db' \
+        --exclude='_audit_probe*' --exclude='./tests' --exclude='./docs' -cf - . | tar -C "$APP_DIR" -xf -
     cd "$APP_DIR"
 
     # 权限扫除必须在 venv 创建之前：644 扫除会抹掉 venv 可执行位（历史上靠 || true 兜底的根因）。
@@ -206,7 +211,7 @@ EOF
     if grep -q '^APP_VERSION=' "${APP_DIR}/.env"; then
         sed -i "s/^APP_VERSION=.*/APP_VERSION=${APP_VERSION}/" "${APP_DIR}/.env"
     else
-        printf '\\nAPP_VERSION=%s\\n' "${APP_VERSION}" >> "${APP_DIR}/.env"
+        printf '%s\n' "APP_VERSION=${APP_VERSION}" >> "${APP_DIR}/.env"
     fi
     chown www-data:www-data "$APP_DIR/.env"
     chmod 600 "$APP_DIR/.env"
@@ -220,10 +225,10 @@ setup_service() {
     cat > "/etc/systemd/system/${SERVICE_NAME}.service" << EOF
 [Unit]
 Description=WanYu Job API (FastAPI + Gunicorn)
-After=network.target postgresql.service redis.service
+After=network.target postgresql.service redis-server.service
 # redis 仅 Wants：限流 Redis 后端有进程内降级路径，redis 故障不应阻断 API 启动
 Requires=postgresql.service
-Wants=redis.service
+Wants=redis-server.service
 
 [Service]
 Type=notify
@@ -339,7 +344,9 @@ import_data() {
         log_error "pg_dump 产物为空，拒绝在无数据级还原点的情况下执行迁移"
         exit 1
     fi
-    log_info "✓ 数据库快照：${dump_file}（保留最近 10 份）"
+    chmod 600 "$dump_file"
+    chmod 700 "$BACKUP_ROOT"
+    log_info "✓ 数据库快照：${dump_file}（600 权限，保留最近 10 份）"
     ls -1t "${BACKUP_ROOT}"/wanyu_db-*.dump 2>/dev/null | tail -n +11 | xargs -r rm -f
 
     alembic upgrade head

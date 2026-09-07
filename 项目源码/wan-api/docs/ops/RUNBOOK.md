@@ -1,5 +1,13 @@
 # 皖域 API 运维手册（RUNBOOK）
 
+## 部署前置（全新机器）
+
+- 支持矩阵：Ubuntu 24.04+（deploy.sh 会读取 /etc/os-release 硬校验；22.04 官方源无 python3.12）。
+- 静态数据必须先于部署就位：`/opt/wanyu/static/maintainable/data/` 下含
+  `cycles/{2024,2025,2026}/jobs.json`、`salary/anhui.json`、`audit/review-queue.json`
+  （来源：网站构建产物）。deploy.sh 在 check_prerequisites 阶段即校验该目录，缺失立即中止。
+- DNS：wan.kaogong.art 的 A 记录需已指向本机（smoke 断言公网 HTTPS 与 301 强跳）。
+
 ## 回滚（deploy.sh 失败或新版本异常时）
 
 deploy.sh 每次换血前会把旧版本代码备份到服务器 `/opt/wanyu/backup/<时间戳>/`（不含 venv 与 .env），
@@ -22,8 +30,12 @@ deploy.sh 每次换血前会把旧版本代码备份到服务器 `/opt/wanyu/bac
 2. 回滚代码：
    ```bash
    rsync -a --delete --exclude 'venv' --exclude '.env' /opt/wanyu/backup/$ts/ /opt/wanyu/api/
+   # .env 不随回滚（rsync 排除），其 APP_VERSION 仍是新值——旧代码读它会把
+   # /health 报成新版本。回滚后把 .env 对齐旧版本再重启：
+   ver=$(python3 -c "import json;print(json.load(open('/opt/wanyu/api/release.json'))['release'])")
+   sed -i "s/^APP_VERSION=.*/APP_VERSION=$ver/" /opt/wanyu/api/.env
    systemctl restart wanyu-api
-   curl -sf http://127.0.0.1:8000/health   # 核对 version 字段回到旧版本
+   curl -sf http://127.0.0.1:8000/health
    ```
    venv 无需重建（依赖按 runtime lock 安装，回滚目标版本的 lock 与现 venv 一致时可复用；
    若回滚跨越依赖变更，删掉 venv 后 `python3.12 -m venv venv && venv/bin/pip install -r requirements.lock.txt`）。
