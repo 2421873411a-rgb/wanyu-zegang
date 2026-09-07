@@ -1,6 +1,8 @@
 name: canonical-ci
 
-# canonical/static 数据链 CI：每次 push/PR 都跑，required check "canonical" 对所有 PR 生效
+# Required check `canonical`：不再用 paths-filter 做“skip=green”。
+# 每个 push/PR 都真实验证仓库内 canonical bundle；外部 source_data 未入 Git，
+# 因此 hosted CI 只 lint sources.lock manifest，不冒充完成外部源内容 hash 校验。
 on:
   push:
   pull_request:
@@ -13,52 +15,35 @@ jobs:
   canonical:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
           cache: pip
           cache-dependency-path: 项目源码/requirements.txt
-      - name: 检测 canonical/静态站 是否有变化
-        id: check
-        uses: dorny/paths-filter@v3
-        with:
-          filters: |
-            canonical:
-              - '项目源码/canonical/**'
-              - '项目源码/source_data/**'
-              - '项目源码/tools/anhui_web/**'
-              - '项目源码/tests/**'
-              - '项目源码/verify_sources.py'
-              - '项目源码/sources.lock.json'
-              - '项目源码/requirements.txt'
-              - '网站/**'
-              - 'docs/**'
-              - '.github/workflows/canonical-ci.yml'
-      - name: 安装依赖
-        if: steps.check.outputs.canonical == 'true'
+
+      - name: 安装 canonical 门禁依赖（fail-closed）
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt 2>/dev/null || pip install pydantic jsonschema 2>/dev/null || true
-      - name: 数据源锁校验（verify_sources）
-        if: steps.check.outputs.canonical == 'true'
+          pip install -r requirements.txt
+          pip check
+
+      - name: sources.lock manifest 门禁（不冒充外部源已验证）
+        run: python verify_sources.py --manifest-only
+
+      - name: canonical bundle 核心门禁
+        run: python tools/anhui_web/validate_canonical_core.py
+
+      - name: 数据契约与真源纯度门禁
+        run: >-
+          python -m unittest
+          tests.test_data_contract
+          tests.test_source_registry
+          tests.test_record_lifecycle
+          tests.test_doc_truth_gate
+          tests.test_build_input_purity
+
+      - name: 说明外部源发布门禁
         run: |
-          if [ -d "source_data" ]; then
-            python verify_sources.py
-          else
-            echo "source_data/ 不在 checkout 中（大体积源数据），跳过 verify_sources"
-          fi
-      - name: canonical schema 校验（validate_canonical）
-        if: steps.check.outputs.canonical == 'true'
-        run: |
-          if [ -d "tools/anhui_web/data/cycles/2024" ] && [ -f "tools/anhui_web/data/score_lists.json" ]; then
-            python tools/anhui_web/validate_canonical.py --root .
-          else
-            echo "canonical 数据文件不在 checkout 中（score_lists.json 等），跳过 validate_canonical"
-          fi
-      - name: 正式测试套件（数据契约子集，不依赖构建产物）
-        if: steps.check.outputs.canonical == 'true'
-        run: python -m unittest tests.test_data_contract tests.test_source_registry tests.test_record_lifecycle tests.test_doc_truth_gate tests.test_build_input_purity
-      - name: 无 canonical 变化，跳过
-        if: steps.check.outputs.canonical != 'true'
-        run: echo "canonical/static not affected, passed"
+          echo "Hosted CI 已严格验证 Git 内 canonical bundle + sources.lock manifest。"
+          echo "完整 source_data/sha256/rollup 校验必须在拥有外部源的发布机执行：python verify_sources.py"
