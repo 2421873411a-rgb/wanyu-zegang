@@ -9,7 +9,7 @@ if [ -d "venv" ]; then
 fi
 
 # 设置环境变量
-export APP_ENV=development
+export ENV=dev
 export DEBUG=true
 
 # 启动FastAPI应用

@@ -346,3 +346,34 @@ async def test_backslash_in_keyword_escaped_not_wildcard(client: AsyncClient):
     # 反向：用户反斜杠不得重臂通配符——a+backslash+% 不产生通配符扩张
     r2 = await client.get("/api/v1/jobs/search", params={"keyword": "a" + bs + "%"})
     assert r2.json()["total"] == 0, "用户反斜杠重臂了通配符"
+
+
+# ============ Round-6 修复回归（v17.9.15 修复面的防回退锁） ============
+
+async def test_schemas_all_no_empty_entries():
+    """R5-1 回归锁：__all__ 不得残留空串（star-import 契约）。"""
+    import app.schemas as schemas_mod
+
+    assert "" not in (schemas_mod.__all__ or [])
+
+
+async def test_stats_cache_capacity_eviction():
+    """R5-2 回归锁：缓存第 65 键触发整体清空（容量上限生效）。"""
+    from app.api.v1.jobs import _STATS_CACHE, _STATS_CACHE_MAX, _cached_async
+
+    async def builder():
+        return {"v": 1}
+
+    for i in range(_STATS_CACHE_MAX + 1):
+        await _cached_async(f"k{i}", builder)
+    assert len(_STATS_CACHE) == 1, f"容量上限失效：{len(_STATS_CACHE)}"
+
+
+async def test_label_over_64_rejected(client: AsyncClient):
+    """R5-3 回归锁：label >64 字符拒绝（落库列宽 cycles.label/mirror_state.release）。"""
+    headers = await _admin_headers(client)
+    payload = _payload(1)
+    payload["label"] = "L" * 65
+    r = await _import(client, headers, payload)
+    assert r.status_code == 400
+    assert "label" in r.json()["detail"]

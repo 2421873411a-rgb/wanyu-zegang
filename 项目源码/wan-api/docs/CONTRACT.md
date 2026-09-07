@@ -1,4 +1,4 @@
-# wan-api 与 canonical 数据链的接口契约（随版本滚动更新；当前 v17.9.14 · Round-4）
+# wan-api 与 canonical 数据链的接口契约（随版本滚动更新；当前 v17.9.15 · Round-5）
 
 > 一句话：**canonical/cycles/*.json 仍是唯一正式数据真源；wan-api 是用户状态层与读取服务层，永远不产生第二数据真源。**
 
@@ -21,7 +21,7 @@
    `job_id` 强格式 `^job-(\d{4})-[0-9a-f]{20}$` 且年份==周期、全局唯一；
    `num/bm` 提供时必须整数（浮点拒绝，不静默截断）；排除行必须携带
    `exclusion_reason/exclusion_evidence/excluded_at` 三件套；
-3. `record_status` 词表与 `docs/data-contract/record-status.md` 对齐：`active`（含缺失）+
+3. `record_status` 词表与 仓库根 `docs/data-contract/record-status.md` 对齐：`active`（含缺失）+
    `duplicate/invalid_source/withdrawn/superseded/needs_review`（+DB 派生态 `excluded`）；
    **DB 层一律折叠为二值 active/excluded**，排除态的判定细节以 `record_status` 源值折进证据字段；
 4. 大小上限 `ADMIN_IMPORT_MAX_BYTES`（默认 64MB），超限 413；
@@ -34,9 +34,10 @@
    任何行都不允许静默跳过）；
 7. 响应携带 `source_sha256`、分项计数（含 `deactivated`）、`job_id_set_sha256` 与全周期
    `mirror_states` 摘要（跨周期版本错位当场可见）；
-8. 生产引导 `import_all_data`：三周期 + 待遇 + 复核事件，全部文件先校验后单事务写入；
-   任一文件缺失或校验失败 → 整体拒绝零写入；复核事件按 `(kind, cycle, title)` 幂等 upsert
-   （重跑翻倍已修复）；未来任何"动态化"改动都从 canonical 派生并携带版本号，禁止手工改镜像表数据。
+8. 生产引导 `import_all_data`：三周期 jobs.json **缺一不可**（任一缺失即整体拒绝），
+   待遇与复核事件文件存在才导入（缺失跳过，不视为失败）；全部文件先校验后单事务写入；
+   复核事件按 `(kind, cycle, title)` 幂等 upsert；未来任何"动态化"改动都从 canonical
+   派生并携带版本号，禁止手工改镜像表数据。
 
 ## 3. 认证契约
 
@@ -87,6 +88,8 @@
 - [x] Round-1 深度收口（v17.9.11：部署链 P0/P1、数据完整性 P1×3、CI 门禁覆盖面、版本单一真源）
 - [x] Round-2 深度收口（v17.9.12：快照 P0、限流原子化+Redis 后端、SECRET_KEY 门禁、可观测性、性能索引）
 - [x] Round-3 复审收口（v17.9.13/v17.9.14：转义缺陷实现修复+正向门禁、首署 mkdir、限流时钟/内存、文档真源统一、停服窗口前移）
+- [x] Round-4 盲区终扫（v17.9.14：反斜杠转义真落地、release 列宽、CI timeout/permissions、载荷排除 *.db、/health 限流）
+- [x] Round-5 复审收口（v17.9.15：deploy 载荷行续行符 P0、redis-server 单元名、RUNBOOK 回滚核验/前置一节、备份权限、stats 缓存上限）
 - [ ] S8：staging 压测 + 安全回归 + fresh-host 部署演练
 - [ ] 多 worker 前接入 Redis 限流与会话级指标
 - [ ] 线上部署后密钥轮换（SSH 私钥已随交接包分发过）

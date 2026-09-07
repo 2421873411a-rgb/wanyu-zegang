@@ -2,8 +2,8 @@
  "schema": "wanyu-maturity-sprint/v1",
  "started_on": "2026-09-07",
  "current_round": 1,
- "main_head": "ee906f2",
- "version": "v17.9.14",
+ "main_head": "1faf33a",
+ "version": "v17.9.15",
  "gates_baseline": {
   "sqlite": "35 passed, 2 skipped",
   "postgres": "37 passed",
@@ -90,7 +90,7 @@
   {
    "round": 4,
    "status": "DONE",
-   "pr": "PR#13 merged (ee906f2)",
+   "pr": "PR#14 merged (1faf33a)",
    "tags": [
     "v17.9.14"
    ],
