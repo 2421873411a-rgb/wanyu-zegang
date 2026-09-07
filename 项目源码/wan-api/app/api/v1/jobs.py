@@ -36,16 +36,6 @@ _STATS_TTL_SECONDS = 60.0
 _STATS_CACHE_MAX = 64  # cycle 参数无校验曾使键空间无界（3000 匿名请求实测不释放）
 
 
-def _cached(key: str, builder):
-    hit = _STATS_CACHE.get(key)
-    now = time.monotonic()
-    if hit and now - hit[0] < _STATS_TTL_SECONDS:
-        return hit[1]
-    value = builder()
-    _STATS_CACHE[key] = (now, value)
-    return value
-
-
 async def _cached_async(key: str, abuilder):
     hit = _STATS_CACHE.get(key)
     now = time.monotonic()
@@ -162,7 +152,7 @@ async def get_job(
 
 @router.get("/stats/by-city")
 async def get_jobs_by_city(
-    cycle: Optional[str] = Query(None),
+    cycle: Optional[str] = Query(None, max_length=8),
     db: AsyncSession = Depends(get_db)
 ):
     """按城市统计岗位数量（仅 active）"""
@@ -182,7 +172,7 @@ async def get_jobs_by_city(
 
 @router.get("/stats/by-exam")
 async def get_jobs_by_exam(
-    cycle: Optional[str] = Query(None),
+    cycle: Optional[str] = Query(None, max_length=8),
     db: AsyncSession = Depends(get_db)
 ):
     """按考试类别统计岗位数量（仅 active）"""

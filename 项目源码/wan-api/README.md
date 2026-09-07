@@ -211,6 +211,7 @@ pytest
 pytest tests/test_auth.py
 
 # 运行带覆盖率的测试
+# --cov 需先 pip install pytest-cov
 pytest --cov=app tests/
 ```
 
@@ -257,7 +258,6 @@ gunicorn app.main:app --bind 127.0.0.1:8001
 
 确保日志目录和PID目录存在且有写入权限：
 ```bash
-sudo mkdir -p /var/log/wanyu /var/run/wanyu
 sudo chown -R www-data:www-data /var/log/wanyu /var/run/wanyu
 ```
 
