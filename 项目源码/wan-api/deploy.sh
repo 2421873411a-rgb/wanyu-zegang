@@ -38,6 +38,18 @@ check_root() {
 }
 
 check_prerequisites() {
+    # 目标系统钉死：apt 包名 python3.12/python3.12-venv 仅在 Ubuntu 24.04+ 官方源存在
+    if [ -r /etc/os-release ]; then
+        # shellcheck disable=SC1091
+        . /etc/os-release
+        case "${ID:-}:${VERSION_ID:-}" in
+            ubuntu:24.04|ubuntu:24.10|ubuntu:25.*) ;;
+            *)
+                log_error "support matrix: Ubuntu 24.04+ only (current: ${PRETTY_NAME:-unknown}); 22.04 needs deadsnakes python3.12, not supported here"
+                exit 1
+                ;;
+        esac
+    fi
     local cmd
     for cmd in curl sudo openssl python3 tar; do
         command -v "$cmd" >/dev/null || {
@@ -152,7 +164,7 @@ setup_app_dir() {
     cd "$SCRIPT_DIR"
     tar --exclude='./.git' --exclude='./.venv' --exclude='./venv' \
         --exclude='__pycache__' --exclude='.pytest_cache' --exclude='.ruff_cache' \
-        --exclude='*.pyc' --exclude='./_ci_migrate.db' -cf - . | tar -C "$APP_DIR" -xf -
+        --exclude='*.pyc' --exclude='./_ci_migrate.db' --exclude='_audit_probe*' -cf - . | tar -C "$APP_DIR" -xf -
     cd "$APP_DIR"
 
     # 权限扫除必须在 venv 创建之前：644 扫除会抹掉 venv 可执行位（历史上靠 || true 兜底的根因）。
@@ -304,6 +316,12 @@ setup_ssl() {
 
 import_data() {
     log_info "导入数据..."
+    # 停服窗口（Round-3 RA-8）：解包新代码后旧 worker 按 max_requests 滚动重生会加载
+    # 新代码撞旧 schema 崩溃循环；迁移+导入期间显式停服，完成后由 start_service 拉起。
+    if systemctl is-active --quiet "$SERVICE_NAME"; then
+        systemctl stop "$SERVICE_NAME"
+        log_info "已停止 ${SERVICE_NAME}（部署窗口）"
+    fi
     if [ ! -d "${STATIC_DATA_PATH}/cycles" ]; then
         log_error "静态数据目录不存在：${STATIC_DATA_PATH}/cycles"
         exit 1
@@ -317,6 +335,7 @@ import_data() {
     fi
 
     # 数据库快照强制化（Round-2 审计 S2）：迁移前没有数据级还原点不许走 upgrade。
+    mkdir -p "$BACKUP_ROOT"   # 首次部署该目录尚不存在（RA-2：重定向曾直接失败）
     local dump_file
     dump_file="${BACKUP_ROOT}/wanyu_db-$(date +%Y%m%d-%H%M%S).dump"
     sudo -u postgres pg_dump -Fc wanyu_db > "$dump_file"

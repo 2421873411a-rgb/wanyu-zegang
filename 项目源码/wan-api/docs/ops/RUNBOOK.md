@@ -18,7 +18,7 @@ deploy.sh 每次换血前会把旧版本代码备份到服务器 `/opt/wanyu/bac
    alembic downgrade <旧版本号>
    ```
    数据已损坏时的彻底恢复：`pg_dump` 快照（deploy.sh 迁移前自动生成并校验非空）→
-   `pg_restore -d wanyu_db --clean --if-exists <快照文件>`。
+   `sudo -u postgres pg_restore -d wanyu_db --clean --if-exists <快照文件>`。
 2. 回滚代码：
    ```bash
    rsync -a --delete --exclude 'venv' --exclude '.env' /opt/wanyu/backup/$ts/ /opt/wanyu/api/
@@ -43,7 +43,7 @@ python scripts/create_admin.py --email admin@kaogong.art --username admin
 
 ## 版本证明
 
-`/health` 返回 `version` 字段 = 部署时从 `项目源码/release.json` 注入 .env 的 `APP_VERSION`。
+`/health` 返回 `version` 字段 = 部署时从 `wan-api/release.json`（wanyu-api-release/v1）注入 .env 的 `APP_VERSION`。
 deploy.sh 的 smoke 会断言 `/health` 版本 == 部署版本，`systemctl restart` 落空会在此暴露。
 
 ## 日常核对

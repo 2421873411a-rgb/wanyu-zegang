@@ -24,6 +24,7 @@ from tests.conftest import (
     _register,
     _seed_jobs,
 )
+from tests.test_admin import _admin_headers, _import, _payload, _row
 
 pytestmark = pytest.mark.asyncio
 
@@ -73,10 +74,14 @@ async def test_secret_key_gate_matrix():
     """SECRET_KEY 门禁矩阵（module 级 asyncio mark：本测试无 await，语义不变）。"""
     from app.config import Settings, _validate_production_safety
 
-    # 非测试环境缺失 → 拒启
-    for env in ("dev", "production", "staging", "Production"):
+    # 非测试环境缺失 → 拒启（含模糊 test 写法：' TEST '/'Test' 不享受豁免——RA-5）
+    for env in ("dev", "production", "staging", "Production", " TEST ", "Test", "TEST"):
         with pytest.raises(RuntimeError):
             _validate_production_safety(Settings(ENV=env, SECRET_KEY=""))
+    # 公开测试密钥在正式环境 → 拒启（RA-4：该值已随公开仓库扩散）
+    with pytest.raises(RuntimeError):
+        _validate_production_safety(
+            Settings(ENV="production", SECRET_KEY="wanyu-test-only-secret-key-0123456789abcdef"))
     # 公开默认值 → 拒启（无论环境）
     with pytest.raises(RuntimeError):
         _validate_production_safety(Settings(ENV="dev", SECRET_KEY="your-secret-key-change-in-production"))
@@ -207,3 +212,88 @@ async def test_stats_cache_consistent(client: AsyncClient):
     a = (await client.get("/api/v1/jobs/stats/by-city", params={"cycle": "2026"})).json()
     b = (await client.get("/api/v1/jobs/stats/by-city", params={"cycle": "2026"})).json()
     assert a == b and sum(a.values()) == 2
+
+
+# ============ Round-3 复审回归（escape 正向匹配 / stats 失效 / 在场排除级联 / bm 校验） ============
+
+async def test_like_escape_preserves_literal_percent_underscore(client: AsyncClient):
+    """Round-3 P1 正向门禁：转义不得破坏字面量匹配（此前只测了 total==0 反向）。"""
+    async with get_test_session_factory()() as session:
+        session.add(Job(job_id="job-2026-aaaaaaaaaaaaaaaa0001", cycle="2026", code="90001",
+                        city="合肥", exam="省考", unit="价格50%上限岗", zw="x", zy="法学",
+                        num=1, record_status="active"))
+        session.add(Job(job_id="job-2026-aaaaaaaaaaaaaaaa0002", cycle="2026", code="90002",
+                        city="合肥", exam="省考", unit="本科_定向岗", zw="x", zy="法学",
+                        num=1, record_status="active"))
+        await session.commit()
+    r1 = await client.get("/api/v1/jobs/search", params={"keyword": "50%"})
+    assert r1.status_code == 200 and r1.json()["total"] >= 1, "字面量 % 被转义破坏"
+    r2 = await client.get("/api/v1/jobs/search", params={"keyword": "本科_"})
+    assert r2.status_code == 200 and r2.json()["total"] >= 1, "字面量 _ 被转义破坏"
+    # 语义修正（Round-3）：转义后 keyword='%' 表示"匹配含字面 % 的行"——
+    # 种子中恰有一行（价格50%上限岗），应命中它而不是返回 0
+    r3 = await client.get("/api/v1/jobs/search", params={"keyword": "%"})
+    assert r3.json()["total"] == 1, "字面 % 搜索应命中含 % 的行"
+
+
+async def test_stats_cache_invalidated_after_import(client: AsyncClient):
+    """Round-3 P2：admin 导入后 stats 必须立即可见新数据（不允许 60s 脏读）。"""
+    from tests.conftest import _login, _make_admin
+    await _make_admin()
+    data = await _login(client, "admin@example.com", "abc1234567")
+    headers = _auth(data["access_token"])
+
+    def payload(city):
+        rows = [dict(job_id=f"job-2026-{'b'*17}{1:03d}", row_id=f"job-2026-{'b'*17}{1:03d}",
+                     code="1", city=city, exam="省考", unit="u", zw="z", zy="法学", num=1)]
+        return {"allMajors": {"meta": {"total": 1, "raw_total": 1, "excluded": 0, "recruits": 1},
+                               "rows": rows}, "cycle": "2026"}
+
+    r1 = await client.post("/api/v1/admin/import/2026", headers=headers,
+                           files={"file": ("j.json", json.dumps(payload("合肥")).encode(), "application/json")})
+    assert r1.status_code == 200, r1.text
+    stats1 = (await client.get("/api/v1/jobs/stats/by-city", params={"cycle": "2026"})).json()
+    assert stats1.get("合肥") == 1
+
+    r2 = await client.post("/api/v1/admin/import/2026", headers=headers,
+                           files={"file": ("j.json", json.dumps(payload("芜湖")).encode(), "application/json")})
+    assert r2.status_code == 200
+    stats2 = (await client.get("/api/v1/jobs/stats/by-city", params={"cycle": "2026"})).json()
+    assert stats2.get("芜湖") == 1 and "合肥" not in stats2, f"stats 未随导入失效：{stats2}"
+
+
+async def test_incoming_excluded_row_cascades_ghost_references(client: AsyncClient):
+    """Round-3 P2：快照'在场但被标记排除'的岗位同样要清理收藏/对比幽灵引用。"""
+    from app.models.saved_position import SavedPosition
+
+    from tests.conftest import _seed_jobs
+    headers = await _admin_headers(client)
+    data = await _register(client)
+    (real,) = await _seed_jobs(1)
+    await client.post("/api/v1/user/positions", headers=_auth(data["access_token"]),
+                      json={"record_id": real, "cycle": "2026"})
+
+    from app.services.import_service import _job_id_set_sha256
+    rows = [dict(_row("2026", 99), record_status="withdrawn",
+                 exclusion_reason="r", exclusion_evidence="e", excluded_at="d")]
+    payload = {"cycle": "2026",
+               "all_majors": {"meta": {"total": 1, "raw_total": 1, "excluded": 1, "recruits": 2},
+                               "rows": rows},
+               "provenance": {"job_id_set_sha256": _job_id_set_sha256([r["job_id"] for r in rows])}}
+    r = await client.post("/api/v1/admin/import/2026", headers=headers,
+                          files={"file": ("j.json", json.dumps(payload).encode(), "application/json")})
+    assert r.status_code == 200, r.text
+    async with get_test_session_factory()() as session:
+        left = (await session.execute(
+            select(SavedPosition).where(SavedPosition.record_id == real))).scalar_one_or_none()
+        assert left is None, "在场排除行的收藏引用未被级联清理"
+
+
+async def test_float_bm_rejected(client: AsyncClient):
+    """Round-3 P2：bm 浮点与 num 同罪——拒绝而非静默 NULL。"""
+    headers = await _admin_headers(client)
+    payload = _payload(1)
+    payload["allMajors"]["rows"][0]["bm"] = 3.7
+    r = await _import(client, headers, payload)
+    assert r.status_code == 400
+    assert "bm" in r.json()["detail"]

@@ -17,7 +17,8 @@ _LIKE_ESC = re.compile(r"([\%_])")
 
 
 def _escape_like(value: str) -> str:
-    return _LIKE_ESC.sub(r"\", value)
+    # chr(92)=backslash; lambda builds replacement so no template escaping can corrupt it (v17.9.12 once shipped backslash+SOH here)
+    return _LIKE_ESC.sub(lambda m: chr(92) + m.group(1), value)
 
 
 def _reject_control_chars(*values: Optional[str]) -> None:
@@ -40,6 +41,21 @@ def _cached(key: str, builder):
     value = builder()
     _STATS_CACHE[key] = (now, value)
     return value
+
+
+async def _cached_async(key: str, abuilder):
+    hit = _STATS_CACHE.get(key)
+    now = time.monotonic()
+    if hit and now - hit[0] < _STATS_TTL_SECONDS:
+        return hit[1]
+    value = await abuilder()
+    _STATS_CACHE[key] = (now, value)
+    return value
+
+
+def invalidate_stats_cache() -> None:
+    """数据导入后必须调用：否则 admin 热导入后 stats 有 60s 脏读窗口。"""
+    _STATS_CACHE.clear()
 
 
 @router.get("/search", response_model=JobSearchResponse)
@@ -151,12 +167,12 @@ async def get_jobs_by_city(
         query = query.where(Job.cycle == cycle)
     query = query.group_by(Job.city).order_by(func.count(Job.id).desc())
 
-    def _build() -> dict:
-        return {row.city: row.count for row in db_sync_result.all() if row.city}
+    async def _build() -> dict:
+        result = await db.execute(query)
+        rows = result.all()
+        return {row.city: row.count for row in rows if row.city}
 
-    result = await db.execute(query)
-    db_sync_result = result
-    return _cached(f"city:{cycle or '*'}", _build)
+    return await _cached_async(f"city:{cycle or '*'}", _build)
 
 
 @router.get("/stats/by-exam")
@@ -171,9 +187,9 @@ async def get_jobs_by_exam(
         query = query.where(Job.cycle == cycle)
     query = query.group_by(Job.exam).order_by(func.count(Job.id).desc())
 
-    def _build() -> dict:
-        return {row.exam: row.count for row in db_sync_result.all() if row.exam}
+    async def _build() -> dict:
+        result = await db.execute(query)
+        rows = result.all()
+        return {row.exam: row.count for row in rows if row.exam}
 
-    result = await db.execute(query)
-    db_sync_result = result
-    return _cached(f"exam:{cycle or '*'}", _build)
+    return await _cached_async(f"exam:{cycle or '*'}", _build)
