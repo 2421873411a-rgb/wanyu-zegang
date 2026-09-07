@@ -45,4 +45,4 @@ canonical/cycles/*.json（唯一正式数据输入，wanyu-cycle-bundle/v1）
 
 ## 历史文档
 
-`交接包清单.txt`（v17.6.5~17.7.0 修订史）、`docs/audit/`（RC1/RC2/RC3 审计与失败映射）保留作历史证据；入口以本文档为准。
+`docs/archive/交接包清单.txt`（v17.6.5~17.7.0 修订史，已归档）、`docs/audit/`（RC1/RC2/RC3 审计与失败映射）保留作历史证据；入口以本文档为准。

@@ -1,3 +1,5 @@
+> ⚠️ **ARCHIVED — 历史存档，不再作为当前状态入口。** 当前状态唯一入口：`README_先看这里.md` + `docs/current-status.md`（真源：release.json/site-manifest/review-queue）。
+
 皖域择岗交接包 v17.8.6 · 2026-09-06（正式发布态）
 主入口：交接说明_v17.8.6_20260906.md（取代本清单成为交接入口；本清单保留作修订史）
 产品入口：网站\index.html
