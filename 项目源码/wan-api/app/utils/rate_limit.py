@@ -154,27 +154,29 @@ class RedisRateLimiter:
             await self._fallback.clear(key)
 
     def reset(self) -> None:
+        """测试 fixture 用：确定性清空本 limiter 相关键。
+
+        必须用同步短连接——aioredis 连接绑定创建它的事件循环，而每个测试
+        都是新循环，缓存的 async 连接在 fixture 上下文里必然失效（曾导致
+        flush 静默失败、限流键跨测试累积、注册全 429）。
+        """
         self._fallback.reset()
-        if self._redis is not None:
-            import asyncio
+        self._redis = None
+        self._script = None
+        try:
+            import redis as sync_redis
 
-            async def _flush() -> None:
-                try:
-                    redis = self._connect()
-                    async for k in redis.scan_iter(match="rl:*", count=200):
-                        await redis.delete(k)
-                except Exception:
-                    self._redis = None
-                    self._script = None
-
+            client = sync_redis.from_url(
+                settings.REDIS_URL, decode_responses=True,
+                socket_connect_timeout=1, socket_timeout=1,
+            )
             try:
-                loop = asyncio.get_running_loop()
-                loop.create_task(_flush())
-            except RuntimeError:
-                try:
-                    asyncio.run(_flush())
-                except Exception:
-                    pass
+                for k in client.scan_iter(match="rl:*", count=200):
+                    client.delete(k)
+            finally:
+                client.close()
+        except Exception:
+            pass
 
 
 def _build(scope: str, max_events: int, window_seconds: float):
