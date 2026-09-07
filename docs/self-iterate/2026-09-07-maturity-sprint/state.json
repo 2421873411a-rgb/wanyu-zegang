@@ -2,8 +2,8 @@
  "schema": "wanyu-maturity-sprint/v1",
  "started_on": "2026-09-07",
  "current_round": 1,
- "main_head": "8cdc38e",
- "version": "v17.9.10",
+ "main_head": "ab5d63d",
+ "version": "v17.9.11",
  "gates_baseline": {
   "sqlite": "35 passed, 2 skipped",
   "postgres": "37 passed",
@@ -30,6 +30,27 @@
     "C4"
    ],
    "plan": "round1-triage-and-plan.md"
+  },
+  {
+   "round": 1,
+   "status": "DONE",
+   "pr": "PR#10 merged (9db32c5 + a6b2341 + 4b1c8c3 → ab5d63d)",
+   "tags": [
+    "v17.9.10(追溯)",
+    "v17.9.11"
+   ],
+   "closed": {
+    "P0": 1,
+    "P1": 8,
+    "P2": 18
+   },
+   "waived": [
+    "D7 xl归一",
+    "D11 review-queue公开",
+    "C4 零审批(单人仓库)"
+   ],
+   "extra": "C3 branch protection canonical check 已重绑 Actions app(15368)",
+   "ci": "6 checks 真绿（日志实证 e2e/discovery/audit 全执行）"
   }
  ],
  "findings": {
@@ -38,5 +59,5 @@
   "waived": []
  },
  "prs_merged": [],
- "next_focus": "Round 1: 部署链/数据完整性/CI真实性/版本文档一致性 四镜头审计"
+ "next_focus": "Round 2: 认证安全(含Redis限流实现)/API行为/迁移漂移/供应链/性能 五镜头"
 }
