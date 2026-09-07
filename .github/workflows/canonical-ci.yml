@@ -1,11 +1,12 @@
 name: canonical-ci
 
-# Required check `canonical`：不再用 paths-filter 做“skip=green”。
-# 每个 push/PR 都真实验证仓库内 canonical bundle；外部 source_data 未入 Git，
-# 因此 hosted CI 只 lint sources.lock manifest，不冒充完成外部源内容 hash 校验。
 on:
   push:
   pull_request:
+
+concurrency:
+  group: canonical-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 defaults:
   run:
@@ -21,19 +22,15 @@ jobs:
           python-version: "3.12"
           cache: pip
           cache-dependency-path: 项目源码/requirements.txt
-
       - name: 安装 canonical 门禁依赖（fail-closed）
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip check
-
       - name: sources.lock manifest 门禁（不冒充外部源已验证）
         run: python verify_sources.py --manifest-only
-
       - name: canonical bundle 核心门禁
         run: python tools/anhui_web/validate_canonical_core.py
-
       - name: 数据契约与真源纯度门禁
         run: >-
           python -m unittest
@@ -42,7 +39,6 @@ jobs:
           tests.test_record_lifecycle
           tests.test_doc_truth_gate
           tests.test_build_input_purity
-
       - name: 说明外部源发布门禁
         run: |
           echo "Hosted CI 已严格验证 Git 内 canonical bundle + sources.lock manifest。"
