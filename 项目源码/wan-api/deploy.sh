@@ -79,10 +79,11 @@ setup_database() {
     DB_EXISTS=$(sudo -u postgres psql -tAc "SELECT 1 FROM pg_database WHERE datname='wanyu_db'" 2>/dev/null)
     if [ "$DB_EXISTS" = "1" ]; then
         log_info "wanyu_db 已存在"
-        # 验证 owner
+        # 验证 owner——不匹配则 fail-closed（晚失败比静默权限错误更危险）
         DB_OWNER=$(sudo -u postgres psql -tAc "SELECT pg_catalog.pg_get_userby(datdba) FROM pg_database WHERE datname='wanyu_db'" 2>/dev/null)
         if [ "$DB_OWNER" != "wanyu_user" ]; then
-            log_warn "wanyu_db owner=$DB_OWNER，期望 wanyu_user——请手动 ALTER DATABASE"
+            log_error "wanyu_db owner=$DB_OWNER，期望 wanyu_user——请手动 ALTER DATABASE wanyu_db OWNER TO wanyu_user;"
+            exit 1
         fi
     else
         sudo -u postgres psql -c "CREATE DATABASE wanyu_db OWNER wanyu_user;"
@@ -265,11 +266,12 @@ post_deploy_smoke() {
         exit 1
     fi
 
-    # Nginx HTTPS 健康检查
+    # Nginx HTTPS 健康检查（fail-closed：证书未生效或配置错误应阻止部署）
     if curl -sf https://wan.kaogong.art/health > /dev/null 2>&1; then
         log_info "✓ Nginx HTTPS /health 200"
     else
-        log_warn "Nginx HTTPS /health 失败（可能证书未生效）"
+        log_error "✗ Nginx HTTPS /health 失败——证书未生效或 nginx 配置错误"
+        exit 1
     fi
 
     # 数据计数 smoke（至少应有岗位数据）

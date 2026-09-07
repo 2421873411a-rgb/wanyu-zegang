@@ -18,8 +18,7 @@ class SavedPositionResponse(BaseModel):
     note: str
     created_at: datetime
     
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}
 
 
 class FilterSnapshotCreate(BaseModel):
@@ -41,8 +40,7 @@ class FilterSnapshotResponse(BaseModel):
     release: str
     created_at: datetime
     
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}
 
 
 class CompareListCreate(BaseModel):
@@ -60,5 +58,4 @@ class CompareListResponse(BaseModel):
     position: int
     created_at: datetime
     
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}

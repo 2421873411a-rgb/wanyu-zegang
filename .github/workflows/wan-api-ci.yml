@@ -85,7 +85,7 @@ jobs:
           if extra_in_mig:
               print(f'WARNING: 迁移有但 ORM 没有的表: {extra_in_mig}')
 
-          # 列级对比（nullable）+ 约束对比（UNIQUE/CHECK/index）
+          # 列级对比（nullable + type）+ 约束对比（UNIQUE/CHECK/index）
           diffs = []
           for table in orm_tables & mig_tables:
               orm_cols = {c['name']: c for c in inspect(e_orm).get_columns(table)}
@@ -96,14 +96,18 @@ jobs:
                   if not m: diffs.append(f'{table}.{col}: 迁移缺失'); continue
                   if o.get('nullable') != m.get('nullable'):
                       diffs.append(f'{table}.{col}: nullable ORM={o.get("nullable")} vs MIG={m.get("nullable")}')
+                  # type 比较（str 化避免 dialect-specific 类对象差异）
+                  ot = str(o.get('type', '')); mt = str(m.get('type', ''))
+                  if ot != mt:
+                      diffs.append(f'{table}.{col}: type ORM={ot} vs MIG={mt}')
               orm_uc = {frozenset(c['column_names']) for c in inspect(e_orm).get_unique_constraints(table)}
               mig_uc = {frozenset(c['column_names']) for c in inspect(e_mig).get_unique_constraints(table)}
               if orm_uc != mig_uc: diffs.append(f'{table}: UNIQUE ORM={orm_uc} vs MIG={mig_uc}')
               orm_cc = {c['name']: c.get('sqltext','') for c in inspect(e_orm).get_check_constraints(table)}
               mig_cc = {c['name']: c.get('sqltext','') for c in inspect(e_mig).get_check_constraints(table)}
               if orm_cc != mig_cc: diffs.append(f'{table}: CHECK ORM={orm_cc} vs MIG={mig_cc}')
-              orm_ix = {c['name'] for c in inspect(e_orm).get_indexes(table)}
-              mig_ix = {c['name'] for c in inspect(e_mig).get_indexes(table)}
+              orm_ix = {(c['name'], tuple(c.get('column_names', ()))) for c in inspect(e_orm).get_indexes(table)}
+              mig_ix = {(c['name'], tuple(c.get('column_names', ()))) for c in inspect(e_mig).get_indexes(table)}
               if orm_ix != mig_ix: diffs.append(f'{table}: INDEX ORM={orm_ix} vs MIG={mig_ix}')
           if diffs:
               for d in diffs: print(f'DIFF: {d}')
