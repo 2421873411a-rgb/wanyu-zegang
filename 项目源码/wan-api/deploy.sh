@@ -104,9 +104,12 @@ ADMIN_EMAIL=admin@kaogong.art
 EOF
     fi
     
-    # 设置权限
+    # 设置权限（v17.9.1 S0：目录可 755，但 .env 内含 DB 密码与 JWT SECRET_KEY，
+    # 必须单独收紧为 600 且属主 www-data，否则同机其他用户可读密钥）
     chown -R www-data:www-data ${APP_DIR}
     chmod -R 755 ${APP_DIR}
+    chown www-data:www-data ${APP_DIR}/.env
+    chmod 600 ${APP_DIR}/.env
 }
 
 # 配置systemd服务

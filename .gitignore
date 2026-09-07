@@ -35,3 +35,6 @@ docs/self-iterate/2026-09-07-master-audit/shots/
 _密钥_勿入git/
 .release-staging/
 项目源码/tools/anhui_web/.deploy_wan.local
+
+# wan-api 本地虚拟环境
+项目源码/wan-api/.venv/
