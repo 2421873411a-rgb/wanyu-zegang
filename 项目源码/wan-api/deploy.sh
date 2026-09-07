@@ -92,11 +92,6 @@ setup_database() {
     sudo -u postgres psql -d wanyu_db -c "CREATE EXTENSION IF NOT EXISTS pgcrypto;" 2>/dev/null || true
     sudo -u postgres psql -d wanyu_db -c "CREATE EXTENSION IF NOT EXISTS pg_trgm;" 2>/dev/null || true
 }
-    
-    # 安装扩展
-    sudo -u postgres psql -d wanyu_db -c "CREATE EXTENSION IF NOT EXISTS pgcrypto;"
-    sudo -u postgres psql -d wanyu_db -c "CREATE EXTENSION IF NOT EXISTS pg_trgm;"
-}
 
 # 创建应用目录
 setup_app_dir() {

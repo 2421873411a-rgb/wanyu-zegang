@@ -40,6 +40,11 @@ def get_test_session_factory():
 
 
 def _make_engine():
+    # CI postgres job 传 DATABASE_URL=postgresql+asyncpg://... 时直接用 PostgreSQL；
+    # 本地/SQLite CI 不传或传 sqlite 时用临时文件 SQLite。
+    db_url = os.environ.get("DATABASE_URL", "")
+    if db_url.startswith("postgresql"):
+        return create_async_engine(db_url), None
     fd, path = tempfile.mkstemp(suffix=".db")
     os.close(fd)
     return create_async_engine(f"sqlite+aiosqlite:///{path}"), path
@@ -59,7 +64,9 @@ async def _db() -> AsyncIterator[None]:
     global _test_engine, _TestSessionFactory
     _test_engine, _path = _make_engine()
     _TestSessionFactory = async_sessionmaker(_test_engine, expire_on_commit=False)
+    # PG 共享库：每个测试前清表再重建（SQLite 每次新文件，PG 需要手动清理）
     async with _test_engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
 
     async def override_get_db():
@@ -75,10 +82,11 @@ async def _db() -> AsyncIterator[None]:
     yield
     app.dependency_overrides.pop(get_db, None)
     await _test_engine.dispose()
-    try:
-        os.remove(_path)
-    except PermissionError:
-        pass  # Windows：aiosqlite 连接释放晚于 dispose，临时文件交给 %TEMP% 清理
+    if _path:
+        try:
+            os.remove(_path)
+        except PermissionError:
+            pass  # Windows：aiosqlite 连接释放晚于 dispose，临时文件交给 %TEMP% 清理
 
 
 @pytest_asyncio.fixture
