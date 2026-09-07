@@ -54,15 +54,44 @@ install_dependencies() {
     systemctl start postgresql redis-server nginx
 }
 
-# 配置数据库
+# 配置数据库（幂等：role/DB 已存在时保留旧凭据，不覆盖密码）
 setup_database() {
     log_info "配置PostgreSQL数据库..."
-    
-    # 创建数据库用户和数据库
-    DB_PASSWORD="$(openssl rand -hex 16)"
-    sudo -u postgres psql -c "CREATE USER wanyu_user WITH PASSWORD '${DB_PASSWORD}';" || true
-    sudo -u postgres psql -c "CREATE DATABASE wanyu_db OWNER wanyu_user;" || true
-    sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE wanyu_db TO wanyu_user;" || true
+
+    # 检查 role 是否已存在
+    ROLE_EXISTS=$(sudo -u postgres psql -tAc "SELECT 1 FROM pg_roles WHERE rolname='wanyu_user'" 2>/dev/null)
+    if [ "$ROLE_EXISTS" = "1" ]; then
+        log_info "wanyu_user 已存在，保留旧凭据"
+        # 从 .env 读取已有密码（如果 .env 存在）
+        if [ -f "${APP_DIR}/.env" ]; then
+            DB_PASSWORD=$(grep DATABASE_URL "${APP_DIR}/.env" | sed 's/.*:\/\/wanyu_user:\([^@]*\)@.*/\1/')
+        fi
+        if [ -z "$DB_PASSWORD" ]; then
+            log_error "wanyu_user 已存在但无法从 .env 读取密码——请手动设置 DB_PASSWORD"
+            exit 1
+        fi
+    else
+        DB_PASSWORD="$(openssl rand -hex 16)"
+        sudo -u postgres psql -c "CREATE USER wanyu_user WITH PASSWORD '${DB_PASSWORD}';"
+    fi
+
+    # 检查 DB 是否已存在
+    DB_EXISTS=$(sudo -u postgres psql -tAc "SELECT 1 FROM pg_database WHERE datname='wanyu_db'" 2>/dev/null)
+    if [ "$DB_EXISTS" = "1" ]; then
+        log_info "wanyu_db 已存在"
+        # 验证 owner
+        DB_OWNER=$(sudo -u postgres psql -tAc "SELECT pg_catalog.pg_get_userby(datdba) FROM pg_database WHERE datname='wanyu_db'" 2>/dev/null)
+        if [ "$DB_OWNER" != "wanyu_user" ]; then
+            log_warn "wanyu_db owner=$DB_OWNER，期望 wanyu_user——请手动 ALTER DATABASE"
+        fi
+    else
+        sudo -u postgres psql -c "CREATE DATABASE wanyu_db OWNER wanyu_user;"
+    fi
+
+    sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE wanyu_db TO wanyu_user;" 2>/dev/null || true
+    sudo -u postgres psql -d wanyu_db -c "CREATE EXTENSION IF NOT EXISTS pgcrypto;" 2>/dev/null || true
+    sudo -u postgres psql -d wanyu_db -c "CREATE EXTENSION IF NOT EXISTS pg_trgm;" 2>/dev/null || true
+}
     
     # 安装扩展
     sudo -u postgres psql -d wanyu_db -c "CREATE EXTENSION IF NOT EXISTS pgcrypto;"
@@ -152,36 +181,29 @@ EOF
     systemctl enable ${SERVICE_NAME}
 }
 
-# 配置Nginx
+# 配置Nginx（P1-9：先 HTTP-only，certbot 拿证书后再写 HTTPS 配置）
 setup_nginx() {
-    log_info "配置Nginx..."
-    
+    log_info "配置Nginx（HTTP-only 阶段）..."
+
     cat > /etc/nginx/sites-available/wan.kaogong.art << 'EOF'
 upstream wanyu_api {
     server 127.0.0.1:8000;
     keepalive 32;
 }
 
-# P0-8: limit_req_zone 属 http 上下文（sites-available 顶层即 http 内），置于 server 之外；/api/ 内引用
 limit_req_zone $binary_remote_addr zone=api:10m rate=30r/s;
 
 server {
-    listen 443 ssl http2;
-    listen [::]:443 ssl http2;
+    listen 80;
+    listen [::]:80;
     server_name wan.kaogong.art;
 
-    # P1-9：证书文件由 certbot 预生成（先 setup_ssl 再 setup_nginx），
-    # 此处用 include 活证书路径，首次部署时证书已存在
-    ssl_certificate /etc/letsencrypt/live/wan.kaogong.art/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/wan.kaogong.art/privkey.pem;
-    ssl_protocols TLSv1.2 TLSv1.3;
+    # certbot 验证路径
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
 
-    # 安全头
-    add_header X-Frame-Options "SAMEORIGIN" always;
-    add_header X-Content-Type-Options "nosniff" always;
-    add_header X-XSS-Protection "1; mode=block" always;
-
-    # API代理
+    # API 代理（HTTP 阶段即可用）
     location /api/ {
         limit_req zone=api burst=60 nodelay;
         proxy_pass http://wanyu_api;
@@ -193,12 +215,10 @@ server {
         proxy_http_version 1.1;
         proxy_read_timeout 120s;
         proxy_send_timeout 120s;
-
-        # API不缓存
         add_header Cache-Control "no-store, no-cache, must-revalidate";
     }
 
-    # P1-9：健康检查（FastAPI /health → Nginx 可达）
+    # 健康检查
     location = /health {
         proxy_pass http://wanyu_api/health;
         proxy_set_header Host $host;
@@ -209,8 +229,6 @@ server {
     location /maintainable/ {
         alias /opt/wanyu/static/maintainable/;
         try_files $uri $uri/ =404;
-
-        # gzip压缩
         gzip on;
         gzip_vary on;
         gzip_comp_level 6;
@@ -218,31 +236,55 @@ server {
         gzip_types text/plain text/css application/javascript application/json image/svg+xml;
     }
 
-    # 根路径重定向
     location = / {
         return 302 /maintainable/index.html;
     }
-
-}
-
-server {
-    listen 80;
-    listen [::]:80;
-    server_name wan.kaogong.art;
-    return 301 https://$host$request_uri;
 }
 EOF
-    
+
     ln -sf /etc/nginx/sites-available/wan.kaogong.art /etc/nginx/sites-enabled/
     nginx -t && systemctl reload nginx
 }
 
-# 配置SSL证书
+# 配置SSL证书（HTTP server block 已存在，certbot --nginx 自动升级为 HTTPS）
 setup_ssl() {
     log_info "配置SSL证书..."
-    
+
+    mkdir -p /var/www/certbot
     certbot --nginx -d wan.kaogong.art --non-interactive --agree-tos --email admin@kaogong.art
     systemctl enable certbot.timer
+}
+
+# 部署后 smoke 测试
+post_deploy_smoke() {
+    log_info "部署后 smoke 测试..."
+
+    # 等待服务启动
+    sleep 3
+
+    # API 健康检查
+    if curl -sf http://127.0.0.1:8000/health > /dev/null 2>&1; then
+        log_info "✓ API /health 200"
+    else
+        log_error "✗ API /health 失败"
+        exit 1
+    fi
+
+    # Nginx HTTPS 健康检查
+    if curl -sf https://wan.kaogong.art/health > /dev/null 2>&1; then
+        log_info "✓ Nginx HTTPS /health 200"
+    else
+        log_warn "Nginx HTTPS /health 失败（可能证书未生效）"
+    fi
+
+    # 数据计数 smoke（至少应有岗位数据）
+    JOBS_COUNT=$(curl -sf http://127.0.0.1:8000/api/v1/jobs/search 2>/dev/null | python3 -c "import sys,json; print(json.load(sys.stdin).get('total',0))" 2>/dev/null || echo "0")
+    if [ "$JOBS_COUNT" -gt "0" ] 2>/dev/null; then
+        log_info "✓ 岗位数据: ${JOBS_COUNT} 条"
+    else
+        log_error "✗ 岗位数据为空——导入可能失败"
+        exit 1
+    fi
 }
 
 # 导入数据
@@ -296,12 +338,12 @@ main() {
     setup_database
     setup_app_dir
     setup_service
-    # P1-9：先获取证书再写 HTTPS 配置——新服务器无证书时 nginx -t 会因
-    # 证书文件不存在而失败；certbot standalone 模式先拿证书，再写含 ssl 的站点配置
-    setup_ssl
+    # P1-9：先写 HTTP-only nginx 配置 → certbot 拿证书 → certbot 自动升级为 HTTPS
     setup_nginx
+    setup_ssl
     import_data
     start_service
+    post_deploy_smoke
     
     log_info "部署完成！"
     log_info "API文档: https://wan.kaogong.art/api/docs"
