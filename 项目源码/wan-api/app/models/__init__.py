@@ -8,6 +8,7 @@ from app.models.score_index import ScoreIndex
 from app.models.salary_data import SalaryData
 from app.models.review_event import ReviewEvent
 from app.models.refresh_token import RefreshToken
+from app.models.mirror_state import MirrorState
 
 __all__ = [
     "User",
@@ -19,5 +20,6 @@ __all__ = [
     "ScoreIndex",
     "SalaryData",
     "ReviewEvent",
-    "RefreshToken"
+    "RefreshToken",
+    "MirrorState"
 ]

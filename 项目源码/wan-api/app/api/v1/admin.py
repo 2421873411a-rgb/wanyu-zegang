@@ -124,12 +124,14 @@ async def import_cycle_data(
     admin: User = Depends(get_admin_user),
     db: AsyncSession = Depends(get_db)
 ):
-    """导入周期岗位数据（JSON，allMajors.rows 结构，与 canonical 产物同构）。
+    """导入周期岗位数据（快照替换，强校验后才允许写库）。
 
-    v17.9.1 S1：旧实现读了文件却返回假"导入成功"——对本项目的信任链是致命伤。
-    现在的真实链路：大小上限 → JSON 解析 → 结构校验 → ImportService 事务内写入 →
-    行数对账（imported+updated+skipped 必须 == rows_total，否则整体回滚）→
-    返回真实统计 + 源文件 sha256（可追溯）。任何一步失败：事务回滚、数据零写入。
+    v17.9.9 P1-1/P1-2/P1-3：
+    - 校验全部在写库前完成（job_id 格式/周期一致性/重复/meta 守恒）
+    - 截断但合法的非空文件会被 meta 守恒拦住
+    - job_id 周期不匹配会被拒绝（防止 job-2024-* 混入 2026）
+    - 快照替换：DB 中该周期已有但快照中没有的行 → record_status='excluded'
+    - mirror_state 持久化：追踪 DB 镜像的是哪版 canonical
     """
     if cycle not in _IMPORTABLE_CYCLES:
         raise HTTPException(
@@ -159,47 +161,43 @@ async def import_cycle_data(
     except json.JSONDecodeError:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="无效的JSON格式")
 
-    rows = (data.get("allMajors") or {}).get("rows")
-    if not isinstance(rows, list) or not rows:
+    # P1-1：强校验（全部在写库前完成）
+    from app.services.import_service import validate_snapshot
+    violations = validate_snapshot(cycle, data)
+    if violations:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="JSON 结构不符：需要非空的 allMajors.rows 数组"
-        )
-    bad_rows = sum(1 for r in rows if not isinstance(r, dict) or not (r.get("job_id") or r.get("row_id")))
-    if bad_rows:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"{bad_rows} 行缺少 job_id/row_id，已拒绝导入"
+            detail=f"快照校验失败（{len(violations)} 项违规）：{'；'.join(violations[:5])}"
         )
 
-    # 事务内写入（get_db 在请求结束时 commit；下方任一异常都会回滚）
+    # 快照替换导入（事务内：新行+全量更新+缺失行 deactivate+mirror state）
     service = ImportService(db)
-    stats = await service.import_cycle_jobs(cycle, data)
+    release = (data.get('allMajors') or {}).get('meta', {}).get('release', '')
+    stats = await service.snapshot_replace(
+        cycle=cycle,
+        data=data,
+        source_sha256=source_sha256,
+        release=release,
+    )
 
-    # 行数对账：写入口径必须与源行数严丝合缝
-    imported, updated, skipped = stats.get("imported", 0), stats.get("updated", 0), stats.get("skipped", 0)
-    if imported + updated + skipped != len(rows):
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="导入对账失败（写入口径与源行数不一致），事务已回滚"
-        )
+    imported = stats.get('imported', 0)
+    updated = stats.get('updated', 0)
+    deactivated = stats.get('deactivated', 0)
 
-    # 周期元数据行数核对（Cycle 表应存在且 total_posts 与 meta/行数一致）
-    cycle_row = await db.execute(select(Cycle).where(Cycle.cycle == cycle))
-    cycle_obj = cycle_row.scalar_one_or_none()
     logger.info(
-        "admin import cycle=%s imported=%s updated=%s skipped=%s rows=%s sha256=%s by=%s",
-        cycle, imported, updated, skipped, len(rows), source_sha256[:16], admin.username,
+        "admin import cycle=%s imported=%s updated=%s deactivated=%s rows=%s sha256=%s by=%s",
+        cycle, imported, updated, deactivated, stats.get('incoming_rows', 0),
+        source_sha256[:16], admin.username,
     )
 
     return {
-        "message": "数据导入成功",
+        "message": "数据导入成功（快照替换）",
         "cycle": cycle,
         "file_name": file.filename,
         "source_sha256": source_sha256,
-        "rows_total": len(rows),
+        "rows_total": stats.get('incoming_rows', 0),
         "imported": imported,
         "updated": updated,
-        "skipped": skipped,
-        "cycle_meta_total_posts": cycle_obj.total_posts if cycle_obj else None,
+        "deactivated": deactivated,
+        "job_id_set_sha256": stats.get('job_id_set_sha256', ''),
     }

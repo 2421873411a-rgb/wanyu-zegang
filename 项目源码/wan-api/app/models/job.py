@@ -23,9 +23,11 @@ class Job(Base):
     age = Column(String(128))  # 年龄要求
     bz = Column(Text)  # 备注
     lb = Column(String(64), index=True)  # 岗位类型
+    bm = Column(Integer)  # 报名人数（快照替换用）
     title_status = Column(String(32))
     display_title = Column(String(256))
     job_status = Column(String(32), default="active")
+    record_status = Column(String(32), default="active", index=True)  # 快照替换：active/excluded
     
     # 成绩观测
     score_observation_status = Column(String(32))
