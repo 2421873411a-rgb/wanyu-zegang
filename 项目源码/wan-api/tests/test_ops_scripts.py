@@ -57,7 +57,9 @@ def test_sourced_deploy_resolves_metadata_from_its_own_file():
     result = run_bash(f'cd /; source "{deploy_path}"; printf "%s" "$RELEASE_JSON"')
 
     assert result.returncode == 0, result.stdout + result.stderr
-    expected = "/" + WAN_API.drive[0].lower() + (WAN_API / "release.json").as_posix()[2:]
+    expected = (WAN_API / "release.json").resolve().as_posix()
+    if len(expected) >= 3 and expected[1:3] == ":/":
+        expected = "/" + expected[0].lower() + expected[2:]
     assert result.stdout == expected
 
 
