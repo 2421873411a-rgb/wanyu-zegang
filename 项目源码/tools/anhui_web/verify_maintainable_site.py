@@ -490,8 +490,14 @@ def verify_maintainable_site(site_dir: Path) -> dict[str, Any]:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Verify the external JSON maintainable site")
-    parser.add_argument("site_dir", nargs="?", type=Path, default=Path("deliverables/maintainable"))
+    # 默认校验正式站（网站/）；deliverables/maintainable 是流水线历史快照，可能落后于线上，
+    # 裸跑本脚本时不应拿它当默认对象（流水线始终显式传 staging 目录，不受此默认值影响）。
+    default_site = Path("../网站") if Path("../网站/index.html").is_file() else Path("deliverables/maintainable")
+    parser.add_argument("site_dir", nargs="?", type=Path, default=default_site)
     args = parser.parse_args()
     result = verify_maintainable_site(args.site_dir)
     print(f"maintainable: {result['passed']} passed, {result['failed']} failed")
+    for item in result["checks"]:
+        if item["status"] == "fail":
+            print(f"FAIL {item.get('id')}: {item.get('message')} | expected={item.get('expected')} actual={item.get('actual')}")
     raise SystemExit(1 if result["failed"] else 0)

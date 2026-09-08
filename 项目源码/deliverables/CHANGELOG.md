@@ -1,5 +1,26 @@
 # 皖域择岗交付更新日志
 
+## v17.9.21 · 部署链失败自愈与前置硬化（成熟度窗口）· 2026-09-09
+
+- **P1-002 自动回滚**：deploy.sh 新增 `rollback_to_previous()` 并接入 `on_error` ERR 陷阱——
+  smoke/启动失败等迁移完成后的失败自动切回上一 release、回写 `/etc/wanyu/wanyu.env` 的
+  APP_VERSION 并重启验证；迁移前/中失败依 RUNBOOK 顺序铁律**禁止**自动回切（旧代码缺新
+  revision），只输出人工恢复点指引。此前切换先于迁移/导入/冒烟且失败仅打印人工指令，
+  不健康 release 会成为永久 current。
+- **P1-004 静态数据前置硬化**：`check_static_data()` 逐项校验三周期 `cycles/{2024,2025,2026}/jobs.json`
+  + `salary/anhui.json` + `audit/review-queue.json`，缺失项点名报错（旧实现只查 cycles 目录、
+  错误文案却宣称覆盖 salary/audit）。
+- **P1-005 unit 回退陷阱**：systemd unit 补 `PrivateTmp=true`——ProtectSystem=strict 下缺失它
+  gunicorn 因无可用临时目录启动失败（v17.9.18 生产实测 exit 255），此前修复只落在服务器
+  unit 上、deploy.sh 重装即回退。
+- **P2 smoke 跳转钉死**：`smoke_public_root` 先不带 -L 断言 302 目标必须指向 `/maintainable/`
+  入口，再跟随验证最终 200（防止 302 到任意路径仍判绿）。
+- **P2-005 verifier 可诊断性**：`verify_maintainable_site.py` 失败时逐条输出 id/message/expected/actual；
+  默认校验目标改为正式 `网站/`（deliverables/maintainable 是历史快照，流水线显式传参不受影响）。
+- 回归锁：test_ops_scripts 新增 3 条行为测试（前置逐项校验/迁移后回滚/迁移前拒绝回切），
+  test_deploy_linkage 新增 rollback+precheck 不变量；本地全量 101 passed + 5 skipped。
+- 上游证据：PR#21（v17.9.20）三 required check 全绿，postgres job = 真实 PG16+Redis7 全量 PASS。
+
 ## v17.9.20 · 门禁可信度修复（成熟度窗口）· 2026-09-09
 
 - **P1-001** `wan-api/tests/test_ops_scripts.py::run_bash`：原生 Windows 父进程以盘符 CWD 启动

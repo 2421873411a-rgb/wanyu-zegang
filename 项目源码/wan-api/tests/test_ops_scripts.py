@@ -325,6 +325,8 @@ source ./deploy.sh
 curl() {
     if [[ " $* " == *L* ]]; then
         printf '200'
+    elif [[ " $* " == *redirect_url* ]]; then
+        printf 'https://wan.kaogong.art/maintainable/index.html'
     else
         printf '302'
     fi
@@ -623,3 +625,104 @@ bash scripts/restore_drill.sh
             assert not any(line.startswith("RESTORE ") for line in events), events
         assert "DROP DATABASE" in events[-1], events
         assert not db_marker.exists()
+
+
+def test_static_data_precheck_requires_all_runtime_components():
+    """P1-004：静态数据前置必须逐项校验三周期 jobs + salary + audit（缺失项点名报错）。"""
+    missing = run_bash(
+        r'''
+source ./deploy.sh
+fixture="$(mktemp -d)"
+mkdir -p "$fixture/cycles/2024" "$fixture/cycles/2025" "$fixture/cycles/2026"
+for c in 2024 2025 2026; do printf '{}' > "$fixture/cycles/$c/jobs.json"; done
+STATIC_DATA_PATH="$fixture" check_static_data
+'''
+    )
+    assert missing.returncode != 0, missing.stdout + missing.stderr
+    combined = missing.stdout + missing.stderr
+    assert "salary/anhui.json" in combined
+    assert "audit/review-queue.json" in combined
+
+    complete = run_bash(
+        r'''
+source ./deploy.sh
+fixture="$(mktemp -d)"
+mkdir -p "$fixture/cycles/2024" "$fixture/cycles/2025" "$fixture/cycles/2026" "$fixture/salary" "$fixture/audit"
+for c in 2024 2025 2026; do printf '{}' > "$fixture/cycles/$c/jobs.json"; done
+printf '{}' > "$fixture/salary/anhui.json"
+printf '{}' > "$fixture/audit/review-queue.json"
+STATIC_DATA_PATH="$fixture" check_static_data
+'''
+    )
+    assert complete.returncode == 0, complete.stdout + complete.stderr
+
+
+def test_rollback_to_previous_switches_back_after_migration_done():
+    """P1-002：迁移完成后失败，自动回滚必须切回上一 release 并回写 APP_VERSION。
+
+    MSYS 夹具注：ln -s 深拷贝而非符号链接，假 mv 以「先清 dst 再移入」模拟 mv -T
+    对符号链接的替换语义（Linux 上是原子 rename，行为等价于回滚结果断言所需）。
+    """
+    result = run_bash(
+        r'''
+source ./deploy.sh
+fixture="$(mktemp -d)"
+mkdir -p "$fixture/releases/v17.9.20-aaaaaaaa/app" "$fixture/releases/v17.9.19-bbbbbbbb/app"
+printf '{"release":"v17.9.20"}' > "$fixture/releases/v17.9.20-aaaaaaaa/app/release.json"
+printf 'v17.9.20' > "$fixture/releases/v17.9.20-aaaaaaaa/app/VERSION_MARKER"
+printf '{"release":"v17.9.19"}' > "$fixture/releases/v17.9.19-bbbbbbbb/app/release.json"
+printf 'v17.9.19' > "$fixture/releases/v17.9.19-bbbbbbbb/app/VERSION_MARKER"
+ln -sfn "$fixture/releases/v17.9.20-aaaaaaaa" "$fixture/current"
+printf 'APP_VERSION=v17.9.20
+' > "$fixture/wanyu.env"
+RELEASES_DIR="$fixture/releases"
+CURRENT_LINK="$fixture/current"
+SECRET_ENV="$fixture/wanyu.env"
+SERVICE_NAME="wanyu-test"
+PREVIOUS_RELEASE="v17.9.19-bbbbbbbb"
+SWITCHED=1
+MIGRATION_DONE=1
+trap - ERR
+sudo() { "$@"; }
+systemctl() { printf 'systemctl %s
+' "$*" >> "$fixture/calls.log"; }
+curl() { return 0; }
+mv() { local dst="$3"; rm -rf "$dst"; command mv "$2" "$dst"; }
+rollback_to_previous
+printf 'current-VERSION=%s
+' "$(cat "$fixture/current/app/VERSION_MARKER" 2>/dev/null)"
+grep APP_VERSION "$fixture/wanyu.env"
+'''
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    combined = result.stdout + result.stderr
+    assert "current-VERSION=v17.9.19" in combined
+    assert "APP_VERSION=v17.9.19" in combined
+    assert "自动回滚" in combined
+
+
+def test_rollback_refuses_to_switch_back_before_migration_completes():
+    """P1-002 顺序铁律：迁移前/中失败禁止自动回切（旧代码缺新 revision），只给人工恢复指引。"""
+    result = run_bash(
+        r'''
+source ./deploy.sh
+fixture="$(mktemp -d)"
+mkdir -p "$fixture/releases/v17.9.20-aaaaaaaa/app"
+printf 'v17.9.20' > "$fixture/releases/v17.9.20-aaaaaaaa/app/VERSION_MARKER"
+ln -sfn "$fixture/releases/v17.9.20-aaaaaaaa" "$fixture/current"
+CURRENT_LINK="$fixture/current"
+RELEASES_DIR="$fixture/releases"
+PREVIOUS_RELEASE="v17.9.19-bbbbbbbb"
+SWITCHED=1
+MIGRATION_DONE=0
+trap - ERR
+rollback_to_previous
+printf 'current-VERSION=%s
+' "$(cat "$fixture/current/app/VERSION_MARKER" 2>/dev/null)"
+'''
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    combined = result.stdout + result.stderr
+    assert "current-VERSION=v17.9.20" in combined
+    assert "禁止自动回切" in combined
+    assert "RUNBOOK" in combined

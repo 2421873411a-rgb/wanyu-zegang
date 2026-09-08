@@ -168,3 +168,16 @@ def test_health_endpoint_exposes_version():
 
     body = asyncio.run(health())
     assert re.fullmatch(r"v\d+\.\d+\.\d+", body.get("version", "")), body
+
+
+def test_deploy_failure_rollback_and_precheck_invariants():
+    """v17.9.21 回归锁：失败自动回滚（迁移完成前禁止回切）+ 静态数据逐项前置 + unit PrivateTmp。"""
+    script = _deploy_sh()
+    # 自动回滚函数存在且被 on_error 调用；受 RUNBOOK 顺序铁律约束（MIGRATION_DONE 门）
+    assert "rollback_to_previous()" in script
+    assert "MIGRATION_DONE=1" in script
+    # 静态数据前置逐项校验（三周期 jobs + salary + audit，缺失即中止）
+    assert 'cycles/${cycle}/jobs.json' in script
+    assert "for cycle in 2024 2025 2026" in script
+    assert "salary/anhui.json" in script
+    assert "audit/review-queue.json" in script
