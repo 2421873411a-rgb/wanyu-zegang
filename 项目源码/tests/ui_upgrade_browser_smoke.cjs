@@ -7,11 +7,14 @@ const { chromium } = require('playwright-core');
 const projectRoot = path.resolve(__dirname, '..');
 const generatedSiteDir = path.join(projectRoot, 'deliverables', 'maintainable');
 // v17.8.6-K：WANYU_SITE_DIR 环境变量最高优先（发布流水线用它把烟测指向 staging）。
+// v17.9.20 P1-003：deliverables/maintainable 是流水线历史产物快照，可能长期落后于正式
+// 网站/（曾以 v17.7 旧快照喂本烟测造成 3,521(raw) vs 3,411(active) 假失败）——
+// 解析顺序必须是 WANYU_SITE_DIR → 正式 网站/ → deliverables 仅作兜底。
 const siteDir = (process.env.WANYU_SITE_DIR && fs.existsSync(path.resolve(process.env.WANYU_SITE_DIR)))
   ? path.resolve(process.env.WANYU_SITE_DIR)
-  : fs.existsSync(path.join(generatedSiteDir, 'index.html'))
-    ? generatedSiteDir
-    : (fs.existsSync(path.resolve(projectRoot, '..', '网站')) ? path.resolve(projectRoot, '..', '网站') : path.resolve(projectRoot, '..', 'site'));
+  : fs.existsSync(path.resolve(projectRoot, '..', '网站'))
+    ? path.resolve(projectRoot, '..', '网站')
+    : generatedSiteDir;
 const serveScript = path.join(projectRoot, 'tools', 'anhui_web', 'serve_maintainable.py');
 const port = 18767;
 const base = `http://127.0.0.1:${port}/index.html?cycle=2026#jobs_search`;
@@ -108,12 +111,24 @@ async function waitForServer(url) {
       null,
       { timeout: 30000 },
     );
-        // 110 幽灵行全在上半年事业编：active 口径 3,411（原 raw 3,521）。
+    // 110 幽灵行全在上半年事业编：active 口径 3,411（原 raw 3,521）。
+    // 检查器有「先 raw 后 active」的瞬时两段渲染——必须等待 dd 值稳定到最终口径再断言，
+    // 否则测试结果取决于机器时序（同一字节站点曾出现 4 败 1 过）。
+    await page.waitForFunction(
+      () => ((document.querySelector('[data-maint-map-inspector] .maint-map-facts dd')?.innerText) || '').trim() === '3,411',
+      null,
+      { timeout: 30000 },
+    );
     assert.equal(await page.locator('[data-maint-map-inspector] .maint-map-facts dd').first().innerText(), '3,411', '上半年岗位数据应被筛出');
     await page.locator('[data-maint-exam-sub="下半年"]').click();
     await page.waitForFunction(
       () => window.WanyuMaintainableSite?.state?.examSub === '下半年'
         && document.querySelector('[data-maint-exam-sub="下半年"]')?.classList.contains('is-active'),
+      null,
+      { timeout: 30000 },
+    );
+    await page.waitForFunction(
+      () => ((document.querySelector('[data-maint-map-inspector] .maint-map-facts dd')?.innerText) || '').trim() === '655',
       null,
       { timeout: 30000 },
     );

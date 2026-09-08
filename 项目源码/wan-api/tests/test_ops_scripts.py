@@ -26,6 +26,11 @@ def run_bash(script: str, *, env: dict[str, str] | None = None) -> subprocess.Co
     merged_env = os.environ.copy()
     if env:
         merged_env.update(env)
+    if os.name == "nt":
+        # 由原生 Windows 父进程以盘符 CWD 启动时，MSYS bash 的 $(pwd) 返回 "E:/..."
+        # 形式，而 bash 的 PATH 搜索不解析这种组件——fake bin 注入会静默失效。
+        # 先 cd 一次强制 MSYS 重推 POSIX 路径（/e/...），此后 $(pwd) 才可用于 PATH。
+        script = 'cd "$(pwd)" || exit 9\n' + script
     return subprocess.run(
         [BASH, "-c", script],
         cwd=WAN_API,
