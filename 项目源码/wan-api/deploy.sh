@@ -61,10 +61,49 @@ PY
     fi
 }
 
+# 自动回滚锚点：atomic_switch 记录上一 release；迁移完成后才允许自动回切——
+# RUNBOOK 顺序铁律：不兼容迁移失败时必须先用新 release 降库、再切旧 release，
+# 迁移前/中自动回切会让旧代码面对新 schema（"Can't locate revision"）。
+PREVIOUS_RELEASE=""
+SWITCHED=0
+MIGRATION_DONE=0
+
+rollback_to_previous() {
+    if [ "$SWITCHED" != "1" ]; then
+        return 0
+    fi
+    if [ "$MIGRATION_DONE" != "1" ] || [ -z "$PREVIOUS_RELEASE" ]; then
+        log_error "迁移前/中失败：禁止自动回切（旧代码缺少新 revision，RUNBOOK 顺序铁律：先降库后切旧 release）。"
+        log_error "恢复点：迁移前 dump 与 .alembic-before.txt sidecar 在 ${BACKUP_ROOT}；按 RUNBOOK「回滚」节人工执行。"
+        return 0
+    fi
+    local prev_dir="${RELEASES_DIR}/${PREVIOUS_RELEASE}"
+    if [ ! -d "$prev_dir" ]; then
+        log_error "自动回滚中止：上一 release 目录不存在：${prev_dir}"
+        return 0
+    fi
+    log_error "自动回滚：current -> ${PREVIOUS_RELEASE}"
+    sudo ln -sfn "$prev_dir" "${CURRENT_LINK}.tmp"
+    sudo mv -T "${CURRENT_LINK}.tmp" "${CURRENT_LINK}"
+    local prev_ver
+    prev_ver="$(sed -n 's/.*"release"[[:space:]]*:[[:space:]]*"\(v[0-9][0-9.]*\)".*/\1/p' "$prev_dir/app/release.json" 2>/dev/null | head -1)"
+    if [ -n "$prev_ver" ]; then
+        sudo sed -i "s/^APP_VERSION=.*/APP_VERSION=${prev_ver}/" "$SECRET_ENV"
+    fi
+    sudo systemctl restart "$SERVICE_NAME" || log_error "回滚后服务重启失败，需人工介入：journalctl -u ${SERVICE_NAME}"
+    sleep 2
+    if curl -sf http://127.0.0.1:8000/health >/dev/null 2>&1; then
+        log_error "✓ 已回滚至 ${PREVIOUS_RELEASE}（version=${prev_ver:-unknown}），服务健康"
+    else
+        log_error "回滚完成但 /health 未就绪，需人工检查：journalctl -u ${SERVICE_NAME}"
+    fi
+}
+
 on_error() {
     local exit_code=$?
     log_error "部署失败：line=${BASH_LINENO[0]:-unknown} command=${BASH_COMMAND:-unknown} exit=${exit_code}"
-    log_error "回滚：sudo ln -sfn <上一release目录> ${CURRENT_LINK} && sudo systemctl restart ${SERVICE_NAME}（见 docs/ops/RUNBOOK.md）"
+    rollback_to_previous
+    log_error "回滚处理完成（详见上方）。人工预案：docs/ops/RUNBOOK.md"
     exit "$exit_code"
 }
 trap on_error ERR
@@ -89,11 +128,8 @@ check_prerequisites() {
                 ;;
         esac
     fi
-    # 静态数据前置：缺失在预检阶段就中止（不在装完全部依赖后）
-    if [ ! -d "${STATIC_DATA_PATH}/cycles" ]; then
-        log_error "部署前置缺失：静态数据目录 ${STATIC_DATA_PATH}/cycles 不存在。请先放置 canonical 派生数据（cycles/ salary/ audit/），见 docs/ops/RUNBOOK.md"
-        exit 1
-    fi
+    # 静态数据前置：逐项校验（缺失在预检阶段就中止，不在装完全部依赖后）
+    check_static_data
     local cmd
     for cmd in curl sudo openssl python3 tar; do
         command -v "$cmd" >/dev/null || {
@@ -101,6 +137,22 @@ check_prerequisites() {
             exit 1
         }
     done
+}
+
+check_static_data() {
+    # API 运行时与 nginx 都直接消费这些静态派生文件；缺失必须在预检阶段点名中止
+    local missing=""
+    local cycle
+    for cycle in 2024 2025 2026; do
+        [ -f "${STATIC_DATA_PATH}/cycles/${cycle}/jobs.json" ] || missing="${missing} cycles/${cycle}/jobs.json"
+    done
+    [ -f "${STATIC_DATA_PATH}/salary/anhui.json" ] || missing="${missing} salary/anhui.json"
+    [ -f "${STATIC_DATA_PATH}/audit/review-queue.json" ] || missing="${missing} audit/review-queue.json"
+    if [ -n "$missing" ]; then
+        log_error "部署前置缺失静态数据（${STATIC_DATA_PATH}）：${missing}——请先放置 canonical 派生数据，见 docs/ops/RUNBOOK.md"
+        return 1
+    fi
+    log_info "✓ 静态数据前置完整（三周期 jobs + salary + audit）"
 }
 
 install_dependencies() {
@@ -304,6 +356,9 @@ TimeoutStopSec=45
 NoNewPrivileges=yes
 ProtectSystem=strict
 ProtectHome=yes
+# strict 使 /tmp 只读；必须隔离私有 tmp（v17.9.18 实测：缺失→gunicorn
+# "No usable temporary directory" exit 255）
+PrivateTmp=true
 ReadWritePaths=${SHARED_LOG}
 
 [Install]
@@ -318,12 +373,20 @@ EOF
 
 atomic_switch() {
     # 原子切换 current 符号链接（ln -sfn + mv -T，绝无中间态）
+    # fresh-host 首部署时 current 不存在，readlink 预期失败——用 if 条件形式吞掉（-e/-E 安全）
+    local prev_link=""
+    if prev_link="$(readlink "$CURRENT_LINK" 2>/dev/null)"; then
+        PREVIOUS_RELEASE="$(basename "$prev_link")"
+    else
+        PREVIOUS_RELEASE=""
+    fi
     sudo ln -sfn "$RELEASE_DIR" "${CURRENT_LINK}.tmp"
     sudo mv -T "${CURRENT_LINK}.tmp" "${CURRENT_LINK}"
     [ "$(readlink "$CURRENT_LINK" 2>/dev/null)" = "$RELEASE_DIR" ] || {
         log_error "current 符号链接切换失败"
         exit 1
     }
+    SWITCHED=1
     log_info "✓ current -> ${RELEASE_DIR}"
 }
 
@@ -524,6 +587,8 @@ import_data() {
     local post_dump
     post_dump="$(create_database_snapshot post-import)"
     log_info "✓ 导入后快照：${post_dump}"
+    # 迁移+导入完成：此后失败允许自动回切旧 release（DB schema 已与新代码兼容）
+    MIGRATION_DONE=1
 }
 
 start_service() {
@@ -535,14 +600,29 @@ start_service() {
 
 smoke_public_root() {
     # fresh-host 模板的 / 先 302 到静态入口；现网也可能直接 200。
-    # smoke 验证用户最终拿到的页面，而不是把合法的中间跳转误判为失败。
-    local code
-    code="$(curl -sS -L -o /dev/null -w '%{http_code}' https://wan.kaogong.art/)" || {
+    # 先不带 -L 钉死跳转目标（必须指向 /maintainable/ 静态入口，防止 302 到任意路径
+    # 仍被判绿），再跟随跳转验证用户最终拿到的页面是 200。
+    local first redirect_url final_code
+    first="$(curl -sS -o /dev/null -w '%{http_code}' https://wan.kaogong.art/)" || {
         log_error "公网 HTTPS 静态站请求失败"
         return 1
     }
-    if [ "$code" != "200" ]; then
-        log_error "静态站跟随跳转后返回 ${code}（期望 200）"
+    if [ "$first" = "301" ] || [ "$first" = "302" ]; then
+        redirect_url="$(curl -sS -o /dev/null -w '%{redirect_url}' https://wan.kaogong.art/)"
+        case "$redirect_url" in
+            */maintainable/index.html|*/maintainable/) ;;
+            *)
+                log_error "根路径跳转目标异常：${redirect_url:-<empty>}（期望 /maintainable/ 静态入口）"
+                return 1
+                ;;
+        esac
+    fi
+    final_code="$(curl -sS -L -o /dev/null -w '%{http_code}' https://wan.kaogong.art/)" || {
+        log_error "公网 HTTPS 静态站（跟随跳转）请求失败"
+        return 1
+    }
+    if [ "$final_code" != "200" ]; then
+        log_error "静态站跟随跳转后返回 ${final_code}（期望 200）"
         return 1
     fi
 }
