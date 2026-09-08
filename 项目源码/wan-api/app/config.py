@@ -18,7 +18,7 @@ def _version_from_release_json() -> Optional[str]:
     """API 版本单一真源：wan-api/release.json 的 release 字段（wanyu-api-release/v1）。
 
     仓库布局（app/config.py → parents[1] = wan-api/）直接命中；部署布局
-    /opt/wanyu/api 下同样命中（release.json 随载荷部署）；找不到再试项目级
+    /opt/wanyu/current/app 下同样命中（release.json 随载荷部署）；找不到再试项目级
     release.json，仍无则返回 None 交还 env（deploy.sh 注入）。
     """
     marker = Path(__file__).resolve()

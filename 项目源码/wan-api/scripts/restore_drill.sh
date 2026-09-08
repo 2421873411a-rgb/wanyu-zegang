@@ -1,51 +1,121 @@
 #!/bin/bash
-# Restore Drill（v17.9.18 验收项：备份必须能真正恢复才算备份）
-#
-# 流程：取最新 daily 备份 → 建临时库 wanyu_restore_drill → pg_restore →
-#       alembic revision 核对 → 行数对账（jobs/salary/review_events/users）→ 清理
-#
+# Restore Drill：daily 恢复点 → 临时库 → schema/canonical 基线核验 → 强制清理。
 # 用法（root，服务器）：bash scripts/restore_drill.sh
 set -Eeuo pipefail
 
-BASE=/opt/wanyu/backup
-DRILL_DB=wanyu_restore_drill
+BASE="${WANYU_BACKUP_BASE:-/opt/wanyu/backup}"
+CURRENT_LINK="${WANYU_CURRENT_LINK:-/opt/wanyu/current}"
+DRILL_DB="${WANYU_RESTORE_DRILL_DB:-wanyu_restore_drill}"
+DB_NAME="${WANYU_DB_NAME:-wanyu_db}"
+DB_CREATED=0
 
-LATEST=$(ls -1t "$BASE"/daily/wanyu_db-*.dump 2>/dev/null | head -1)
-[ -n "$LATEST" ] || { echo "[DRILL FAIL] 无 daily 备份可恢复"; exit 1; }
-echo "[drill] 备份文件：$LATEST"
+fail() {
+    echo "[DRILL FAIL] $1" >&2
+    return 1
+}
 
-# 校验和（若存在 .sha256）
-if [ -f "$LATEST.sha256" ]; then
-    (cd "$(dirname "$LATEST")" && sha256sum -c "$(basename "$LATEST").sha256") \
-        || { echo "[DRILL FAIL] 备份校验和不匹配"; exit 1; }
-    echo "[drill] sha256 校验 PASS"
+if [[ ! "$DRILL_DB" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]]; then
+    fail "临时数据库名非法：${DRILL_DB}"
 fi
 
-# 临时库重建
-sudo -u postgres psql -v ON_ERROR_STOP=1 -c "DROP DATABASE IF EXISTS $DRILL_DB;" > /dev/null
-sudo -u postgres pg_restore -d "$DRILL_DB" --no-owner "$LATEST" \
-    || { echo "[DRILL FAIL] pg_restore 失败"; exit 1; }
+drop_drill_database() {
+    sudo -u postgres psql -v ON_ERROR_STOP=1 \
+        -c "DROP DATABASE IF EXISTS \"${DRILL_DB}\" WITH (FORCE);" > /dev/null
+}
+
+cleanup() {
+    local status=$?
+    trap - EXIT
+    if [ "$DB_CREATED" -eq 1 ]; then
+        if drop_drill_database; then
+            echo "[drill] 临时库已清理：${DRILL_DB}"
+        else
+            echo "[DRILL FAIL] 临时库清理失败：${DRILL_DB}" >&2
+            status=1
+        fi
+    fi
+    exit "$status"
+}
+trap cleanup EXIT
+
+shopt -s nullglob
+BACKUPS=("$BASE"/daily/"${DB_NAME}"-*.dump)
+shopt -u nullglob
+[ "${#BACKUPS[@]}" -gt 0 ] || fail "无 daily 备份可恢复"
+LATEST="${BACKUPS[0]}"
+for candidate in "${BACKUPS[@]:1}"; do
+    if [ "$candidate" -nt "$LATEST" ]; then
+        LATEST="$candidate"
+    fi
+done
+echo "[drill] 备份文件：$LATEST"
+
+# 自动备份的 checksum 是恢复契约的一部分；缺失时拒绝把裸 dump 当成已验证恢复点。
+[ -f "$LATEST.sha256" ] || fail "备份缺少 checksum：$LATEST.sha256"
+(
+    cd "$(dirname "$LATEST")"
+    sha256sum -c "$(basename "$LATEST").sha256"
+) || fail "备份校验和不匹配"
+echo "[drill] sha256 校验 PASS"
+
+# pg_dump -Fc 不含 CREATE DATABASE；目标库必须先显式创建。
+drop_drill_database
+DB_CREATED=1
+sudo -u postgres psql -v ON_ERROR_STOP=1 \
+    -c "CREATE DATABASE \"${DRILL_DB}\";" > /dev/null
+sudo -u postgres pg_restore --exit-on-error --no-owner -d "$DRILL_DB" "$LATEST" \
+    || fail "pg_restore 失败"
 echo "[drill] pg_restore PASS"
 
-# alembic revision 核对（临时库的版本必须与生产 head 一致）
-HEAD_REV=$(cd /opt/wanyu/current/app && sudo -u www-data ./venv/bin/alembic current 2>/dev/null | awk '{print $1}' | head -1)
-[ -n "$HEAD_REV" ] || { echo "[DRILL FAIL] 生产 revision 读取失败"; exit 1; }
-DB_REV=$(sudo -u postgres psql -d "$DRILL_DB" -tAc "SELECT version_num FROM alembic_version" | head -1)
-[ "$DB_REV" = "$HEAD_REV" ] || { echo "[DRILL FAIL] revision 不一致：drill=$DB_REV prod=$HEAD_REV"; exit 1; }
+# immutable release 布局是 current/{app,venv}；以代码 head 对账恢复库 revision。
+ALEMBIC_BIN="${CURRENT_LINK}/venv/bin/alembic"
+[ -x "$ALEMBIC_BIN" ] || fail "Alembic 不可执行：$ALEMBIC_BIN"
+HEAD_OUTPUT="$(cd "${CURRENT_LINK}/app" && "$ALEMBIC_BIN" heads 2>/dev/null)"
+mapfile -t HEAD_LINES <<< "$HEAD_OUTPUT"
+[ "${#HEAD_LINES[@]}" -eq 1 ] || fail "代码存在多个 Alembic head，拒绝恢复核验"
+read -r HEAD_REV _ <<< "${HEAD_LINES[0]}"
+[ -n "${HEAD_REV:-}" ] || fail "代码 head revision 读取失败"
+DB_REV="$(sudo -u postgres psql -v ON_ERROR_STOP=1 -d "$DRILL_DB" -tAc \
+    "SELECT version_num FROM alembic_version" | tr -d '[:space:]')"
+[ "$DB_REV" = "$HEAD_REV" ] \
+    || fail "revision 不一致：drill=$DB_REV code_head=$HEAD_REV"
 echo "[drill] alembic revision PASS ($DB_REV)"
 
-# 行数对账（与 e2e 基线一致：2024=10017/2025=10150/2026=8511；salary=160；review≤200）
-count() { sudo -u postgres psql -d "$DRILL_DB" -tAc "SELECT count(*) FROM $1" | tr -d ' '; }
-for cycle in 2024 2025 2026; do
-    n=$(sudo -u postgres psql -d "$DRILL_DB" -tAc "SELECT count(*) FROM jobs WHERE cycle='$cycle'" | tr -d ' ')
-    echo "[drill] jobs $cycle = $n"
-done
-act=$(sudo -u postgres psql -d "$DRILL_DB" -tAc "SELECT count(*) FROM jobs WHERE cycle='2026' AND record_status='active'" | tr -d ' ')
-[ "$act" = "8401" ] || { echo "[DRILL FAIL] 2026 active=$act，期望 8401"; exit 1; }
-sal=$(count salary_data); rev=$(count review_events); usr=$(count users)
-echo "[drill] salary=$sal review=$rev users=$usr"
-[ "$sal" -ge 160 ] || { echo "[DRILL FAIL] salary 行数异常"; exit 1; }
+query_count() {
+    sudo -u postgres psql -v ON_ERROR_STOP=1 -d "$DRILL_DB" -tAc "$1" \
+        | tr -d '[:space:]'
+}
 
-# 清理
-sudo -u postgres psql -c "DROP DATABASE IF EXISTS $DRILL_DB;" > /dev/null
-echo "[DRILL PASS] 备份可恢复、schema 正确、数据对账通过（临时库已清理）"
+assert_exact_count() {
+    local label="$1" actual="$2" expected="$3"
+    [[ "$actual" =~ ^[0-9]+$ ]] || fail "$label 行数不是整数：$actual"
+    [ "$actual" = "$expected" ] || fail "$label=$actual，期望 $expected"
+}
+
+declare -A EXPECTED_JOBS=(
+    [2024]=10017
+    [2025]=10150
+    [2026]=8511
+)
+for cycle in 2024 2025 2026; do
+    count="$(query_count "SELECT count(*) FROM jobs WHERE cycle='$cycle'")"
+    echo "[drill] jobs $cycle = $count"
+    assert_exact_count "jobs $cycle" "$count" "${EXPECTED_JOBS[$cycle]}"
+done
+
+active_2026="$(query_count \
+    "SELECT count(*) FROM jobs WHERE cycle='2026' AND record_status='active'")"
+assert_exact_count "2026 active" "$active_2026" 8401
+
+salary_count="$(query_count "SELECT count(*) FROM salary_data")"
+review_count="$(query_count "SELECT count(*) FROM review_events")"
+user_count="$(query_count "SELECT count(*) FROM users")"
+for pair in "salary:$salary_count" "review:$review_count" "users:$user_count"; do
+    value="${pair#*:}"
+    [[ "$value" =~ ^[0-9]+$ ]] || fail "${pair%%:*} 行数不是整数：$value"
+done
+[ "$salary_count" -ge 160 ] || fail "salary 行数异常：$salary_count"
+[ "$review_count" -le 200 ] || fail "review 行数异常：$review_count"
+echo "[drill] salary=$salary_count review=$review_count users=$user_count"
+
+echo "[DRILL PASS] dump 可恢复、schema 与 canonical 基线正确（退出时清理临时库）"

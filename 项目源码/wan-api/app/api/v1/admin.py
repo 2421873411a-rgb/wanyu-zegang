@@ -75,7 +75,7 @@ async def get_users(
     admin: User = Depends(get_admin_user),
     db: AsyncSession = Depends(get_db)
 ):
-    """获取用户列表（分页；v17.9.18 规模防御）"""
+    """获取用户列表（分页；规模防御）"""
     total_result = await db.execute(select(func.count(User.id)))
     total = int(total_result.scalar() or 0)
     result = await db.execute(

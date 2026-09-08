@@ -1,8 +1,13 @@
 # 皖域择岗 · 成熟度冲刺终局报告（2026-09-08）
 
+> **更正（2026-09-08，main@7c2d011 复审）**：本报告的 S8/fresh-host/Production
+> Hardening 完成结论缺少可复现日志，且 v17.9.18 正式脚本存在确定性部署与恢复断链。
+> 原“15/15 PASS”已经撤回；以下生产/S8 段落仅保留为历史记录，不构成当前验收。
+> v17.9.19 已进入代码修复，真实 fresh-host、生产与异机恢复重跑前保持 NOT VERIFIED。
+
 ## 一句话
 
-**从 v17.9.10（Staging Ready）出发，7 轮"对抗审计→证伪→规划→修复→全量验证→PR 合入"循环，关闭 P0×3、P1×18、P2×50+；连续两轮干净（Round 6/7）达成收敛；已完成 S8 安全回归与生产部署——wan.kaogong.art API 现已上线 v17.9.17。**
+**当前状态：在既有 7 轮审计收敛基础上，Round 9 已完成 v17.9.19 的代码级部署链修复；fresh-host、生产 smoke、COS 异机恢复尚未取得现场证据，因此 S8/Production Hardening 仍未验收。**
 
 ## 轮次总表
 
@@ -23,14 +28,15 @@
 - **P1×18**：pg_get_userby 拼错、nginx alias 缺陷、provenance 绕过、复核事件翻倍、幽灵引用、APP_VERSION 十版漂移、record_status 词表冲突、限流并发穿透、SECRET_KEY 弱密钥、pg_dump 强制、审计日志丢弃、/health 探活、GIN 索引性能、反斜杠转义、首署 mkdir、release 列宽等
 - **机制建设**：API 版本单一真源（wan-api/release.json）、部署面 linkage 门禁（11 条）、canonical CI discovery 全量（18 模块+4 cjs）、真数据 e2e 进 CI、限流双后端（原子 memory + Redis Lua）、迁移 0004（GIN+回填）、RUNBOOK/备份/回滚链
 
-## 收敛与 S8 证据
+## 历史收敛与 S8 记录（当前未验证）
 
 - 干净轮：Round 6（33/33 探针）、Round 7（119/119 探针）连续干净
 - 压测（生产本机 127.0.0.1:8000，n=60）：/health 1.8ms、search 9.3ms、cycle=2026 15.1ms、keyword 130ms（PG+GIN）、stats 命中 1.1ms、cycles 2.1ms
 - 安全回归：Round 7 终审 119 探针（认证全链/授权矩阵/导入 18 向量/转义正反/暴露面）全 PASS
-- fresh-host 演练：服务器 /opt/wanyu/rehearsal-20260908 独立 venv+8050 端口+真实数据导入（10017/10150/8511 与基线一致）→ 已清理
+- fresh-host 演练：曾记录服务器 `/opt/wanyu/rehearsal-20260908` 独立 venv+8050 端口+真实数据导入，
+  但没有随仓库归档命令/输出，且未覆盖官方 deploy.sh 的 Nginx/secret/restore 全路径，不能作为 PASS。
 
-## 生产部署（2026-09-08）
+## 历史生产部署记录（2026-09-08；非当前验收）
 
 - 服务器：ubuntu@175.27.132.225（Ubuntu 24.04，多站点共用）
 - 布局适配：API=/opt/wanyu/api（www-data）；静态数据=/var/www/wan.kaogong.art/maintainable/data（现网站点数据直接复用，零迁移）；nginx 只增量插入 /api/+/health（备份于 sites-available/*.bak-deploy-20260908；绕过 sites-enabled 为普通文件副本的坑——补丁必须写入 sites-enabled 实际加载的文件）

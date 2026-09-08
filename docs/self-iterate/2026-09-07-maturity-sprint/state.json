@@ -1,9 +1,9 @@
 {
  "schema": "wanyu-maturity-sprint/v1",
  "started_on": "2026-09-07",
- "current_round": 1,
- "main_head": "6c5087e",
- "version": "v17.9.18",
+ "current_round": 9,
+ "main_head": "7c2d011917482ae7cf5d1c7285094b74d6bf7c23",
+ "version": "v17.9.19",
  "gates_baseline": {
   "sqlite": "35 passed, 2 skipped",
   "postgres": "37 passed",
@@ -128,22 +128,56 @@
     "P2": 3
    },
    "notable": "收敛达成：连续两轮干净"
-  }
- ],
- "findings": {
-  "confirmed": [],
-  "rejected": [],
-  "waived": []
- },
- "prs_merged": [],
- "next_focus": "Round 7: 干净轮×2 确认（换镜头：部署链/数据/安全复审）→ 收敛",
- "done": true,
- "done_evidence": [
-  "Round 6 干净（33 探针）",
-  "Round 7 干净（119 探针）",
-  "S8 压测+安全回归归档",
-  "fresh-host 演练 PASS",
-  "生产部署+公网全链路验证 PASS",
-  "v17.9.18 acceptance 15/15 PASS"
- ]
-}
+   },
+   {
+    "round": 9,
+    "status": "LOCAL_REPAIR",
+    "base": "main@7c2d011917482ae7cf5d1c7285094b74d6bf7c23",
+    "version": "v17.9.19",
+    "closed_in_worktree": {
+     "P0": 3,
+     "P1": 3,
+     "P2": 4
+    },
+    "notable": "代码与临时目录 shell 行为已修；fresh-host、生产和 COS 异机恢复仍待真实证据"
+   }
+  ],
+  "findings": {
+   "confirmed": [
+    "APP_VERSION 初始化晚于 secret 写入",
+    "fresh-host 302 与 smoke 200 断言冲突",
+    "一次性运维 CLI 未加载外部 EnvironmentFile",
+    "restore drill 未 CREATE 数据库且 venv 路径错误",
+    "restore 失败清理与旧 LATEST 迁移锚点断链",
+    "weekly/monthly checksum 缺失",
+    "build-only 复制生产构建实现",
+    "Nginx alias+try_files 与正式 CONTRACT 冲突"
+   ],
+   "rejected": [],
+   "waived": []
+  },
+  "prs_merged": [],
+  "next_focus": "v17.9.19 真实 fresh-host + 生产 smoke + COS 异机 restore drill，归档完整命令与日志",
+  "done": false,
+  "local_evidence": {
+   "ops_tests": "ENV=test python -m pytest tests/test_ops_scripts.py -q -> 19 passed",
+   "deploy_linkage_tests": "ENV=test python -m pytest tests/test_deploy_linkage.py -q -> 12 passed",
+   "full_api_tests": "ENV=test python -m pytest -q -> 97 passed, 5 skipped",
+   "shell_syntax": "bash -n deploy.sh scripts/backup_database.sh scripts/restore_drill.sh scripts/upgrade_drill.sh -> PASS",
+   "ruff": "python -m ruff check app tests --select E9,F63,F7,F82 --ignore E402 -> PASS",
+   "json_and_diff": "release.json/state.json parse and git diff --check -> PASS"
+  },
+  "done_evidence": [],
+  "retracted_acceptance": {
+   "version": "v17.9.18",
+   "claim": "Production Hardening 15/15 PASS",
+   "retracted_on": "2026-09-08",
+   "reason": "正式脚本存在可复现部署/恢复断链，且原验收文件没有可复现命令与输出"
+  },
+  "pending_evidence": [
+   "全新 Ubuntu 24.04 完整 deploy.sh",
+   "真实 PostgreSQL restore drill",
+   "COS 版本化异地副本与异机 restore drill",
+   "v17.9.19 生产部署、smoke 与回滚"
+  ]
+ }
