@@ -1,4 +1,4 @@
-# wan-api 与 canonical 数据链的接口契约（随版本滚动更新；当前 v17.9.15 · Round-5）
+# wan-api 与 canonical 数据链的接口契约（随版本滚动更新；当前 v17.9.19 · Round-9）
 
 > 一句话：**canonical/cycles/*.json 仍是唯一正式数据真源；wan-api 是用户状态层与读取服务层，永远不产生第二数据真源。**
 
@@ -54,11 +54,18 @@
 
 - API 版本单一真源 = `wan-api/release.json`（wanyu-api-release/v1）的 `release`；
   `config.APP_VERSION` 启动时读它（项目级 `项目源码/release.json` 是网站产品版本，互不捆绑），
-  部署布局由 deploy.sh 注入 .env；`/health` 返回 `version`，deploy smoke 断言其等于部署版本；
+  deploy.sh 必须在任何 secret 写入前先解析版本，再注入独立 EnvironmentFile；`/health` 返回
+  `version`，deploy smoke 断言其等于部署版本；
 - deploy.sh：`set -Eeuo pipefail`、除 read_existing_db_password 显式允许为空的 grep 外
   无 `|| true` 吞错、`systemctl restart`、
-  换血前自动备份旧版本（`/opt/wanyu/backup/`，回滚见 `docs/ops/RUNBOOK.md`）；
-- nginx `/maintainable/` 用 `root`（alias+try_files 是 nginx trac#97 缺陷）；certbot `--redirect`。
+  迁移前/导入后生成原子 PostgreSQL dump + checksum（`/opt/wanyu/backup/`，回滚见
+  `docs/ops/RUNBOOK.md`）；
+- 生产部署和 `--build-only` 必须复用同一个 `build_release()`，不得复制 tar/venv 实现；
+- nginx `/maintainable/` 用 `root`（alias+try_files 是 nginx trac#97 缺陷）；HTTPS `/` 可 302 到
+  `/maintainable/index.html`，smoke 必须跟随跳转并以最终 200 为准；certbot `--redirect`；
+- `wanyu-backup.timer` 默认仅产生**本机恢复点**。只有 COS 异地上传、桶版本化/保留策略和
+  异机 restore drill 都有证据后，才可称“灾难恢复”。daily/weekly/monthly 每份 dump 必须有
+  同目录可独立校验的 `.sha256`。
 
 ## 5. 门禁场景（tests/ 锁死，任何改动不得削弱）
 
@@ -90,6 +97,8 @@
 - [x] Round-3 复审收口（v17.9.13/v17.9.14：转义缺陷实现修复+正向门禁、首署 mkdir、限流时钟/内存、文档真源统一、停服窗口前移）
 - [x] Round-4 盲区终扫（v17.9.14：反斜杠转义真落地、release 列宽、CI timeout/permissions、载荷排除 *.db、/health 限流）
 - [x] Round-5 复审收口（v17.9.15：deploy 载荷行续行符 P0、redis-server 单元名、RUNBOOK 回滚核验/前置一节、备份权限、stats 缓存上限）
+- [x] Round-9 代码级修复（v17.9.19：版本初始化、redirect-aware smoke、restore 建库/venv 路径/失败清理、checksum 配对、唯一构建实现）
 - [ ] S8：staging 压测 + 安全回归 + fresh-host 部署演练
 - [ ] 多 worker 前接入 Redis 限流与会话级指标
 - [ ] 线上部署后密钥轮换（SSH 私钥已随交接包分发过）
+- [ ] COS 异地副本启用桶版本化/保留策略，并在异机完成下载+checksum+restore drill

@@ -1,5 +1,5 @@
 #!/bin/bash
-# Upgrade Drift 演练（v17.9.18 验收项：终审 P1——幽灵文件/依赖漂移/幂等/回滚）
+# Upgrade Drift 演练（v17.9.19：生产与演练复用唯一 build_release 实现）
 #
 # 用真实 build_release 逻辑（deploy.sh --build-only）证明 Immutable Release 的
 # 四条不变量：

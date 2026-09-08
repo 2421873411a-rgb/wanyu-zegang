@@ -109,7 +109,7 @@ def test_deploy_sh_log_dir_permissions_and_no_silent_swallow():
 
 
 def test_immutable_release_invariants():
-    """v17.9.18 终审 P1 回归锁：Immutable Release 四要素 + 最小权限模型。"""
+    """v17.9.19 回归锁：Immutable Release 四要素 + 最小权限模型。"""
     script = _deploy_sh()
     # releases/<ver>-<sha> 全新目录 + fresh venv（幽灵文件/依赖漂移由构造消除）
     assert "${RELEASES_DIR}/${APP_VERSION}-${git_sha}" in script
@@ -130,12 +130,13 @@ def test_immutable_release_invariants():
 
 
 def test_systemd_unit_and_nginx_template_invariants():
-    """unit/nginx 模板关键行：日志目录、certbot --redirect、limits。"""
+    """unit/nginx 模板关键行：日志目录、redirect、limits、无 alias+try_files。"""
     script = _deploy_sh()
     assert "User=www-data" in script
     assert "--redirect" in script  # certbot 强制 HTTP→HTTPS
     assert "client_max_body_size 64m" in script
-    assert "alias /var/www/wan.kaogong.art/maintainable/" in script
+    assert "root /var/www/wan.kaogong.art;" in script
+    assert "alias /var/www/wan.kaogong.art/maintainable/" not in script
 
 
 def test_app_version_single_source():

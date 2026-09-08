@@ -3,6 +3,10 @@
 > ⚠️ **EXPERIMENTAL / NOT FOR PRODUCTION**：wan-api 处于原型态，
 > 安全与测试门禁见 `docs/CONTRACT.md`；满足上线前置前不得对公网开放。
 
+> **v17.9.19 状态（2026-09-08）**：v17.9.18 的“Production Hardening 15/15 PASS”
+> 已因 fresh-host/restore 复审发现确定性断链而撤回。本仓库已补代码级修复与 shell 行为回归，
+> 但新的真实 fresh-host 部署、COS 异机副本和异机 restore drill 尚无现场证据，当前不得恢复 PASS。
+
 
 基于 FastAPI 的岗位数据与用户工作台后端。**当前正式站（静态）未接入本 API**——
 线上收藏/对比为浏览器 localStorage，wan-api 为未来动态站预建（用户系统/搜索/管理导入/审计面）。
@@ -45,7 +49,7 @@ wan-api/
 │   └── main.py           # 应用入口
 ├── migrations/           # Alembic数据库迁移
 ├── tests/                # 门禁式测试套件（pytest；见 docs/CONTRACT.md §5）
-├── scripts/              # 运维脚本（create_admin.py 等）
+├── scripts/              # 运维脚本（管理员、备份、restore/upgrade drill）
 ├── docs/                 # 契约与说明（CONTRACT.md）
 ├── gunicorn.conf.py      # Gunicorn配置
 ├── requirements.txt      # Python依赖
@@ -98,6 +102,8 @@ uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 ## 生产部署
 
 ### 自动部署
+
+仅在 `docs/CONTRACT.md` §7 的现场门禁完成后执行；仓库内测试通过不等于生产部署已验收。
 
 ```bash
 # 使用部署脚本（需要root权限）
@@ -197,8 +203,8 @@ gunicorn app.main:app -c gunicorn.conf.py
 
 ## 测试
 
-> v17.9.15 起 tests/ 为真实存在的门禁式套件（78 用例；SQLite job 实跑 73+5 专属跳过，
-> PG+Redis job 78 全跑），覆盖：
+> v17.9.19 起 tests/ 除 API/数据库门禁外，还会在临时目录执行真实运维 shell 行为（特权、
+> PostgreSQL、systemd、COS 边界使用受控替身），覆盖：
 > 注册不可成为管理员 / 生产 SECRET_KEY 拒绝启动 / refresh 仅 body + 轮换撤销 /
 > 重复收藏数据库拒绝 / 对比≤4 / 管理导入真实写库对账 / 最后管理员保护 / 413 / 登出。
 > 契约详见 `docs/CONTRACT.md`。

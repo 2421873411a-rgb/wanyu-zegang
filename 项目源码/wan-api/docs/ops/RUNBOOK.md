@@ -3,70 +3,101 @@
 ## 部署前置（全新机器）
 
 - 支持矩阵：Ubuntu 24.04–25.x（deploy.sh 读取 /etc/os-release 硬校验；python3.12 apt 包名钉死，22.04 需 PPA 不支持）。
-- 静态数据必须先于部署就位：`/opt/wanyu/static/maintainable/data/` 下含
+- 静态数据必须先于部署就位：默认 `/var/www/wan.kaogong.art/maintainable/data/` 下含
   `cycles/{2024,2025,2026}/jobs.json`、`salary/anhui.json`、`audit/review-queue.json`
-  （来源：网站构建产物）。deploy.sh 在 check_prerequisites 阶段即校验该目录，缺失立即中止。
+  （来源：网站构建产物）。如需改路径，显式设置 `STATIC_DATA_PATH`；deploy.sh 在
+  check_prerequisites 阶段即校验该目录，缺失立即中止。
 - DNS：wan.kaogong.art 的 A 记录需已指向本机（smoke 断言公网 HTTPS 与 301 强跳）。
 
-## 架构（v17.9.18 Immutable Release）
+## 架构（v17.9.19 Immutable Release）
 
 - 代码与 venv：`/opt/wanyu/releases/<版本>-<sha>/{app,venv}`——每次部署全新目录+全新 venv
   （root 属主，www-data 只读），`/opt/wanyu/current` 符号链接原子切换。
   服务器文件系统 == Git release：无覆盖残留/幽灵文件，无跨版本依赖漂移。
 - 生产 secret：`/etc/wanyu/wanyu.env`（root:www-data 0640，与代码目录彻底分离）。
 - 运行时可写面仅 `/var/log/wanyu`（systemd ReadWritePaths 唯一写点）。
-- DB 备份：`wanyu-backup.timer`（daily 03:00，sha256 校验，保留 7 daily/4 weekly/3 monthly）。
-- 恢复演练：`bash scripts/restore_drill.sh`（备份→临时库恢复→revision/行数对账→清理）。
+- DB **本机恢复点**：`wanyu-backup.timer`（daily 03:00；每个 daily/weekly/monthly dump
+  都有同目录 checksum；本机保留 7/4/3）。未配置 COS 时不能称为完整灾备。
+- 可选异地副本：`/etc/wanyu/backup.env` 配置 COS 后，timer 会把新生成的各层 dump 与
+  checksum 成对上传；对象存储必须另开版本化/保留策略，见下文。
+- 恢复演练：`bash /opt/wanyu/current/app/scripts/restore_drill.sh`（checksum→建临时库→
+  pg_restore→代码 head/行数对账→成功或失败均清理）。
 - 升级漂移演练：`bash scripts/upgrade_drill.sh`（幽灵文件/依赖漂移/幂等/回滚切换四不变量）。
 
 ## 回滚（deploy.sh 失败或新版本异常时）
 
-deploy.sh 每次换血前会把旧版本代码备份到服务器 `/opt/wanyu/backup/<时间戳>/`（不含 venv 与 .env），
-`/opt/wanyu/backup/LATEST` 记录最近一次备份时间戳；迁移升级前的 alembic 版本戳写在
-`/opt/wanyu/backup/<时间戳>/alembic-before.txt`。
+deploy.sh 在迁移前生成 `/opt/wanyu/backup/wanyu_db-<时间>.dump`、配对 `.sha256` 和
+`.alembic-before.txt`；导入后另生成 `wanyu_db-post-import-<时间>.dump` 与 checksum。
+代码回滚依赖 `/opt/wanyu/releases/` 保留的前一 release，不再使用旧覆盖式目录或 `LATEST`。
 
-⚠️ **顺序铁律（v17.9.12 修正）**：必须**先降数据库、后回滚代码**。
-旧代码的 migrations 目录里没有新 revision，先 rsync 旧代码再 downgrade 会报
+⚠️ **顺序铁律**：遇到不兼容迁移时必须**先用当前新 release 降数据库、后切旧 release**。
+旧代码的 migrations 目录里没有新 revision，先切旧代码再 downgrade 会报
 "Can't locate revision"——恰在最需要回滚的时刻走不通。
 
-1. 切回上一 release（immutable 架构：回滚=切符号链接，无需回代码）：
+1. 找到迁移前 revision（与 dump 同名的 sidecar），并用当前新 release 执行 downgrade：
    ```bash
-   ls -1t /opt/wanyu/releases/            # 选择上一 release 目录
-   sudo ln -sfn /opt/wanyu/releases/<旧release> /opt/wanyu/current
+   snapshot=/opt/wanyu/backup/wanyu_db-<时间>.dump
+   old_rev=$(cat "$snapshot.alembic-before.txt")
+   sudo env OLD_REV="$old_rev" /bin/bash -c '
+     cd /opt/wanyu/current/app
+     source ./deploy.sh
+     run_as_app /opt/wanyu/current/venv/bin/alembic downgrade "$OLD_REV"
+   '
+   ```
+   若 sidecar 为 `base`，表示迁移前没有 Alembic schema；不要盲目执行，先按快照恢复流程处理。
+2. 原子切回上一 release，并把外部 EnvironmentFile 的版本同步为旧 release：
+   ```bash
+   old=/opt/wanyu/releases/<旧release目录>
+   old_ver=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["release"])' "$old/app/release.json")
+   sudo ln -sfn "$old" /opt/wanyu/current.tmp
+   sudo mv -T /opt/wanyu/current.tmp /opt/wanyu/current
+   sudo sed -i "s/^APP_VERSION=.*/APP_VERSION=$old_ver/" /etc/wanyu/wanyu.env
    sudo systemctl restart wanyu-api
-   curl -sf http://127.0.0.1:8000/health   # 核对 version 回到旧版本
-   ```
-2. 回滚数据库（仅当新版本迁移不兼容旧代码时；用仍在新代码里的 alembic 执行）：
-   ```bash
-   sudo -u postgres pg_dump -Fc wanyu_db > /opt/wanyu/backup/wanyu_db-before-downgrade.dump
-   cd /opt/wanyu/current/app && sudo -u www-data ../venv/bin/alembic downgrade <旧版本号>
-   ```
-   数据已损坏时的彻底恢复：daily 快照（deploy/import 后自动生成并校验非空）→
-   `sudo -u postgres pg_restore -d wanyu_db --clean --if-exists <快照文件>`，
-   并跑 `bash scripts/restore_drill.sh` 验证。
-2. 回滚代码：
-   ```bash
-   rsync -a --delete --exclude 'venv' --exclude '.env' /opt/wanyu/backup/$ts/ /opt/wanyu/api/
-   # .env 不随回滚（rsync 排除），其 APP_VERSION 仍是新值——旧代码读它会把
-   # /health 报成新版本。回滚后把 .env 对齐旧版本再重启：
-   ver=$(python3 -c "import json;print(json.load(open('/opt/wanyu/api/release.json'))['release'])")
-   sed -i "s/^APP_VERSION=.*/APP_VERSION=$ver/" /opt/wanyu/api/.env
-   systemctl restart wanyu-api
    curl -sf http://127.0.0.1:8000/health
    ```
-   venv 无需重建（依赖按 runtime lock 安装，回滚目标版本的 lock 与现 venv 一致时可复用；
-   若回滚跨越依赖变更，删掉 venv 后 `python3.12 -m venv venv && venv/bin/pip install -r requirements.lock.txt`）。
-3. 数据库快照（每次部署前强制）：
+3. 数据已损坏时，先停服务并保留事故现场 dump，再恢复已校验快照：
    ```bash
-   sudo -u postgres pg_dump -Fc wanyu_db > /opt/wanyu/backup/wanyu_db-$(date +%Y%m%d-%H%M%S).dump
+   sudo systemctl stop wanyu-api
+   sudo -u postgres pg_dump -Fc wanyu_db > /opt/wanyu/backup/incident-before-restore.dump
+   (cd /opt/wanyu/backup && sha256sum -c <快照名>.dump.sha256)
+   sudo -u postgres pg_restore --exit-on-error --clean --if-exists --no-owner \
+     -d wanyu_db /opt/wanyu/backup/<快照名>.dump
+   sudo systemctl start wanyu-api
    ```
+
+## DB 异地副本（完整灾难恢复的必要条件）
+
+1. 在服务器安装并初始化 `coscli`；凭据只留服务器，禁止写仓库或交接包。
+2. 新建 root-only 配置：
+   ```bash
+   sudo install -m 0600 /dev/null /etc/wanyu/backup.env
+   sudo sh -c 'printf "%s\n" \
+     "COS_BUCKET=<私有桶名-APPID>" \
+     "COSCLI=/usr/local/bin/coscli" \
+     "COS_PREFIX=wanyu-db" > /etc/wanyu/backup.env'
+   sudo systemctl start wanyu-backup.service
+   sudo journalctl -u wanyu-backup.service -n 50 --no-pager
+   ```
+3. 在 COS 控制台启用版本化与保留/防删策略；仅“上传成功”不足以证明整机灾难恢复。
+4. 从另一台机器下载同一 dump 与 `.sha256` 到隔离目录，先执行 `sha256sum -c`，再把它放入
+   `<临时根>/daily/` 并运行：
+   ```bash
+   sudo WANYU_BACKUP_BASE=<临时根> \
+     WANYU_CURRENT_LINK=/opt/wanyu/current \
+     bash /opt/wanyu/current/app/scripts/restore_drill.sh
+   ```
+   保存完整输出、机器、时间、commit/release 和对象版本号后，才能勾选 CONTRACT 的异机恢复门禁。
 
 ## 管理员引导
 
 部署链只在设置了 `ADMIN_BOOTSTRAP_PASSWORD` 时自动创建管理员；否则完成横幅会提示手动执行：
 ```bash
-cd /opt/wanyu/api && source venv/bin/activate
-python scripts/create_admin.py --email admin@kaogong.art --username admin
+sudo /bin/bash -c '
+  cd /opt/wanyu/current/app
+  source ./deploy.sh
+  run_as_app /opt/wanyu/current/venv/bin/python scripts/create_admin.py \
+    --email admin@kaogong.art --username admin
+'
 ```
 注册接口永远只产生普通用户（v17.9.1 S0 纪律），管理员只能由此脚本产生。
 
