@@ -1,0 +1,3 @@
+postgres success https://github.com/2421873411a-rgb/wanyu-zegang/actions/runs/34259846920/job/102174768165
+canonical success https://github.com/2421873411a-rgb/wanyu-zegang/actions/runs/34259846931/job/102174768029
+test success https://github.com/2421873411a-rgb/wanyu-zegang/actions/runs/34259846920/job/102174767947
