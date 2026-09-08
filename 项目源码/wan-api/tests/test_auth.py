@@ -40,9 +40,9 @@ async def test_password_policy_enforced(client: AsyncClient):
 async def test_production_rejects_default_secret_key():
     """保持 async 形态，避免模块级 pytest.mark.asyncio 对同步测试产生噪声。"""
     with pytest.raises(RuntimeError):
-        _validate_production_safety(Settings(_env_file=None, ENV="production"))
+        _validate_production_safety(Settings(_env_file=None, ENV="production", CORS_ORIGINS=["https://wan.kaogong.art"]))
     _validate_production_safety(Settings(
-        _env_file=None, ENV="production", SECRET_KEY="a" * 64))
+        _env_file=None, ENV="production", SECRET_KEY="a" * 64, CORS_ORIGINS=["https://wan.kaogong.art"]))
 
 
 async def test_refresh_does_not_accept_query_token(client: AsyncClient):

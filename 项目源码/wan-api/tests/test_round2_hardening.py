@@ -77,19 +77,22 @@ async def test_secret_key_gate_matrix():
     # 非测试环境缺失 → 拒启（含模糊 test 写法：' TEST '/'Test' 不享受豁免——RA-5）
     for env in ("dev", "production", "staging", "Production", " TEST ", "Test", "TEST"):
         with pytest.raises(RuntimeError):
-            _validate_production_safety(Settings(ENV=env, SECRET_KEY=""))
+            _validate_production_safety(Settings(ENV=env, SECRET_KEY="", CORS_ORIGINS=["https://wan.kaogong.art"]))
     # 公开测试密钥在正式环境 → 拒启（RA-4：该值已随公开仓库扩散）
     with pytest.raises(RuntimeError):
         _validate_production_safety(
-            Settings(ENV="production", SECRET_KEY="wanyu-test-only-secret-key-0123456789abcdef"))
+            Settings(ENV="production", SECRET_KEY="wanyu-test-only-secret-key-0123456789abcdef", CORS_ORIGINS=["https://wan.kaogong.art"]))
     # 公开默认值 → 拒启（无论环境）
     with pytest.raises(RuntimeError):
         _validate_production_safety(Settings(ENV="dev", SECRET_KEY="your-secret-key-change-in-production"))
     # 弱密钥（<32 字符）在任何正式环境 → 拒启（审计 T2：'secret' 曾在生产放行）
     with pytest.raises(RuntimeError):
-        _validate_production_safety(Settings(ENV="production", SECRET_KEY="secret"))
+        _validate_production_safety(Settings(ENV="production", SECRET_KEY="secret", CORS_ORIGINS=["https://wan.kaogong.art"]))
     # 足够长的随机密钥 → 通过
-    _validate_production_safety(Settings(ENV="production", SECRET_KEY="a" * 64))
+    _validate_production_safety(Settings(ENV="production", SECRET_KEY="a" * 64, CORS_ORIGINS=["https://wan.kaogong.art"]))
+    # 生产 CORS 含 localhost → 拒启（Round-8 终审 P2：生产信任边界）
+    with pytest.raises(RuntimeError):
+        _validate_production_safety(Settings(ENV="production", SECRET_KEY="a" * 64))
 
 
 # ============ P0 用户筛选快照端点 ============

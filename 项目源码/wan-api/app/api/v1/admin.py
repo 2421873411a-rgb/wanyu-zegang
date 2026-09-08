@@ -3,7 +3,7 @@ import json
 import logging
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile, status
+from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, UploadFile, status
 from sqlalchemy import func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -70,26 +70,40 @@ async def get_dashboard(
 
 @router.get("/users")
 async def get_users(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(50, ge=1, le=100),
     admin: User = Depends(get_admin_user),
     db: AsyncSession = Depends(get_db)
 ):
-    """获取用户列表"""
-    result = await db.execute(select(User).order_by(User.created_at.desc()))
+    """获取用户列表（分页；v17.9.18 规模防御）"""
+    total_result = await db.execute(select(func.count(User.id)))
+    total = int(total_result.scalar() or 0)
+    result = await db.execute(
+        select(User)
+        .order_by(User.created_at.desc())
+        .offset((page - 1) * page_size)
+        .limit(page_size)
+    )
     users = result.scalars().all()
 
-    return [
-        {
-            "id": str(u.id),
-            "email": u.email,
-            "username": u.username,
-            "display_name": u.display_name,
-            "is_admin": u.is_admin,
-            "is_active": u.is_active,
-            "created_at": u.created_at.isoformat() if u.created_at else None,
-            "last_login_at": u.last_login_at.isoformat() if u.last_login_at else None
-        }
-        for u in users
-    ]
+    return {
+        "total": total,
+        "page": page,
+        "page_size": page_size,
+        "items": [
+            {
+                "id": str(u.id),
+                "email": u.email,
+                "username": u.username,
+                "display_name": u.display_name,
+                "is_admin": u.is_admin,
+                "is_active": u.is_active,
+                "created_at": u.created_at.isoformat() if u.created_at else None,
+                "last_login_at": u.last_login_at.isoformat() if u.last_login_at else None
+            }
+            for u in users
+        ]
+    }
 
 
 @router.put("/users/{user_id}")
