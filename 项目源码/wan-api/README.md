@@ -3,9 +3,11 @@
 > ⚠️ **EXPERIMENTAL / NOT FOR PRODUCTION**：wan-api 处于原型态，
 > 安全与测试门禁见 `docs/CONTRACT.md`；满足上线前置前不得对公网开放。
 
-> **v17.9.19 状态（2026-09-08）**：v17.9.18 的“Production Hardening 15/15 PASS”
-> 已因 fresh-host/restore 复审发现确定性断链而撤回。本仓库已补代码级修复与 shell 行为回归，
-> 但新的真实 fresh-host 部署、COS 异机副本和异机 restore drill 尚无现场证据，当前不得恢复 PASS。
+> **v17.9.22 状态（2026-09-09）**：已通过 deploy.sh 全流程部署至生产 wan.kaogong.art（幂等导入、
+> 迁移前后双快照、smoke 全过、公网验证），真机演练闭环：upgrade_drill 四不变量 ALL PASS、
+> restore_drill PASS（checksum→pg_restore→revision/行数对账）、自动回滚 rollback_to_previous
+> 实弹验证成功。**唯一未闭环项：COS 异地副本**（需站长腾讯云控制台配置 coscli 凭据与桶版本化，
+> 当前备份仅为本机恢复点，整机故障不受保护）。证据：docs/self-iterate/2026-09-09-12to21-maturity/verify/prod-*.md
 
 
 基于 FastAPI 的岗位数据与用户工作台后端。**当前正式站（静态）未接入本 API**——

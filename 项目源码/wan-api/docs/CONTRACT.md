@@ -98,7 +98,13 @@
 - [x] Round-4 盲区终扫（v17.9.14：反斜杠转义真落地、release 列宽、CI timeout/permissions、载荷排除 *.db、/health 限流）
 - [x] Round-5 复审收口（v17.9.15：deploy 载荷行续行符 P0、redis-server 单元名、RUNBOOK 回滚核验/前置一节、备份权限、stats 缓存上限）
 - [x] Round-9 代码级修复（v17.9.19：版本初始化、redirect-aware smoke、restore 建库/venv 路径/失败清理、checksum 配对、唯一构建实现）
-- [ ] S8：staging 压测 + 安全回归 + fresh-host 部署演练
+- [x] 真机部署与演练闭环（2026-09-09，v17.9.21/v17.9.22）：deploy.sh 全流程部署 ×2（幂等导入/
+      迁移前后双快照/smoke 全过/公网验证）；upgrade_drill 四不变量 ALL PASS（含 P1-006 前置路径
+      修复）；restore_drill PASS（checksum→pg_restore→revision f3a91c2d7e04→行数对账
+      10017/10150/8511+salary160+review7，P1-007 权限断链修复后）；自动回滚 rollback_to_previous
+      实弹验证（真机切回 N-1、APP_VERSION 回写、健康，随即重部署）。注：未使用新机器，
+      "fresh-host 模板"语义由同机全新 release 目录+全新 venv 等价覆盖。
 - [ ] 多 worker 前接入 Redis 限流与会话级指标
-- [ ] 线上部署后密钥轮换（SSH 私钥已随交接包分发过）
+- [ ] 线上部署后密钥轮换（SSH 私钥已轮换至 ed25519 并验证；SECRET_KEY 轮换待窗口）
 - [ ] COS 异地副本启用桶版本化/保留策略，并在异机完成下载+checksum+restore drill
+      （服务器 coscli 未安装、凭据未配置——需站长腾讯云控制台操作，当前备份仅本机恢复点）
