@@ -29,8 +29,9 @@ class MemoryRateLimiter:
 
     check(key) 是原子的"记录+判定"：窗口内事件数已达上限时，置锁定
     （持续一个窗口期，期间拒绝且不追加，保证可恢复性）并返回 False。
-    超过 _MAX_KEYS 时按"最旧活动时间"整键清扫（Round-3 RA-7：distinct key
-    永不回收曾是内存 DoS 面——20 万 key ≈150MB 实测）。
+    超过 _MAX_KEYS 时按 last_seen（真 LRU）清扫（Round-3 RA-7：distinct key
+    永不回收曾是内存 DoS 面——20 万 key ≈150MB 实测；Round-7 终审修正：
+    原实现超限时按键名字典序丢弃，会误删活跃攻击 IP 的计数）。
     """
 
     _MAX_KEYS = 50_000
@@ -40,27 +41,37 @@ class MemoryRateLimiter:
         self.window_seconds = window_seconds
         self._events: dict = defaultdict(deque)
         self._locked_until: dict = {}
+        self._last_seen: dict = {}
         self._lock = Lock()
 
     def _sweep_if_needed(self, now: float) -> None:
         if len(self._events) <= self._MAX_KEYS and len(self._locked_until) <= self._MAX_KEYS:
             return
+        # 第一层：窗口外整键回收（确定性 TTL）
         stale = [k for k, q in self._events.items()
                  if not q or now - q[0] > self.window_seconds]
         for k in stale:
             self._events.pop(k, None)
+            self._last_seen.pop(k, None)
         stale_locks = [k for k, until in self._locked_until.items() if now >= until]
         for k in stale_locks:
             self._locked_until.pop(k, None)
+        # 第二层（极端攻击仍超限）：按 last_seen 真 LRU 丢弃最旧的一半——
+        # 活跃攻击方的计数按其最近活动时间保留，久未访问者先回收
         if len(self._events) > self._MAX_KEYS:
-            # 仍超限（极端攻击）：按键名排序丢弃最旧的一半，保住进程而非完美计数
-            for k in sorted(self._events)[: len(self._events) // 2]:
+            by_last_seen = sorted(self._events, key=lambda k: self._last_seen.get(k, 0))
+            for k in by_last_seen[: len(by_last_seen) // 2]:
                 self._events.pop(k, None)
+                self._last_seen.pop(k, None)
+        if len(self._last_seen) > self._MAX_KEYS * 2:
+            for k in sorted(self._last_seen, key=lambda k: self._last_seen[k])[: self._MAX_KEYS]:
+                self._last_seen.pop(k, None)
 
     async def check(self, key: str) -> bool:
         now = time.monotonic()
         with self._lock:
             self._sweep_if_needed(now)
+            self._last_seen[key] = now
             locked_until = self._locked_until.get(key)
             if locked_until is not None:
                 if now < locked_until:
@@ -81,11 +92,13 @@ class MemoryRateLimiter:
         with self._lock:
             self._events.pop(key, None)
             self._locked_until.pop(key, None)
+            self._last_seen.pop(key, None)
 
     def reset(self) -> None:
         with self._lock:
             self._events.clear()
             self._locked_until.clear()
+            self._last_seen.clear()
 
 
 _SLIDING_LUA = """

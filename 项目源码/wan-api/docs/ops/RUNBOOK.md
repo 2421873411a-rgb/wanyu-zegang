@@ -8,6 +8,17 @@
   （来源：网站构建产物）。deploy.sh 在 check_prerequisites 阶段即校验该目录，缺失立即中止。
 - DNS：wan.kaogong.art 的 A 记录需已指向本机（smoke 断言公网 HTTPS 与 301 强跳）。
 
+## 架构（v17.9.18 Immutable Release）
+
+- 代码与 venv：`/opt/wanyu/releases/<版本>-<sha>/{app,venv}`——每次部署全新目录+全新 venv
+  （root 属主，www-data 只读），`/opt/wanyu/current` 符号链接原子切换。
+  服务器文件系统 == Git release：无覆盖残留/幽灵文件，无跨版本依赖漂移。
+- 生产 secret：`/etc/wanyu/wanyu.env`（root:www-data 0640，与代码目录彻底分离）。
+- 运行时可写面仅 `/var/log/wanyu`（systemd ReadWritePaths 唯一写点）。
+- DB 备份：`wanyu-backup.timer`（daily 03:00，sha256 校验，保留 7 daily/4 weekly/3 monthly）。
+- 恢复演练：`bash scripts/restore_drill.sh`（备份→临时库恢复→revision/行数对账→清理）。
+- 升级漂移演练：`bash scripts/upgrade_drill.sh`（幽灵文件/依赖漂移/幂等/回滚切换四不变量）。
+
 ## 回滚（deploy.sh 失败或新版本异常时）
 
 deploy.sh 每次换血前会把旧版本代码备份到服务器 `/opt/wanyu/backup/<时间戳>/`（不含 venv 与 .env），
@@ -18,15 +29,21 @@ deploy.sh 每次换血前会把旧版本代码备份到服务器 `/opt/wanyu/bac
 旧代码的 migrations 目录里没有新 revision，先 rsync 旧代码再 downgrade 会报
 "Can't locate revision"——恰在最需要回滚的时刻走不通。
 
-1. 回滚数据库（先做；用"当前仍在位的新代码"执行 downgrade）：
+1. 切回上一 release（immutable 架构：回滚=切符号链接，无需回代码）：
    ```bash
-   ts=$(cat /opt/wanyu/backup/LATEST)
-   cat /opt/wanyu/backup/$ts/alembic-before.txt   # 确认旧版本号
-   cd /opt/wanyu/api && source venv/bin/activate
-   alembic downgrade <旧版本号>
+   ls -1t /opt/wanyu/releases/            # 选择上一 release 目录
+   sudo ln -sfn /opt/wanyu/releases/<旧release> /opt/wanyu/current
+   sudo systemctl restart wanyu-api
+   curl -sf http://127.0.0.1:8000/health   # 核对 version 回到旧版本
    ```
-   数据已损坏时的彻底恢复：`pg_dump` 快照（deploy.sh 迁移前自动生成并校验非空）→
-   `sudo -u postgres pg_restore -d wanyu_db --clean --if-exists <快照文件>`。
+2. 回滚数据库（仅当新版本迁移不兼容旧代码时；用仍在新代码里的 alembic 执行）：
+   ```bash
+   sudo -u postgres pg_dump -Fc wanyu_db > /opt/wanyu/backup/wanyu_db-before-downgrade.dump
+   cd /opt/wanyu/current/app && sudo -u www-data ../venv/bin/alembic downgrade <旧版本号>
+   ```
+   数据已损坏时的彻底恢复：daily 快照（deploy/import 后自动生成并校验非空）→
+   `sudo -u postgres pg_restore -d wanyu_db --clean --if-exists <快照文件>`，
+   并跑 `bash scripts/restore_drill.sh` 验证。
 2. 回滚代码：
    ```bash
    rsync -a --delete --exclude 'venv' --exclude '.env' /opt/wanyu/backup/$ts/ /opt/wanyu/api/

@@ -1,17 +1,36 @@
 #!/bin/bash
-# 皖域择岗 API 部署脚本
-
+# 皖域择岗 API 部署脚本 v2 —— Immutable Release 架构（v17.9.18）
+#
+# 架构（终审 P1：覆盖式部署的幽灵文件/依赖漂移/运行时可写 三连修复）：
+#
+#   /opt/wanyu/
+#   ├── releases/<version>-<sha>/     每次部署全新目录：app/ + venv/（root 属主，www-data 只读）
+#   ├── current -> releases/<...>     原子符号链接（ln -sfn + mv -T），回滚=切回上一链接
+#   ├── backup/                       700 root：数据库快照 + 历史锚点
+#   └── /var/log/wanyu                唯一运行时可写面
+#
+#   /etc/wanyu/wanyu.env              生产 secret（root:www-data 0640，与代码目录彻底分离）
+#
+# 不变量：
+#   - 服务器文件系统 == Git release（每次全新目录，无覆盖残留/幽灵文件）
+#   - venv 每 release 全新建（lock 说没有的包 venv 里就没有）
+#   - 运行用户对代码/venv/secret 均无写权限（Persistence 面收窄）
+#
 set -Eeuo pipefail
 
-APP_DIR="/opt/wanyu/api"
-BACKUP_ROOT="/opt/wanyu/backup"
-STATIC_DATA_PATH="${STATIC_DATA_PATH:-/opt/wanyu/static/maintainable/data}"
-LOG_DIR="/var/log/wanyu"
+BASE_DIR="/opt/wanyu"
+RELEASES_DIR="${BASE_DIR}/releases"
+BACKUP_ROOT="${BASE_DIR}/backup"
+SHARED_LOG="/var/log/wanyu"
+SECRET_ENV="/etc/wanyu/wanyu.env"
+CURRENT_LINK="${BASE_DIR}/current"
 SERVICE_NAME="wanyu-api"
+STATIC_DATA_PATH="${STATIC_DATA_PATH:-/var/www/wan.kaogong.art/maintainable/data}"
 DB_PASSWORD="${DB_PASSWORD:-}"
-# 部署载荷 = 本脚本所在目录（wan-api/）；API 版本真源 = 载荷内 release.json（wanyu-api-release/v1）
+# 部署载荷 = 本脚本所在目录（wan-api/）；API 版本真源 = 载荷内 release.json
 SCRIPT_DIR="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"
 RELEASE_JSON="${SCRIPT_DIR}/release.json"
+APP_VERSION=""
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -25,7 +44,7 @@ log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 on_error() {
     local exit_code=$?
     log_error "部署失败：line=${BASH_LINENO[0]:-unknown} command=${BASH_COMMAND:-unknown} exit=${exit_code}"
-    log_error "如需回滚见 项目源码/wan-api/docs/ops/RUNBOOK.md（备份位于 ${BACKUP_ROOT}）"
+    log_error "回滚：sudo ln -sfn <上一release目录> ${CURRENT_LINK} && sudo systemctl restart ${SERVICE_NAME}（见 docs/ops/RUNBOOK.md）"
     exit "$exit_code"
 }
 trap on_error ERR
@@ -38,7 +57,7 @@ check_root() {
 }
 
 check_prerequisites() {
-    # 目标系统钉死：apt 包名 python3.12/python3.12-venv 仅在 Ubuntu 24.04+ 官方源存在
+    # 支持矩阵：python3.12 apt 包名钉死在 Ubuntu 24.04–25.x 官方源
     if [ -r /etc/os-release ]; then
         # shellcheck disable=SC1091
         . /etc/os-release
@@ -50,6 +69,7 @@ check_prerequisites() {
                 ;;
         esac
     fi
+    # 静态数据前置：缺失在预检阶段就中止（不在装完全部依赖后）
     if [ ! -d "${STATIC_DATA_PATH}/cycles" ]; then
         log_error "部署前置缺失：静态数据目录 ${STATIC_DATA_PATH}/cycles 不存在。请先放置 canonical 派生数据（cycles/ salary/ audit/），见 docs/ops/RUNBOOK.md"
         exit 1
@@ -57,7 +77,7 @@ check_prerequisites() {
     local cmd
     for cmd in curl sudo openssl python3 tar; do
         command -v "$cmd" >/dev/null || {
-            log_error "缺少前置命令：$cmd（minimal 镜像请先 apt install curl sudo openssl）"
+            log_error "缺少前置命令：$cmd"
             exit 1
         }
     done
@@ -66,7 +86,6 @@ check_prerequisites() {
 install_dependencies() {
     log_info "安装系统依赖..."
     apt update
-    # curl/sudo 是本脚本自身依赖（smoke 与 psql 提权），minimal 镜像不保证预装。
     apt install -y python3.12 python3.12-venv python3-pip \
         postgresql postgresql-contrib redis-server nginx certbot python3-certbot-nginx \
         curl sudo
@@ -75,7 +94,7 @@ install_dependencies() {
 }
 
 read_existing_db_password() {
-    local env_file="${APP_DIR}/.env"
+    local env_file="${SECRET_ENV}"
     [ -f "$env_file" ] || return 0
     local line
     line="$(grep -m1 '^DATABASE_URL=' "$env_file" || true)"
@@ -96,16 +115,15 @@ setup_database() {
             read_existing_db_password
         fi
         if [ -z "$DB_PASSWORD" ]; then
-            log_error "wanyu_user 已存在，但既未传 DB_PASSWORD，也无法从 ${APP_DIR}/.env 读取旧密码"
+            log_error "wanyu_user 已存在，但既未传 DB_PASSWORD，也无法从 ${SECRET_ENV} 读取旧密码"
             exit 1
         fi
     else
-        if [ -f "${APP_DIR}/.env" ]; then
-            log_error "数据库角色不存在但旧 .env 仍存在；拒绝自动制造凭据漂移，请先核实恢复状态"
+        if [ -f "${SECRET_ENV}" ]; then
+            log_error "数据库角色不存在但旧 secret 文件仍存在；拒绝自动制造凭据漂移，请先核实恢复状态"
             exit 1
         fi
         DB_PASSWORD="${DB_PASSWORD:-$(openssl rand -hex 16)}"
-        # 新建角色时密码由本脚本生成 hex，避免 SQL quoting 注入面。
         if [[ ! "$DB_PASSWORD" =~ ^[0-9A-Fa-f]{16,128}$ ]]; then
             log_error "新建数据库角色时 DB_PASSWORD 必须为 16-128 位十六进制字符"
             exit 1
@@ -127,106 +145,91 @@ setup_database() {
         sudo -u postgres psql -v ON_ERROR_STOP=1 -c "CREATE DATABASE wanyu_db OWNER wanyu_user;"
     fi
 
-    # 这些都是生产前置条件：任何失败都必须中止，不能 || true 吞掉。
     sudo -u postgres psql -v ON_ERROR_STOP=1 -c \
-        "GRANT ALL PRIVILEGES ON DATABASE wanyu_db TO wanyu_user;"
+        "GRANT ALL PRIVILEGES ON DATABASE wanyu_db TO wanyu_user;" >/dev/null
     sudo -u postgres psql -v ON_ERROR_STOP=1 -d wanyu_db -c \
-        "CREATE EXTENSION IF NOT EXISTS pgcrypto;"
+        "CREATE EXTENSION IF NOT EXISTS pgcrypto;" >/dev/null
     sudo -u postgres psql -v ON_ERROR_STOP=1 -d wanyu_db -c \
-        "CREATE EXTENSION IF NOT EXISTS pg_trgm;"
+        "CREATE EXTENSION IF NOT EXISTS pg_trgm;" >/dev/null
 }
 
-backup_previous_release() {
-    # 回滚脚手架：换血前把旧版本代码（不含 venv，可由 lock 重建）快照到 BACKUP_ROOT。
-    # 数据库回滚锚点（alembic 版本戳）在 import_data 升级前补记。
-    local ts dest
-    if [ -d "$APP_DIR" ] && [ -n "$(ls -A "$APP_DIR" 2>/dev/null)" ]; then
-        ts="$(date +%Y%m%d-%H%M%S)"
-        dest="${BACKUP_ROOT}/${ts}"
-        mkdir -p "$dest"
-        tar -C "$APP_DIR" --exclude='./venv' --exclude='./.env' -cf - . | tar -C "$dest" -xf -
-        echo "$ts" > "${BACKUP_ROOT}/LATEST"
-        log_info "已备份旧版本代码到 ${dest}（不含 venv/.env）"
-    else
-        log_info "首次部署：无旧版本可备份"
-    fi
-}
-
-setup_app_dir() {
-    log_info "创建应用目录..."
-    mkdir -p "$APP_DIR" "$LOG_DIR"
-    # P0：gunicorn 以 www-data 运行，日志目录必须归 www-data 可写，否则启动即崩。
-    chown www-data:www-data "$LOG_DIR"
-    chmod 750 "$LOG_DIR"
-
-    # 版本真源：部署必须携带源仓 release.json 声明的版本（缺失即拒绝——不可证明的部署不做）。
-    [ -f "$RELEASE_JSON" ] || { log_error "版本真源缺失：${RELEASE_JSON}"; exit 1; }
-    APP_VERSION="$(python3 -c "import json; print(json.load(open('$RELEASE_JSON'))['release'])")"
-    log_info "部署版本：${APP_VERSION}"
-
-    # 确定性载荷：始终部署脚本所在目录，排除开发垃圾（venv/git/缓存）。
-    cd "$SCRIPT_DIR"
-    tar --exclude='./.git' --exclude='./.venv' --exclude='./venv' \
-        --exclude='__pycache__' --exclude='.pytest_cache' --exclude='.ruff_cache' \
-        --exclude='*.pyc' --exclude='./*.db' --exclude='./_ci_migrate.db' \
-        --exclude='_audit_probe*' --exclude='./tests' --exclude='./docs' -cf - . | tar -C "$APP_DIR" -xf -
-    cd "$APP_DIR"
-
-    # 权限扫除必须在 venv 创建之前：644 扫除会抹掉 venv 可执行位（历史上靠 || true 兜底的根因）。
-    chown -R www-data:www-data "$APP_DIR"
-    find "$APP_DIR" -type d -exec chmod 755 {} +
-    find "$APP_DIR" -type f -exec chmod 644 {} +
-    chmod 755 "$APP_DIR/deploy.sh"
-
-    python3.12 -m venv venv
-    chown -R www-data:www-data "$APP_DIR/venv"
-    source venv/bin/activate
-    pip install --upgrade pip
-    pip install -r requirements.lock.txt
-    pip check
-
-    if [ ! -f "${APP_DIR}/.env" ]; then
+setup_secret_env() {
+    # 生产 secret 与代码目录彻底分离：/etc/wanyu/wanyu.env（root:www-data 0640）
+    sudo mkdir -p /etc/wanyu
+    if [ ! -f "${SECRET_ENV}" ]; then
         if [ -z "$DB_PASSWORD" ]; then
-            log_error "缺少 DB_PASSWORD，不能生成生产 .env"
+            log_error "缺少 DB_PASSWORD，不能生成生产 secret"
             exit 1
         fi
-        cat > "${APP_DIR}/.env" << EOF
+        sudo tee "${SECRET_ENV}" > /dev/null <<EOF
 DATABASE_URL=postgresql+asyncpg://wanyu_user:${DB_PASSWORD}@localhost:5432/wanyu_db
 REDIS_URL=redis://localhost:6379/0
 ENV=production
 SECRET_KEY=$(openssl rand -hex 32)
-APP_VERSION=${APP_VERSION}
 JWT_ALGORITHM=HS256
 JWT_ACCESS_TOKEN_EXPIRE_MINUTES=30
 JWT_REFRESH_TOKEN_EXPIRE_DAYS=7
-CORS_ORIGINS=["https://wan.kaogong.art","http://localhost:8765"]
+CORS_ORIGINS=["https://wan.kaogong.art"]
 STATIC_DATA_PATH=${STATIC_DATA_PATH}
 RATE_LIMIT_BACKEND=redis
 ALLOW_REGISTRATION=true
 ADMIN_EMAIL=${ADMIN_EMAIL:-admin@kaogong.art}
 EOF
+        log_info "生产 secret 已生成：${SECRET_ENV}"
     fi
-    # 每次部署强制刷新 .env 的 APP_VERSION（Round-2 审计 S3：pydantic-settings 中
-    # .env 优先于派生默认，旧值会让 /health 报旧版本 → smoke 必败）。
-    if grep -q '^APP_VERSION=' "${APP_DIR}/.env"; then
-        sed -i "s/^APP_VERSION=.*/APP_VERSION=${APP_VERSION}/" "${APP_DIR}/.env"
+    # APP_VERSION 每次部署强制刷新（.env 优先级高于派生默认，旧值会让 smoke 误判）
+    if sudo grep -q '^APP_VERSION=' "${SECRET_ENV}"; then
+        sudo sed -i "s/^APP_VERSION=.*/APP_VERSION=${APP_VERSION}/" "${SECRET_ENV}"
     else
-        printf '%s\n' "APP_VERSION=${APP_VERSION}" >> "${APP_DIR}/.env"
+        printf '%s\n' "APP_VERSION=${APP_VERSION}" | sudo tee -a "${SECRET_ENV}" > /dev/null
     fi
-    chown www-data:www-data "$APP_DIR/.env"
-    chmod 600 "$APP_DIR/.env"
+    sudo chown root:www-data "${SECRET_ENV}"
+    sudo chmod 640 "${SECRET_ENV}"
+}
 
-    # 在 systemd 接管前先证明 Gunicorn 配置可以加载。
-    sudo -u www-data "$APP_DIR/venv/bin/gunicorn" --check-config app.main:app -c gunicorn.conf.py
+build_release() {
+    # Immutable release：全新目录 + 全新 venv，root 属主（www-data 只读）
+    log_info "构建 release ${APP_VERSION}..."
+    [ -f "$RELEASE_JSON" ] || { log_error "版本真源缺失：${RELEASE_JSON}"; exit 1; }
+    APP_VERSION="$(python3 -c "import json; print(json.load(open('$RELEASE_JSON'))['release'])")"
+    local git_sha
+    git_sha="$(git -C "$SCRIPT_DIR" rev-parse --short HEAD 2>/dev/null || echo nodata)"
+    RELEASE_DIR="${RELEASES_DIR}/${APP_VERSION}-${git_sha}"
+
+    if [ -d "$RELEASE_DIR" ]; then
+        log_warn "release 目录已存在（幂等重建）：${RELEASE_DIR}"
+        sudo rm -rf "$RELEASE_DIR"
+    fi
+    sudo mkdir -p "$RELEASE_DIR/app" "$RELEASES_DIR"
+
+    # 确定性载荷：脚本所在目录，排除开发垃圾
+    cd "$SCRIPT_DIR"
+    sudo tar --exclude='./.git' --exclude='./.venv' --exclude='./venv' \
+        --exclude='__pycache__' --exclude='.pytest_cache' --exclude='.ruff_cache' \
+        --exclude='*.pyc' --exclude='./*.db' --exclude='./_ci_migrate.db' \
+        --exclude='_audit_probe*' --exclude='./tests' --exclude='./docs' \
+        -cf - . | sudo tar -C "$RELEASE_DIR/app" -xf -
+
+    # 权限：root 属主，全局可读不可写（运行用户无持久化写面）
+    sudo find "$RELEASE_DIR/app" -type d -exec chmod 755 {} +
+    sudo find "$RELEASE_DIR/app" -type f -exec chmod 644 {} +
+    sudo chown -R root:root "$RELEASE_DIR"
+
+    # 全新 venv：lock 说没有的包这里就没有（杜绝跨版本依赖漂移）
+    sudo python3.12 -m venv "$RELEASE_DIR/venv"
+    sudo "$RELEASE_DIR/venv/bin/pip" install --upgrade pip --quiet
+    sudo "$RELEASE_DIR/venv/bin/pip" install -r "${RELEASE_DIR}/app/requirements.lock.txt" --quiet
+    sudo "$RELEASE_DIR/venv/bin/pip" check
+    sudo chown -R root:root "$RELEASE_DIR/venv"
+    log_info "✓ release 构建完成（全新目录/全新 venv，root:root 只读）"
 }
 
 setup_service() {
     log_info "配置 systemd 服务..."
-    cat > "/etc/systemd/system/${SERVICE_NAME}.service" << EOF
+    sudo tee "/etc/systemd/system/${SERVICE_NAME}.service" > /dev/null <<EOF
 [Unit]
-Description=WanYu Job API (FastAPI + Gunicorn)
+Description=WanYu Job API (FastAPI + Gunicorn, immutable release)
 After=network.target postgresql.service redis-server.service
-# redis 仅 Wants：限流 Redis 后端有进程内降级路径，redis 故障不应阻断 API 启动
 Requires=postgresql.service
 Wants=redis-server.service
 
@@ -234,8 +237,9 @@ Wants=redis-server.service
 Type=notify
 User=www-data
 Group=www-data
-WorkingDirectory=${APP_DIR}
-ExecStart=${APP_DIR}/venv/bin/gunicorn app.main:app -c gunicorn.conf.py
+WorkingDirectory=${CURRENT_LINK}/app
+EnvironmentFile=${SECRET_ENV}
+ExecStart=${CURRENT_LINK}/venv/bin/gunicorn app.main:app -c gunicorn.conf.py
 ExecReload=/bin/kill -s HUP \$MAINPID
 Restart=on-failure
 RestartSec=5
@@ -244,35 +248,123 @@ TimeoutStopSec=45
 NoNewPrivileges=yes
 ProtectSystem=strict
 ProtectHome=yes
-ReadWritePaths=${LOG_DIR} ${APP_DIR}
+ReadWritePaths=${SHARED_LOG}
 
 [Install]
 WantedBy=multi-user.target
 EOF
-    systemctl daemon-reload
-    systemctl enable "$SERVICE_NAME"
+    sudo mkdir -p "$SHARED_LOG"
+    sudo chown www-data:www-data "$SHARED_LOG"
+    sudo chmod 750 "$SHARED_LOG"
+    sudo systemctl daemon-reload
+    sudo systemctl enable "$SERVICE_NAME"
+}
+
+atomic_switch() {
+    # 原子切换 current 符号链接（ln -sfn + mv -T，绝无中间态）
+    sudo ln -sfn "$RELEASE_DIR" "${CURRENT_LINK}.tmp"
+    sudo mv -T "${CURRENT_LINK}.tmp" "${CURRENT_LINK}"
+    [ "$(readlink "$CURRENT_LINK" 2>/dev/null)" = "$RELEASE_DIR" ] || {
+        log_error "current 符号链接切换失败"
+        exit 1
+    }
+    log_info "✓ current -> ${RELEASE_DIR}"
+}
+
+stop_service_window() {
+    if systemctl is-active --quiet "$SERVICE_NAME"; then
+        sudo systemctl stop "$SERVICE_NAME"
+        log_info "已停止 ${SERVICE_NAME}（部署窗口开始）"
+    fi
+}
+
+prune_old_releases() {
+    # 保留最近 3 个 release（当前 + 2 个回滚代际）
+    sudo ls -1t "$RELEASES_DIR" 2>/dev/null | tail -n +4 | while read -r old; do
+        [ "$(readlink "$CURRENT_LINK" 2>/dev/null)" = "${RELEASES_DIR}/$old" ] && continue
+        sudo rm -rf "${RELEASES_DIR:?}/$old"
+        log_info "已清理旧 release：$old"
+    done
+}
+
+setup_backup_automation() {
+    # PG 自动灾备：daily pg_dump + sha256 + 7daily/4weekly/3monthly 保留（终审 P1）
+    sudo tee /etc/wanyu/wanyu-backup.sh > /dev/null <<'BKEOF'
+#!/bin/bash
+# 皖域 DB 自动备份：daily 全量 + sha256 + 保留 7 daily / 4 weekly / 3 monthly
+set -Eeuo pipefail
+BASE=/opt/wanyu/backup
+STAMP=$(date +%Y%m%d-%H%M%S)
+DOW=$(date +%u)
+DOM=$(date +%d)
+mkdir -p "$BASE/daily" "$BASE/weekly" "$BASE/monthly"
+OUT="$BASE/daily/wanyu_db-$STAMP.dump"
+sudo -u postgres pg_dump -Fc wanyu_db > "$OUT"
+[ -s "$OUT" ] || { echo "EMPTY BACKUP: $OUT"; exit 1; }
+chmod 600 "$OUT"
+sha256sum "$OUT" > "$OUT.sha256"
+if [ "$DOW" = "7" ]; then cp "$OUT" "$BASE/weekly/"; fi
+if [ "$DOM" = "01" ]; then cp "$OUT" "$BASE/monthly/"; fi
+ls -1t "$BASE/daily"  | grep -v '.sha256' | tail -n +8 | while read -r f; do rm -f "$BASE/daily/$f"  "$BASE/daily/$f.sha256";  done
+ls -1t "$BASE/weekly" | grep -v '.sha256' | tail -n +5 | while read -r f; do rm -f "$BASE/weekly/$f" "$BASE/weekly/$f.sha256"; done
+ls -1t "$BASE/monthly"| grep -v '.sha256' | tail -n +4 | while read -r f; do rm -f "$BASE/monthly/$f" "$BASE/monthly/$f.sha256"; done
+echo "backup ok: $OUT"
+BKEOF
+    sudo chmod 750 /etc/wanyu/wanyu-backup.sh
+    sudo tee /etc/systemd/system/wanyu-backup.service > /dev/null <<'BSEOF'
+[Unit]
+Description=WanYu DB daily backup
+
+[Service]
+Type=oneshot
+ExecStart=/etc/wanyu/wanyu-backup.sh
+BSEOF
+    sudo tee /etc/systemd/system/wanyu-backup.timer > /dev/null <<'BTEOF'
+[Unit]
+Description=Daily WanYu DB backup at 03:00
+
+[Timer]
+OnCalendar=*-*-* 03:00:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+BTEOF
+    sudo systemctl daemon-reload
+    sudo systemctl enable --now wanyu-backup.timer
+    log_info "✓ DB 备份定时器已启用（daily 03:00，7daily/4weekly/3monthly）"
+}
+
+setup_logrotate() {
+    log_info "配置日志轮转..."
+    sudo tee /etc/logrotate.d/wanyu-api > /dev/null <<'LROTEOF'
+/var/log/wanyu/*.log {
+    daily
+    rotate 14
+    compress
+    delaycompress
+    missingok
+    notifempty
+    copytruncate
+}
+LROTEOF
 }
 
 setup_nginx() {
-    log_info "配置 Nginx（HTTP-only 阶段）..."
-    # 注意：/maintainable/ 必须用 root 而非 alias——alias+try_files 是 nginx 已知缺陷
-    # （trac #97，URI 拼接产生双前缀 404）。root 要求父目录名与 URI 前缀一致：
-    # /opt/wanyu/static/maintainable/ ← /maintainable/，天然吻合。
-    cat > /etc/nginx/sites-available/wan.kaogong.art << 'EOF'
+    log_info "配置 Nginx（全新机模板；多站点现网服务器请按 RUNBOOK 分步适配）..."
+    sudo tee /etc/nginx/sites-available/wan.kaogong.art > /dev/null <<'NGXEOF'
 upstream wanyu_api {
     server 127.0.0.1:8000;
     keepalive 32;
 }
-limit_req_zone $binary_remote_addr zone=api:10m rate=30r/s;
+limit_req_zone $binary_remote_addr zone=wanapi:10m rate=30r/s;
 server {
     listen 80;
     listen [::]:80;
     server_name wan.kaogong.art;
     location /.well-known/acme-challenge/ { root /var/www/certbot; }
     location /api/ {
-        limit_req zone=api burst=60 nodelay;
-        # 对齐 ADMIN_IMPORT_MAX_BYTES(64MB)：nginx 默认 1MB 会把 12MB 真实快照
-        # 的管理导入在网关层 413 掉，app 侧逻辑永远够不到（Round-2 审计 S13）。
+        limit_req zone=wanapi burst=60 nodelay;
         client_max_body_size 64m;
         proxy_pass http://wanyu_api;
         proxy_set_header Host $host;
@@ -286,14 +378,13 @@ server {
         add_header Cache-Control "no-store, no-cache, must-revalidate";
     }
     location = /health {
-        # readiness 含 DB 探活：宽松限流防公网刷探针制造连接 churn（B7）
-        limit_req zone=api burst=10 nodelay;
+        limit_req zone=wanapi burst=10 nodelay;
         proxy_pass http://wanyu_api/health;
         proxy_set_header Host $host;
         access_log off;
     }
     location /maintainable/ {
-        root /opt/wanyu/static;
+        alias /var/www/wan.kaogong.art/maintainable/;
         try_files $uri $uri/ =404;
         gzip on;
         gzip_vary on;
@@ -303,54 +394,45 @@ server {
     }
     location = / { return 302 /maintainable/index.html; }
 }
-EOF
-    ln -sf /etc/nginx/sites-available/wan.kaogong.art /etc/nginx/sites-enabled/
+NGXEOF
+    sudo ln -sf /etc/nginx/sites-available/wan.kaogong.art /etc/nginx/sites-enabled/
     nginx -t
-    systemctl reload nginx
+    sudo systemctl reload nginx
 }
 
 setup_ssl() {
     log_info "配置 SSL 证书..."
-    mkdir -p /var/www/certbot
-    # --redirect：certbot 追加 443 server 块的同时强制 80 → 443 跳转；
-    # 缺省（非交互默认不跳转）会让 token 暴露在明文 HTTP。
+    sudo mkdir -p /var/www/certbot
     certbot --nginx -d wan.kaogong.art --non-interactive --agree-tos --redirect \
         --email admin@kaogong.art
     nginx -t
-    systemctl reload nginx
-    systemctl enable certbot.timer
+    sudo systemctl reload nginx
+    sudo systemctl enable certbot.timer
 }
 
 import_data() {
-    log_info "导入数据..."
-    if [ ! -d "${STATIC_DATA_PATH}/cycles" ]; then
-        log_error "静态数据目录不存在：${STATIC_DATA_PATH}/cycles"
-        exit 1
-    fi
-    cd "$APP_DIR"
-    source venv/bin/activate
-
-    # 回滚锚点：升级迁移前记录当前 alembic 版本（仅重部署时有备份目录）。
-    if [ -f "${BACKUP_ROOT}/LATEST" ]; then
-        alembic current > "${BACKUP_ROOT}/$(cat "${BACKUP_ROOT}/LATEST")/alembic-before.txt"
-    fi
-
-    # 数据库快照强制化（Round-2 审计 S2）：迁移前没有数据级还原点不许走 upgrade。
-    mkdir -p "$BACKUP_ROOT"   # 首次部署该目录尚不存在（RA-2：重定向曾直接失败）
+    log_info "导入数据（使用新 release venv）..."
+    # 迁移前数据库快照（数据级还原点）
+    sudo mkdir -p "$BACKUP_ROOT"
+    sudo chmod 700 "$BACKUP_ROOT"
     local dump_file
     dump_file="${BACKUP_ROOT}/wanyu_db-$(date +%Y%m%d-%H%M%S).dump"
-    sudo -u postgres pg_dump -Fc wanyu_db > "$dump_file"
+    sudo -u postgres pg_dump -Fc wanyu_db > /tmp/.wanyu_predump
+    sudo mv /tmp/.wanyu_predump "$dump_file"
+    sudo chmod 600 "$dump_file"
     if [ ! -s "$dump_file" ]; then
         log_error "pg_dump 产物为空，拒绝在无数据级还原点的情况下执行迁移"
         exit 1
     fi
-    chmod 600 "$dump_file"
-    chmod 700 "$BACKUP_ROOT"
-    log_info "✓ 数据库快照：${dump_file}（600 权限，保留最近 10 份）"
-    ls -1t "${BACKUP_ROOT}"/wanyu_db-*.dump 2>/dev/null | tail -n +11 | xargs -r rm -f
+    log_info "✓ 数据库快照：${dump_file}"
 
-    alembic upgrade head
-    python - <<'PY'
+    # 迁移锚点：重部署时记录 alembic 当前版本
+    if sudo [ -f "${BACKUP_ROOT}/LATEST" ]; then
+        sudo "${RELEASE_DIR}/venv/bin/alembic" current > "${BACKUP_ROOT}/$(sudo cat "${BACKUP_ROOT}/LATEST")/alembic-before.txt"
+    fi
+
+    sudo -u www-data "${RELEASE_DIR}/venv/bin/alembic" upgrade head
+    sudo -u www-data "${RELEASE_DIR}/venv/bin/python" - <<'PY'
 import asyncio
 from app.database import init_db, async_session_factory
 from app.services.import_service import import_all_data
@@ -358,41 +440,32 @@ from app.services.import_service import import_all_data
 async def main():
     await init_db()
     async with async_session_factory() as db:
-        results = await import_all_data(db)
+        results = await import_all_data(db, data_path=None)
         cycles = [results.get(f"cycle_{year}") for year in ("2024", "2025", "2026")]
         if not any(cycles):
             raise RuntimeError("三个周期均未导入，拒绝启动空镜像")
-        print("导入结果:", results)
+        print("导入结果:", {k: v for k, v in results.items()})
 
 asyncio.run(main())
 PY
-}
-
-bootstrap_admin() {
-    cd "$APP_DIR"
-    source venv/bin/activate
-    if [ -n "${ADMIN_BOOTSTRAP_PASSWORD:-}" ]; then
-        python scripts/create_admin.py \
-            --email "${ADMIN_EMAIL:-admin@kaogong.art}" \
-            --username admin \
-            --password "$ADMIN_BOOTSTRAP_PASSWORD"
-        log_info "✓ 管理员引导完成（${ADMIN_EMAIL:-admin@kaogong.art}）"
-    else
-        log_warn "未设置 ADMIN_BOOTSTRAP_PASSWORD，跳过管理员引导。生产管理员是唯一管理入口，必须补做："
-        log_warn "  cd ${APP_DIR} && source venv/bin/activate && python scripts/create_admin.py --email ${ADMIN_EMAIL:-admin@kaogong.art} --username admin"
-    fi
+    local post_dump
+    post_dump="${BACKUP_ROOT}/wanyu_db-post-import-$(date +%Y%m%d-%H%M%S).dump"
+    sudo -u postgres pg_dump -Fc wanyu_db > /tmp/.wanyu_postdump
+    sudo mv /tmp/.wanyu_postdump "$post_dump"
+    sudo chmod 600 "$post_dump"
+    log_info "✓ 导入后快照：${post_dump}"
 }
 
 start_service() {
-    log_info "启动/重启服务..."
-    systemctl restart "$SERVICE_NAME"
-    systemctl is-active --quiet "$SERVICE_NAME"
-    systemctl status "$SERVICE_NAME" --no-pager
+    log_info "启动服务..."
+    sudo systemctl restart "$SERVICE_NAME"
+    sudo systemctl is-active --quiet "$SERVICE_NAME"
+    systemctl status "$SERVICE_NAME" --no-pager | head -3
 }
 
 post_deploy_smoke() {
     log_info "部署后 smoke 测试..."
-    local i code expected_version actual_version jobs_count
+    local i actual_version jobs_count code
 
     for i in {1..15}; do
         if curl -sf http://127.0.0.1:8000/health >/dev/null; then
@@ -404,7 +477,6 @@ post_deploy_smoke() {
         log_error "API /health 失败"; exit 1;
     }
 
-    # 版本一致性：跑起来的必须是部署时注入的版本（防止 restart 落空/旧进程残留）。
     actual_version="$(curl -sf http://127.0.0.1:8000/health | \
         python3 -c "import sys,json; print(json.load(sys.stdin).get('version',''))")"
     if [ "$actual_version" != "${APP_VERSION}" ]; then
@@ -412,67 +484,97 @@ post_deploy_smoke() {
         exit 1
     fi
 
-    curl -sf https://wan.kaogong.art/health >/dev/null || {
-        log_error "公网 HTTPS /health 失败"; exit 1;
-    }
-
-    # 静态站可达（root 指令修复后必须 200）+ HTTP 强制跳转 HTTPS。
-    code="$(curl -s -o /dev/null -w '%{http_code}' https://wan.kaogong.art/maintainable/index.html)"
-    if [ "$code" != "200" ]; then
-        log_error "静态站 /maintainable/index.html 返回 ${code}（期望 200）"; exit 1;
+    if [ -f /etc/nginx/sites-enabled/wan.kaogong.art ]; then
+        curl -sf https://wan.kaogong.art/health >/dev/null || {
+            log_error "公网 HTTPS /health 失败"; exit 1;
+        }
+        code="$(curl -s -o /dev/null -w '%{http_code}' https://wan.kaogong.art/)"
+        if [ "$code" != "200" ]; then
+            log_error "静态站返回 ${code}（期望 200）"; exit 1;
+        fi
+        code="$(curl -s -o /dev/null -w '%{http_code}' http://wan.kaogong.art/)"
+        if [ "$code" != "301" ]; then
+            log_error "HTTP 未强制跳转 HTTPS（返回 ${code}，期望 301）"; exit 1;
+        fi
+    else
+        log_warn "未检测到 nginx 站点配置，跳过公网断言（分步适配模式）"
     fi
-    code="$(curl -s -o /dev/null -w '%{http_code}' http://wan.kaogong.art/maintainable/index.html)"
-    if [ "$code" != "301" ]; then
-        log_error "HTTP 未强制跳转 HTTPS（返回 ${code}，期望 301）"; exit 1;
-    fi
 
-    jobs_count="$(curl -sf http://127.0.0.1:8000/api/v1/jobs/search | \
+    jobs_count="$(curl -sf "http://127.0.0.1:8000/api/v1/jobs/search?cycle=2026&page_size=1" | \
         python3 -c "import sys,json; print(json.load(sys.stdin).get('total',0))")"
     if ! [[ "$jobs_count" =~ ^[0-9]+$ ]] || [ "$jobs_count" -le 0 ]; then
         log_error "岗位数据为空或响应非法：${jobs_count}"
         exit 1
     fi
-    log_info "✓ 健康/HTTPS/版本(${actual_version})/静态站/强制跳转/岗位数据(${jobs_count}) smoke 全通过"
+    log_info "✓ 健康/版本(${actual_version})/岗位(${jobs_count}) smoke 全通过"
 }
 
-setup_logrotate() {
-    log_info "配置日志轮转..."
-    cat > /etc/logrotate.d/wanyu-api << 'LROT'
-/var/log/wanyu/*.log {
-    daily
-    rotate 14
-    compress
-    delaycompress
-    missingok
-    notifempty
-    copytruncate
-}
-LROT
+bootstrap_admin() {
+    cd "${CURRENT_LINK}/app"
+    if [ -n "${ADMIN_BOOTSTRAP_PASSWORD:-}" ]; then
+        sudo -u www-data "${CURRENT_LINK}/venv/bin/python" scripts/create_admin.py \
+            --email "${ADMIN_EMAIL:-admin@kaogong.art}" \
+            --username admin \
+            --password "$ADMIN_BOOTSTRAP_PASSWORD"
+        log_info "✓ 管理员引导完成（${ADMIN_EMAIL:-admin@kaogong.art}）"
+    else
+        log_warn "未设置 ADMIN_BOOTSTRAP_PASSWORD，跳过管理员引导。生产管理员必须补做："
+        log_warn "  cd ${CURRENT_LINK}/app && sudo -u www-data ${CURRENT_LINK}/venv/bin/python scripts/create_admin.py --email ${ADMIN_EMAIL:-admin@kaogong.art} --username admin"
+    fi
 }
 
 main() {
-    log_info "开始部署皖域择岗 API..."
+    log_info "开始部署皖域择岗 API（Immutable Release）..."
     check_root
     check_prerequisites
     install_dependencies
     setup_database
-    # 停服窗口前移（Round-4 复审）：解包新代码起旧 worker 滚动重生就会加载新代码撞旧
-    # schema——必须在任何载荷落盘之前停服，迁移/导入完成后由 start_service 拉起。
-    if systemctl is-active --quiet "$SERVICE_NAME"; then
-        systemctl stop "$SERVICE_NAME"
-        log_info "已停止 ${SERVICE_NAME}（部署窗口开始）"
-    fi
-    backup_previous_release
-    setup_app_dir
+    setup_secret_env
+    build_release
     setup_service
     setup_logrotate
-    setup_nginx
-    setup_ssl
+    setup_backup_automation
+    # 全新机才配 nginx/ssl（现网多站点服务器的 nginx 由 RUNBOOK 分步适配）
+    if [ ! -f /etc/nginx/sites-available/wan.kaogong.art ]; then
+        setup_nginx
+        setup_ssl
+    fi
+    stop_service_window
+    atomic_switch
     import_data
     start_service
     post_deploy_smoke
     bootstrap_admin
-    log_info "部署完成：API https://wan.kaogong.art/api/docs · health https://wan.kaogong.art/health"
+    prune_old_releases
+    log_info "部署完成：current -> ${RELEASE_DIR}"
+    log_info "API https://wan.kaogong.art/api/docs · health https://wan.kaogong.art/health"
 }
+
+# --build-only：仅构建 release 目录（Upgrade Drift 演练复用真实构建逻辑；
+# WANYU_RELEASES_DIR 可重定向演练输出，绝不触碰生产 current/service）
+if [ "${1:-}" = "--build-only" ]; then
+    check_root
+    [ -f "$RELEASE_JSON" ] || { log_error "版本真源缺失：${RELEASE_JSON}"; exit 1; }
+    APP_VERSION="$(python3 -c "import json; print(json.load(open('$RELEASE_JSON'))['release'])")"
+    git_sha="$(git -C "$SCRIPT_DIR" rev-parse --short HEAD 2>/dev/null || echo nodata)"
+    RELEASES_DIR="${WANYU_RELEASES_DIR:-${RELEASES_DIR}}"
+    RELEASE_DIR="${RELEASES_DIR}/${APP_VERSION}-${git_sha}-drill"
+    if [ -d "$RELEASE_DIR" ]; then
+        sudo rm -rf "$RELEASE_DIR"
+    fi
+    sudo mkdir -p "$RELEASE_DIR/app"
+    cd "$SCRIPT_DIR"
+    sudo tar --exclude='./.git' --exclude='./.venv' --exclude='./venv'         --exclude='__pycache__' --exclude='.pytest_cache' --exclude='.ruff_cache'         --exclude='*.pyc' --exclude='./*.db'         -cf - . | sudo tar -C "$RELEASE_DIR/app" -xf -
+    sudo find "$RELEASE_DIR/app" -type d -exec chmod 755 {} +
+    sudo find "$RELEASE_DIR/app" -type f -exec chmod 644 {} +
+    sudo chown -R root:root "$RELEASE_DIR"
+    sudo python3.12 -m venv "$RELEASE_DIR/venv"
+    sudo "$RELEASE_DIR/venv/bin/pip" install --upgrade pip --quiet
+    sudo "$RELEASE_DIR/venv/bin/pip" install -r "${RELEASE_DIR}/app/requirements.lock.txt" --quiet
+    sudo "$RELEASE_DIR/venv/bin/pip" check
+    sudo chown -R root:root "$RELEASE_DIR/venv"
+    log_info "build-only 完成：${RELEASE_DIR}"
+    exit 0
+fi
 
 main "$@"

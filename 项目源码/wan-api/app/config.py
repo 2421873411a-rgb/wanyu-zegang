@@ -120,6 +120,13 @@ def _validate_production_safety(settings: "Settings") -> None:
         )
     if len(settings.SECRET_KEY) < 32:
         raise RuntimeError("拒绝启动：SECRET_KEY 强度不足（至少 32 字符，建议 openssl rand -hex 32）。")
+    # 生产信任边界：CORS 不允许 localhost/127.0.0.1 开发 origin（Round-7 终审 P2）
+    if settings.ENV == "production":
+        for origin in settings.CORS_ORIGINS:
+            if "localhost" in origin or "127.0.0.1" in origin:
+                raise RuntimeError(
+                    f"拒绝启动：生产 CORS 含开发 origin：{origin}——请移除后重启。"
+                )
 
 
 settings = Settings()

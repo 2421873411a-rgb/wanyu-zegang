@@ -119,6 +119,7 @@ jobs:
           DATABASE_URL: "postgresql+asyncpg://wanyu_test:test_pass@localhost:5432/wanyu_test"
           ENV: production
           SECRET_KEY: "ci-test-secret-key-not-for-production-0123456789abcdef"
+          CORS_ORIGINS: '["https://wan.kaogong.art"]'
         run: >-
           python -c "import asyncio; from app.database import init_db;
           asyncio.run(init_db()); print('production init_db PASS')"

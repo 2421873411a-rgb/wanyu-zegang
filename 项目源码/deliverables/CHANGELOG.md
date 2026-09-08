@@ -1,5 +1,30 @@
 # 皖域择岗交付更新日志
 
+## v17.9.18 · Production Hardening（终审 P1×4 全关 + P2 收尾）· 2026-09-08
+
+### P1×4（终审判定，全部关闭）
+
+- **Immutable Release 架构**：deploy.sh v2 重写为 `/opt/wanyu/releases/<ver>-<sha>/{app,venv}` +
+  `current` 符号链接原子切换——每次部署全新目录+全新 venv（root 属主，www-data 只读），
+  覆盖式部署的幽灵文件/依赖漂移由构造消除；回滚=切回上一 release 符号链接。
+- **最小权限运行时**：运行用户对代码/venv/secret 均无写权限。app/venv root:root 755/644；
+  生产 secret 与代码目录彻底分离（`/etc/wanyu/wanyu.env`，root:www-data 0640）；
+  systemd ReadWritePaths 仅留 /var/log/wanyu（代码目录不再出现在可写面）。
+- **PG 自动灾备**：`wanyu-backup.timer`（daily 03:00，sha256 校验，7daily/4weekly/3monthly 保留）；
+  `scripts/restore_drill.sh`（备份→临时库恢复→revision/行数对账→清理）。
+- **SSH 密钥轮换**：ed25519 新钥已入 authorized_keys 并验证连通；旧 wanyu111 钥已从
+  authorized_keys 移除（腾讯云平台层注入 skey-* 需控制台解绑，已记录为平台残留）。
+
+### P2
+
+- MemoryRateLimiter sweep 改 last_seen 真 LRU（原按键名字典序丢弃，活跃 IP 计数被误删）
+- 生产 CORS 拒绝 localhost/127.0.0.1（Settings 门禁）
+- admin users 分页（page/page_size ≤100）；postgres CI job 补 timeout-minutes
+- deploy.sh 新增 --build-only 模式 + `scripts/upgrade_drill.sh`（Upgrade Drift 演练：
+  N-1→N 幽灵文件/依赖消失、N→N 幂等、current 切换+回滚——四不变量全 PASS）
+- RUNBOOK v2（immutable release 架构+新回滚方式+restore/drift 演练命令）
+
+
 ## v17.9.17 · Round-7 终审通过 + 收敛达成 · 2026-09-08
 
 Round 7 双终门审计（部署/数据 + 安全/API）全部放行：零 P0/P1，119/119 安全对抗探针 PASS，部署链字节级+推演+dry-run 全过。**连续两轮干净（Round 6 + Round 7）→ 收敛达成。**

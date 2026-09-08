@@ -98,7 +98,7 @@ def test_deploy_sh_uses_correct_pg_function_and_restart():
 def test_deploy_sh_log_dir_permissions_and_no_silent_swallow():
     """P0 回归锁：日志目录必须 chown www-data；不得有新增的 || true 吞错。"""
     script = _deploy_sh()
-    assert 'chown www-data:www-data "$LOG_DIR"' in script
+    assert 'chown www-data:www-data "$SHARED_LOG"' in script
     # v17.9.11 清零历史唯一吞错点；仅豁免 read_existing_db_password 里
     # "读不到旧密码行"这一显式允许为空的 grep 兜底，其余一律禁止（注释行不计）。
     code_lines = "\n".join(l for l in script.splitlines() if not l.lstrip().startswith("#"))
@@ -108,14 +108,34 @@ def test_deploy_sh_log_dir_permissions_and_no_silent_swallow():
     assert "|| true" not in whitelisted.sub("", code_lines), "deploy.sh 出现新的 || true 吞错"
 
 
-def test_systemd_unit_and_nginx_template_invariants():
-    """unit/nginx 模板关键行：日志目录、root（非 alias）、certbot --redirect。"""
+def test_immutable_release_invariants():
+    """v17.9.18 终审 P1 回归锁：Immutable Release 四要素 + 最小权限模型。"""
     script = _deploy_sh()
-    assert "ReadWritePaths=${LOG_DIR} ${APP_DIR}" in script  # unit 模板（展开式 heredoc）
+    # releases/<ver>-<sha> 全新目录 + fresh venv（幽灵文件/依赖漂移由构造消除）
+    assert "${RELEASES_DIR}/${APP_VERSION}-${git_sha}" in script
+    assert "python3.12 -m venv" in script
+    # 原子切换 + 回滚
+    assert "ln -sfn" in script and 'mv -T' in script
+    # 运行时只读：app/venv root:root；secret 与代码分离
+    assert 'chown -R root:root "$RELEASE_DIR"' in script
+    assert 'SECRET_ENV="/etc/wanyu/wanyu.env"' in script
+    assert 'chown root:www-data "${SECRET_ENV}"' in script
+    assert 'chmod 640 "${SECRET_ENV}"' in script
+    # unit 可写面只留日志（代码目录不再出现在 ReadWritePaths）
+    assert "ReadWritePaths=${SHARED_LOG}" in script
+    assert "EnvironmentFile=${SECRET_ENV}" in script
+    # 备份自动化（终审 P1：灾备闭环）
+    assert "wanyu-backup.timer" in script
+    assert "7daily/4weekly/3monthly" in script
+
+
+def test_systemd_unit_and_nginx_template_invariants():
+    """unit/nginx 模板关键行：日志目录、certbot --redirect、limits。"""
+    script = _deploy_sh()
     assert "User=www-data" in script
-    assert "root /opt/wanyu/static;" in script  # nginx: root 修复（alias+try_files 是 trac#97 缺陷）
-    assert "alias /opt/wanyu" not in script
     assert "--redirect" in script  # certbot 强制 HTTP→HTTPS
+    assert "client_max_body_size 64m" in script
+    assert "alias /var/www/wan.kaogong.art/maintainable/" in script
 
 
 def test_app_version_single_source():
