@@ -1,5 +1,21 @@
 # 皖域择岗交付更新日志
 
+## v17.9.20 · 门禁可信度修复（成熟度窗口）· 2026-09-09
+
+- **P1-001** `wan-api/tests/test_ops_scripts.py::run_bash`：原生 Windows 父进程以盘符 CWD 启动
+  MSYS bash 时 `$(pwd)` 返回 `E:/...` 形式，bash 的 PATH 搜索不解析该组件，fake bin
+  （sudo/pg_dump/date）注入静默失效→备份/恢复演练 6 用例在 Windows 本地必红（CI ubuntu
+  不受影响，属门禁覆盖盲区）。修复：脚本前置 `cd "$(pwd)"` 强制重推 POSIX 路径。
+  验证：ops 19/19 + 全量 97 passed/5 skipped。
+- **P1-003** `tests/ui_upgrade_browser_smoke.cjs`：站点解析把陈旧的 `deliverables/maintainable`
+  （v17.7 时代快照，jobs_lite 含 8511 行 raw 口径）置于正式 `网站/` 之前——凡手动运行，
+  烟测长期在测死站（「3,521 ≠ 3,411」的非确定失败即源于此；流水线内因 WANYU_SITE_DIR
+  指向新 staging 而侥幸 PASS）。修复：解析顺序改为 WANYU_SITE_DIR → 正式 `网站/` →
+  deliverables 仅兜底；并给上半年/下半年断言增加「等待数值稳定」前置等待（加严非放宽）。
+  验证：手动 3/3 PASS + WANYU_SITE_DIR=staging PASS。
+- 关联记录：`deliverables/maintainable` 陈旧快照处置（流水线刷新或文档降权）记为 P2-002；
+  本版不含 app/ 运行时代码变更，API 门禁（ruff/pytest/alembic 往返/pip-audit 双 lock）全绿。
+
 ## v17.9.19 · 生产链断链修复与验收纠偏 · 2026-09-08
 
 - APP_VERSION 独立预解析并前移到 `setup_secret_env` 之前；`build_release()` 不再通过副作用初始化版本。
