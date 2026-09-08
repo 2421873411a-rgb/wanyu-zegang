@@ -379,6 +379,8 @@ esac
             fake_bin / "sudo",
             """#!/bin/bash
 if [ "${1:-}" = "-u" ]; then shift 2; fi
+# chown 需 root 特权：测试进程按 no-op 处理（权限断言针对 chmod 结果，见 P1-007 测试）
+if [ "$1" = "chown" ]; then exit 0; fi
 exec "$@"
 """,
         )
@@ -437,6 +439,8 @@ esac
             fake_bin / "sudo",
             """#!/bin/bash
 if [ "${1:-}" = "-u" ]; then shift 2; fi
+# chown 需 root 特权：测试进程按 no-op 处理（权限断言针对 chmod 结果，见 P1-007 测试）
+if [ "$1" = "chown" ]; then exit 0; fi
 exec "$@"
 """,
         )
@@ -554,6 +558,8 @@ def test_restore_creates_database_before_restore_and_uses_release_venv(
             fake_bin / "sudo",
             """#!/bin/bash
 if [ "${1:-}" = "-u" ]; then shift 2; fi
+# chown 需 root 特权：测试进程按 no-op 处理（权限断言针对 chmod 结果，见 P1-007 测试）
+if [ "$1" = "chown" ]; then exit 0; fi
 exec "$@"
 """,
         )
@@ -726,3 +732,56 @@ printf 'current-VERSION=%s
     assert "current-VERSION=v17.9.20" in combined
     assert "禁止自动回切" in combined
     assert "RUNBOOK" in combined
+
+
+def test_backup_files_are_postgres_group_readable():
+    """P1-007：备份目录 750/文件 640 root:postgres——restore_drill 的 pg_restore 以
+    postgres 运行，700/600 会让恢复链 Permission denied（真机演练实测断链）。"""
+    script_text = (WAN_API / "scripts" / "backup_database.sh").read_text(encoding="utf-8")
+    assert "chmod 750" in script_text
+    assert "chown root:postgres" in script_text
+    with tempfile.TemporaryDirectory(prefix="_ops-backup-perm-", dir=WAN_API / "tests") as temp_name:
+        temp_root = Path(temp_name)
+        fake_bin = temp_root / "bin"
+        backup_root = temp_root / "backup"
+        fake_bin.mkdir()
+        write_executable(
+            fake_bin / "date",
+            """#!/bin/bash
+case "${1:-}" in
+    +%Y%m%d-%H%M%S) printf '20260909-030000\\n' ;;
+    +%u) printf '3\\n' ;;
+    +%d) printf '09\\n' ;;
+    *) exit 2 ;;
+esac
+""",
+        )
+        write_executable(
+            fake_bin / "sudo",
+            """#!/bin/bash
+if [ "${1:-}" = "-u" ]; then shift 2; fi
+if [ "$1" = "chown" ]; then exit 0; fi
+exec "$@"
+""",
+        )
+        write_executable(
+            fake_bin / "pg_dump",
+            """#!/bin/bash
+printf 'postgres-custom-format-fixture\\n'
+""",
+        )
+        fake_bin_rel = fake_bin.relative_to(WAN_API).as_posix()
+        backup_rel = backup_root.relative_to(WAN_API).as_posix()
+        result = run_bash(
+            'export PATH="$(pwd)/' + fake_bin_rel + ':$PATH"\n'
+            'export WANYU_BACKUP_BASE="$(pwd)/' + backup_rel + '"\n'
+            "unset COS_BUCKET\n"
+            "bash scripts/backup_database.sh\n"
+        )
+        assert result.returncode == 0, result.stdout + result.stderr
+        dump = backup_root / "daily" / "wanyu_db-20260909-030000.dump"
+        mode = run_bash('stat -c "%a" "' + dump.relative_to(WAN_API).as_posix() + '"')
+        # Linux CI 严格 640；MSYS noacl 挂载 chmod 是空操作（恒 644）——只排除全局可写
+        assert mode.stdout.strip() in {"640", "644"}, mode.stdout + mode.stderr
+        dir_mode = run_bash('stat -c "%a" "' + backup_rel + '"')
+        assert dir_mode.stdout.strip() in {"750", "755"}, dir_mode.stdout + dir_mode.stderr
