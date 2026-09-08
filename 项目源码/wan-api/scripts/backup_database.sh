@@ -21,6 +21,8 @@ copy_snapshot() {
     local tier="$1"
     cp "$OUT" "${BASE}/${tier}/${DUMP_NAME}"
     cp "${OUT}.sha256" "${BASE}/${tier}/${DUMP_NAME}.sha256"
+    chmod 640 "${BASE}/${tier}/${DUMP_NAME}" "${BASE}/${tier}/${DUMP_NAME}.sha256"
+    sudo chown root:postgres "${BASE}/${tier}/${DUMP_NAME}" "${BASE}/${tier}/${DUMP_NAME}.sha256"
 }
 
 prune_tier() {
@@ -39,16 +41,21 @@ prune_tier() {
 }
 
 mkdir -p "$BASE/daily" "$BASE/weekly" "$BASE/monthly"
-chmod 700 "$BASE" "$BASE/daily" "$BASE/weekly" "$BASE/monthly"
+# 750 root:postgres：restore_drill 的 pg_restore 以 postgres 运行，须经组权限遍历并读取
+# （真机演练实测：700/600 时 postgres 读 dump 直接 Permission denied——备份链与恢复链断链）
+chmod 750 "$BASE" "$BASE/daily" "$BASE/weekly" "$BASE/monthly"
+sudo chown root:postgres "$BASE" "$BASE/daily" "$BASE/weekly" "$BASE/monthly"
 sudo -u postgres pg_dump -Fc "$DB_NAME" > "$TMP"
 [ -s "$TMP" ] || { echo "EMPTY BACKUP: $TMP" >&2; exit 1; }
-chmod 600 "$TMP"
+chmod 640 "$TMP"
 mv "$TMP" "$OUT"
+sudo chown root:postgres "$OUT"
 (
     cd "$BASE/daily"
     sha256sum "$DUMP_NAME" > "${DUMP_NAME}.sha256"
 )
-chmod 600 "$OUT.sha256"
+chmod 640 "$OUT.sha256"
+sudo chown root:postgres "$OUT.sha256"
 
 CREATED_TIERS=(daily)
 if [ "$DOW" = "7" ]; then

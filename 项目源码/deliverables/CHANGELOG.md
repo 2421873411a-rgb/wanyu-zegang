@@ -1,5 +1,18 @@
 # 皖域择岗交付更新日志
 
+## v17.9.22 · 真机演练暴露缺陷修复（生产证据闭环轮）· 2026-09-09
+
+- **P1-006 upgrade_drill 前置路径错位**：幽灵文件注入在载荷 `app/` 包内，而 release/app == 载荷根，
+  检查在 `release/app/zz_ghost_legacy.py`——前置永假、演练必败（PR#20 引入；CI 与行为测试均未跑真 drill）。
+  修复：注入载荷根。真机验证：四不变量 ALL PASS。
+- **P1-007 备份/恢复链权限断链**：backup_database.sh 产物 root:700/600，restore_drill 的
+  pg_restore 以 postgres 运行 → Permission denied（真机实测；备份链与恢复链从未端到端咬合）。
+  修复：目录 750 + 文件 640 root:postgres（chown 走 sudo，特权语义）。真机验证见 prod-restore-drill.md。
+- 回归锁：test_backup_files_are_postgres_group_readable（Linux CI 严格 640/750；MSYS noacl 下 chmod
+  为空操作，按 644/755 放宽并注释）；假 sudo 对 chown 按 root 特权 no-op。
+- 生产状态：v17.9.21 已于 2026-09-09 经 deploy.sh 全流程部署上线（幂等导入/双快照/smoke 全过），
+  本版合入后随即跟进部署，保持 main == 生产。
+
 ## v17.9.21 · 部署链失败自愈与前置硬化（成熟度窗口）· 2026-09-09
 
 - **P1-002 自动回滚**：deploy.sh 新增 `rollback_to_previous()` 并接入 `on_error` ERR 陷阱——

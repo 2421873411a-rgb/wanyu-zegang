@@ -21,7 +21,9 @@ fail() { echo "[DRILL FAIL] $1"; exit 1; }
 echo "=== 准备 N-1 载荷（注入幽灵文件 + 已删依赖）==="
 cp -a "$WAN_DIR" "$DRILL_BASE/payload-v1"
 rm -rf "$DRILL_BASE/payload-v1/.git" "$DRILL_BASE/payload-v1/venv" "$DRILL_BASE/payload-v1/.venv"
-echo "# legacy module (v17.9.17 era)" > "$DRILL_BASE/payload-v1/app/zz_ghost_legacy.py"
+# 幽灵文件注入载荷根：build_release 的 release/app == 载荷根；写进 app/ 包内会落到
+# release/app/app/，与下方 $V1_DIR/app/ 检查错位一格（真机演练曾因此前置必败）
+echo "# legacy module (v17.9.17 era)" > "$DRILL_BASE/payload-v1/zz_ghost_legacy.py"
 echo "" >> "$DRILL_BASE/payload-v1/requirements.lock.txt"
 echo "six==1.16.0" >> "$DRILL_BASE/payload-v1/requirements.lock.txt"
 cp -a "$WAN_DIR" "$DRILL_BASE/payload-v2"
