@@ -1,0 +1,118 @@
+{
+  "schema": "wanyu-maturity-run/v3",
+  "window": "12:00-21:00",
+  "started_at": "2026-09-09T00:50:00+08:00",
+  "preflight_at": "2026-09-09T00:39:00+08:00",
+  "head": "369be13",
+  "branch": "main",
+  "website_release": "v17.9.0",
+  "api_release": "v17.9.21",
+  "status": "DONE",
+  "phase_done": [
+    "P4 状态重建",
+    "P5 数据真源审计",
+    "P6 静态站+浏览器",
+    "P7 API SQLite 门禁",
+    "P8 PG/Redis(CI通道)",
+    "P9 部署灾备审计+修复",
+    "P10 ADR×3",
+    "P11/12 修复与前端抽查",
+    "P13 全量验证",
+    "P14 报告"
+  ],
+  "phase_next": "P7 API SQLite 门禁(ruff/bash-n/alembic)",
+  "environment": {
+    "python": "3.11.9",
+    "node": "v24.18.1",
+    "bash": true,
+    "docker": false,
+    "postgres": false,
+    "redis": false,
+    "chromium": "playwright-core+ms-playwright OK（实测三个浏览器 smoke 全跑通）",
+    "pip_audit": "2.7.3",
+    "network": "git/gh 走 Clash 7897；gh REST 可用，GraphQL EOF",
+    "repo_root": "E:/zcode/择岗"
+  },
+  "baseline": {
+    "data": {
+      "2024": [
+        10017,
+        10017,
+        0
+      ],
+      "2025": [
+        10150,
+        10150,
+        0
+      ],
+      "2026": [
+        8511,
+        8401,
+        110
+      ]
+    },
+    "pytest_local_before_fix": "6 failed / 91 passed / 5 skipped（全部 test_ops_scripts）",
+    "pytest_local_after_fix": "97 passed / 5 skipped / 0 failed（verify/phase4-pytest-after-fix.md）",
+    "verify_maintainable_site": "网站/ 302 passed 0 failed；deliverables/maintainable 256/16（陈旧 v17.7 快照，P2-002）"
+  },
+  "findings": {
+    "p0": [],
+    "p1": [
+      {
+        "id": "P1-001",
+        "title": "test_ops_scripts run_bash 在 Windows 下 fake-bin 注入静默失效（MSYS pwd 盘符形式→PATH 搜索不识别→sudo/pg_dump command not found），main 本地基线红 6 failed",
+        "status": "fixed",
+        "fix": "run_bash 前置 cd \"$(pwd)\" 强制 MSYS 重推 POSIX 路径（tests/test_ops_scripts.py）",
+        "verification": "19/19 PASS + 全量 97 passed"
+      },
+      {
+        "id": "P1-003",
+        "title": "ui_upgrade_browser_smoke 站点解析把陈旧 deliverables/maintainable 置于正式 网站/ 之前，烟测长期在测 v17.7 死站（8511 raw 行→3,521 vs 期望 3,411），结果非确定",
+        "status": "fixed",
+        "fix": "解析顺序改为 WANYU_SITE_DIR→网站/→deliverables 兜底 + 断言前等待 dd 值稳定（加严非放宽）",
+        "verification": "手动 3/3 PASS + WANYU_SITE_DIR=staging PASS（findings/probe-exact-flow.cjs 全链取证）"
+      }
+    ],
+    "p2": [
+      {
+        "id": "P2-002",
+        "title": "deliverables/maintainable 为 v17.7 时代陈旧快照（manifest 9142B/jobs_lite 4870150B/8511行），verify_maintainable_site 默认参数恰好指向它→默认运行必红；且曾是 P1-003 的毒源",
+        "status": "confirmed",
+        "note": "不删（§2.13）；修 P1-003 后已失去毒通道；候选处置=流水线刷新或文档标注"
+      },
+      {
+        "id": "P2-005",
+        "title": "verify_maintainable_site.py 失败时不输出任何失败明细（只打总数），可诊断性差",
+        "status": "open"
+      }
+    ],
+    "rejected": [
+      {
+        "id": "P2-004-retracted",
+        "title": "「地图检查器 raw 口径瞬闪」假设被证伪——3,521 读数全部来自陈旧 deliverables 站，现行 网站/ 无此现象"
+      }
+    ],
+    "blocked": [
+      {
+        "id": "BLK-001",
+        "title": "本机无 Docker/PostgreSQL/Redis→PG/Redis 真实后端门禁本机不可跑",
+        "disposition": "BLOCKED_BY_ENVIRONMENT，证据走 CI postgres job（PG16+Redis7 service）"
+      }
+    ]
+  },
+  "fixed": [
+    "P1-001",
+    "P1-003",
+    "P1-002",
+    "P1-004",
+    "P1-005",
+    "P2-005",
+    "smoke-302-pinning"
+  ],
+  "verification": [
+    "final-sweep part1/2/3 全 PASS",
+    "main CI 369be13 三 required success"
+  ],
+  "next_focus": "完结。下一轮：fresh-host v17.9.21 演练（含自动回滚真机验证）→ restore/COS 闭环 → 生产部署决策",
+  "verdict": "STAGING_READY"
+}

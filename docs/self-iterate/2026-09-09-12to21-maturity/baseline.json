@@ -1,0 +1,29 @@
+{
+  "captured_at": "2026-09-09T00:50:00+08:00",
+  "head_at_capture": "bef9fe9",
+  "head_final": "369be13",
+  "website_release": "v17.9.0",
+  "api_release_start": "v17.9.19",
+  "api_release_final": "v17.9.21",
+  "data_baseline": {
+    "2024": {"raw": 10017, "active": 10017, "excluded": 0, "recruits_valid": 15331},
+    "2025": {"raw": 10150, "active": 10150, "excluded": 0, "recruits_valid": 14721},
+    "2026": {"raw": 8511, "active": 8401, "excluded": 110, "recruits_valid": 11883},
+    "salary": 160,
+    "review_queue_open": 7,
+    "source": "canonical 实测（validate_canonical_core）与 docs/current-status.md 一致"
+  },
+  "test_baseline": {
+    "local_pytest_before_fix": "6 failed / 91 passed / 5 skipped",
+    "local_pytest_final": "101 passed / 5 skipped / 0 failed",
+    "ci": "test+canonical+postgres 三 required 全绿（PR#21、PR#22、main）"
+  },
+  "environment": {
+    "python": "3.11.9",
+    "node": "v24.18.1",
+    "docker": false,
+    "postgres_local": false,
+    "redis_local": false,
+    "chromium": "playwright-core 可用"
+  }
+}

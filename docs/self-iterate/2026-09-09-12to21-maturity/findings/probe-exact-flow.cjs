@@ -1,0 +1,164 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const { spawn } = require('node:child_process');
+const { chromium } = require('E:/zcode/择岗/项目源码/node_modules/playwright-core');
+
+const projectRoot = path.resolve('E:/zcode/择岗/项目源码');
+const generatedSiteDir = path.join(projectRoot, 'deliverables', 'maintainable');
+// v17.8.6-K：WANYU_SITE_DIR 环境变量最高优先（发布流水线用它把烟测指向 staging）。
+const siteDir = (process.env.WANYU_SITE_DIR && fs.existsSync(path.resolve(process.env.WANYU_SITE_DIR)))
+  ? path.resolve(process.env.WANYU_SITE_DIR)
+  : fs.existsSync(path.join(generatedSiteDir, 'index.html'))
+    ? generatedSiteDir
+    : (fs.existsSync(path.resolve(projectRoot, '..', '网站')) ? path.resolve(projectRoot, '..', '网站') : path.resolve(projectRoot, '..', 'site'));
+const serveScript = path.join(projectRoot, 'tools', 'anhui_web', 'serve_maintainable.py');
+const port = 18767;
+const base = `http://127.0.0.1:${port}/index.html?cycle=2026#jobs_search`;
+
+async function waitForServer(url) {
+  for (let attempt = 0; attempt < 80; attempt += 1) {
+    try {
+      const response = await fetch(url);
+      if (response.ok) return;
+    } catch {}
+    await new Promise((resolve) => setTimeout(resolve, 250));
+  }
+  throw new Error(`HTTP server did not start: ${url}`);
+}
+
+(async () => {
+  const server = spawn('python', [serveScript, '--directory', siteDir, '--port', String(port)], {
+    cwd: projectRoot,
+    windowsHide: true,
+    stdio: 'ignore',
+  });
+  let browser;
+  try {
+    await waitForServer(base);
+    browser = await chromium.launch({ headless: true });
+    const context = await browser.newContext({
+      viewport: { width: 390, height: 844 },
+      reducedMotion: 'reduce',
+      serviceWorkers: 'block',
+    });
+    const page = await context.newPage();
+    const manifestBodies = [];
+    await context.route('**/site-manifest.json*', async (route) => {
+      const resp = await route.fetch();
+      const body = await resp.text();
+      manifestBodies.push(body.length + ':' + require('crypto').createHash('sha256').update(body).digest('hex').slice(0, 12));
+      await route.fulfill({ response: resp, body });
+    });
+    const errors = [];
+    const failedRequests = [];
+  const dataUrls = [];
+  page.on('response', (r) => { if (r.url().includes('/data/')) dataUrls.push(r.url() + ' :: ' + r.status()); });
+    page.on('console', (message) => message.type() === 'error' && errors.push(`console: ${message.text()}`));
+    page.on('pageerror', (error) => errors.push(`pageerror: ${error.stack || error.message}`));
+    page.on('requestfailed', (request) => failedRequests.push(`${request.url()} · ${request.failure()?.errorText || 'failed'}`));
+    await page.goto(base, { waitUntil: 'networkidle', timeout: 120000 });
+    await page.waitForFunction(
+      () => window.WanyuMaintainableSite?.state?.view === 'jobs_search' && document.querySelector('[data-ui-search-flow]') && document.querySelector('[data-maint-position-detail]'),
+      null,
+      { timeout: 120000 },
+    );
+
+    const mobileNav = page.locator('[data-maint-mobile-nav]');
+    assert(await mobileNav.isVisible(), 'mobile bottom navigation should be visible');
+    assert.equal(await page.locator('[data-maint-mobile-nav] > *').count(), 5, 'mobile nav should expose four tasks plus more');
+    const navColumns = await mobileNav.evaluate((node) => getComputedStyle(node).gridTemplateColumns.trim().split(/\s+/).length);
+    assert.equal(navColumns, 5, 'mobile nav should stay on one row');
+    assert((await page.evaluate(() => document.documentElement.scrollWidth)) <= 391, 'mobile horizontal overflow');
+    assert.equal(await page.locator('[data-ui-search-flow] .ui-search-flow__step').count(), 3, 'search decision rail should have three steps');
+
+    await page.locator('[data-maint-mobile-more-toggle]').click();
+    assert.equal(await page.locator('[data-maint-mobile-more]').evaluate((node) => node.hidden), false, 'more drawer should open');
+    // v17.8.4 用户视角导航把报考日历等加入更多面板，次级链接 6→7。
+    assert.equal(await page.locator('.maint-mobile-more__grid a').count(), 7, 'more drawer should expose secondary views');
+    await page.locator('[data-maint-mobile-more-close]').click();
+    assert.equal(await page.locator('[data-maint-mobile-more]').evaluate((node) => node.hidden), true, 'more drawer should close');
+
+    await page.locator('[data-maint-position-detail]').first().click();
+    try {
+      await page.waitForSelector('[data-maint-detail-drawer]', { state: 'visible', timeout: 30000 });
+    } catch (error) {
+      console.error(JSON.stringify({
+        status: await page.locator('.maintain-status').innerText().catch(() => ''),
+        failedRequests,
+        errors,
+      }));
+      throw error;
+    }
+    const detailText = await page.locator('[data-maint-detail-drawer]').innerText();
+    assert(detailText.includes('岗位原始字段') && detailText.includes('证据与来源'), 'detail drawer should remain source-backed');
+    assert(!(await page.locator('.maintain-status').innerText()).includes('加载中'), 'detail open should settle the status indicator');
+    await page.locator('[data-maint-detail-close]').click();
+    // v17.8.4 状态条考生化：'外置模块已加载·N行' → '数据已就绪 · 共N个岗位'。
+    assert((await page.locator('.maintain-status').innerText()).includes('数据已就绪'), 'closing detail should restore the module status');
+
+    await page.goto(`${base.split('#')[0]}#jobs_map`, { waitUntil: 'networkidle', timeout: 120000 });
+    await page.waitForFunction(
+      () => window.WanyuMaintainableSite?.state?.view === 'jobs_map'
+        && document.querySelector('[data-maint-exam-filter="事业编"]')
+        && document.querySelector('[data-maint-map-inspector]'),
+      null,
+      { timeout: 120000 },
+    );
+    await page.locator('[data-maint-exam-filter="事业编"]').click();
+    const firstHalf = page.locator('[data-maint-exam-sub="上半年"]');
+    const secondHalf = page.locator('[data-maint-exam-sub="下半年"]');
+    assert.equal(await firstHalf.isDisabled(), false, '上半年联考 should be clickable');
+    assert.equal(await secondHalf.isDisabled(), false, '下半年联考 should be clickable');
+    await firstHalf.click();
+    await page.waitForFunction(
+      () => window.WanyuMaintainableSite?.state?.examSub === '上半年'
+        && document.querySelector('[data-maint-exam-sub="上半年"]')?.classList.contains('is-active'),
+      null,
+      { timeout: 30000 },
+    );
+    await page.waitForTimeout(1000);
+    const samples = [];
+    for (let i = 0; i < 16; i++) {
+      const txt = await page.locator('[data-maint-map-inspector] .maint-map-facts dd').first().innerText();
+      samples.push(txt.trim());
+      await page.waitForTimeout(500);
+    }
+    console.log('TIMELINE_UNIQ:', JSON.stringify([...new Set(samples)]));
+    console.log('failedRequests:', JSON.stringify(failedRequests));
+    console.log('errors:', JSON.stringify(errors.slice(0,5)));
+    const cacheProbe = await page.evaluate(() => {
+      const mods = window.WanyuMaintainableSite?.state?.modules;
+      const out = [];
+      if (mods && mods.forEach) {
+        mods.forEach((v, k) => {
+          const rows = v && v.allMajors && Array.isArray(v.allMajors.rows) ? v.allMajors.rows.length : null;
+          out.push(k + ' rows=' + rows);
+        });
+      }
+      return out;
+    });
+    console.log('MODULE_CACHE:', JSON.stringify(cacheProbe));
+    const storeProbe = await page.evaluate(() => {
+      const st = window.WanyuMaintainableSite?.state;
+      const out = { store: [], manifest: null };
+      try {
+        st?.dataStore?.cache?.forEach((v, k) => {
+          const rows = v && v.allMajors && Array.isArray(v.allMajors.rows) ? v.allMajors.rows.length : null;
+          out.store.push(k + ' rows=' + rows);
+        });
+      } catch (e) { out.store.push('ERR ' + e.message); }
+      try {
+        const cyc = (st?.manifest?.cycles || []).find(c => String(c.cycle) === '2026');
+        out.manifest = Object.fromEntries(Object.entries(cyc?.modules || {}).filter(([k]) => ['jobs','jobs_lite'].includes(k)).map(([k, v]) => [k, { data: v.data, sha: String(v.sha256 || '').slice(0, 10), bytes: v.bytes }]));
+      } catch (e) { out.manifest = 'ERR ' + e.message; }
+      return out;
+    });
+    console.log('MANIFEST_BODY:', JSON.stringify(manifestBodies));
+    console.log('STORE_PROBE:', JSON.stringify(storeProbe));
+    console.log('dataResponses:', JSON.stringify(dataUrls.slice(-8)));
+  } finally {
+    await browser?.close();
+    if (server && !server.killed) server.kill();
+  }
+})();
