@@ -6,7 +6,7 @@ gunicorn>=23.0.0
 python-multipart>=0.0.32
 
 # 数据库
-sqlalchemy[asyncio]>=2.0.35
+sqlalchemy[asyncio]>=2.0.52
 asyncpg>=0.29.0
 aiosqlite>=0.20.0
 alembic>=1.13.2
