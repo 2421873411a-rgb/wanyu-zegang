@@ -152,7 +152,7 @@ jobs:
         run: |
           pip-audit -r requirements.lock.txt --format cyclonedx-json -o wanyu-api-sbom.json
           python -c "import json; d=json.load(open('wanyu-api-sbom.json')); print('SBOM components:', len(d.get('components', [])))"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: wanyu-api-sbom
           path: 项目源码/wan-api/wanyu-api-sbom.json
