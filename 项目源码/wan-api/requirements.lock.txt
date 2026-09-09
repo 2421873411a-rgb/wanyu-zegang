@@ -16,7 +16,7 @@ cffi==2.1.1
 click==8.5.0
 cryptography==50.0.1
 dnspython==2.8.0
-email_validator==2.2.0
+email_validator==2.3.0
 fastapi==0.141.1
 greenlet==3.5.5
 gunicorn==23.0.0
