@@ -51,7 +51,7 @@ py-serializable==1.1.2
 pycparser==3.0
 pydantic-settings==2.5.2
 pydantic==2.9.2
-pydantic_core==2.23.4
+pydantic_core==2.48.0
 pyparsing==3.3.2
 pytest-asyncio==1.4.0
 pytest==9.1.1
