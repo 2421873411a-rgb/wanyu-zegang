@@ -2,7 +2,12 @@ import logging
 
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
+from fastapi import HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import Response
+
+from app.middleware import RequestContextMiddleware
+from app.observability import metrics
 from contextlib import asynccontextmanager
 from sqlalchemy import text
 
@@ -45,6 +50,23 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# v17.10.0 请求上下文：request-id 透回 + 结构化访问日志 + 进程内指标。
+# 后注册 = 最外层，CORS 拒绝响应也带 X-Request-ID。
+app.add_middleware(RequestContextMiddleware)
+
+
+@app.get("/metrics", include_in_schema=False)
+async def metrics_endpoint(request: Request):
+    """Prometheus 文本指标（v17.10.0）。
+
+    仅 METRICS_TOKEN 配置时可用（Bearer 认证）；未配置一律 404——不泄漏端点存在。
+    多 worker 下各进程独立计数，抓取端需按实例聚合。
+    """
+    token = settings.METRICS_TOKEN
+    if not token or request.headers.get("authorization") != f"Bearer {token}":
+        raise HTTPException(status_code=404)
+    return Response(content=metrics.render(), media_type="text/plain; version=0.0.4; charset=utf-8")
 
 # 注册路由
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["认证"])

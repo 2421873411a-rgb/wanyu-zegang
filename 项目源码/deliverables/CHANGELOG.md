@@ -1,5 +1,19 @@
 # 皖域择岗交付更新日志
 
+## v17.10.0 · 可观测性 + 部署状态持久化 · 2026-09-09
+
+- **request-id 全链路**：`RequestContextMiddleware` 透传/生成 `X-Request-ID`（响应头回写），
+  访问日志 `wanyu.access` 每请求一行 JSON（/health 除外）。
+- **/metrics**：Prometheus 文本（请求总数/状态分类/方法/延迟直方图/未处理异常分类/慢查询计数/
+  uptime），Bearer `METRICS_TOKEN` 保护，未配置一律 404；零新依赖，多 worker 按进程独立计数。
+- **慢查询日志**：SQLAlchemy 引擎监听，> `SLOW_QUERY_MS`（默认 200ms，0=关闭）记 `wanyu.db`
+  warning + 计数进 /metrics。
+- **部署状态持久化**：deploy.sh 各阶段写 `/opt/wanyu/deploy-state.json`
+  （PRECHECK/BUILT/SWITCHED/IMPORTED/HEALTHY/FAILED），best-effort 不阻塞部署。
+- 回归锁：tests/test_observability.py ×7（request-id/访问日志/metrics 保护与内容/慢查询两态）、
+  linkage 部署状态断言；本地全量 110 passed + 5 skipped。
+- Redis fail-open 告警经核已存在（`_log_error_throttled` 60s 节流），本轮确认未重复建设。
+
 ## v17.9.23 · 安全生命周期（Dependabot + weekly 漏洞审计 + SBOM + 密钥轮换 runbook）· 2026-09-09
 
 - `.github/dependabot.yml`：pip（wan-api 与 canonical 工具链两个目录）+ github-actions 周更检查；

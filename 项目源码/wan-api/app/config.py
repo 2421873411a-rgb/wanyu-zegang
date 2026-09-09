@@ -80,6 +80,9 @@ class Settings(BaseSettings):
 
     # 限流（v17.9.12：原子化 + 可选 Redis 后端）
     RATE_LIMIT_BACKEND: str = "memory"  # memory | redis
+    # v17.10.0 可观测性：/metrics Bearer token（空=端点 404 隐藏）；慢查询阈值 ms（0=关闭）
+    METRICS_TOKEN: str = ""
+    SLOW_QUERY_MS: int = 200
     LOGIN_MAX_FAILURES: int = 5
     LOGIN_WINDOW_SECONDS: int = 300
     REGISTER_MAX_EVENTS: int = 5

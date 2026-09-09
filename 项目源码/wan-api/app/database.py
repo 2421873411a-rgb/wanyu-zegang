@@ -21,6 +21,39 @@ def _build_engine():
 
 engine = _build_engine()
 
+# v17.10.0 慢查询日志：>SLOW_QUERY_MS 记 warning（语句截断 200 字符），计数进 /metrics
+import json as _json
+import logging as _logging
+import time as _time
+
+from sqlalchemy import event as _event
+
+from app.observability import metrics as _metrics
+
+_db_logger = _logging.getLogger("wanyu.db")
+
+
+@_event.listens_for(engine.sync_engine, "before_cursor_execute")
+def _before_cursor_execute(conn, cursor, statement, parameters, context, executemany):
+    conn.info.setdefault("_query_start", []).append(_time.perf_counter())
+
+
+@_event.listens_for(engine.sync_engine, "after_cursor_execute")
+def _after_cursor_execute(conn, cursor, statement, parameters, context, executemany):
+    starts = conn.info.get("_query_start")
+    if not starts:
+        return
+    duration_ms = (_time.perf_counter() - starts.pop()) * 1000
+    threshold = settings.SLOW_QUERY_MS
+    if threshold > 0 and duration_ms > threshold:
+        _metrics.observe_slow_query(duration_ms, statement)
+        _db_logger.warning(_json.dumps({
+            "event": "slow_query",
+            "duration_ms": round(duration_ms, 1),
+            "threshold_ms": threshold,
+            "statement": statement[:200],
+        }, ensure_ascii=False))
+
 # 创建异步会话工厂
 async_session_factory = async_sessionmaker(
     engine,

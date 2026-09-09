@@ -133,3 +133,19 @@ deploy.sh 的 smoke 会断言 `/health` 版本 == 部署版本，`systemctl rest
    `/opt/wanyu/credentials/admin.txt`（600）同步更新。
 4. **依赖漏洞**：每周一 CI `security-scan`（schedule）跑 pip-audit 双 lock 并产 SBOM
    artifact（wanyu-api-sbom，保留 90 天）；红即修（升级 lock → 全量门禁 → 发布）。
+
+## 可观测性（v17.10.0）
+
+- **访问日志**：`wanyu.access`（logger）每请求一行 JSON：request_id/method/path/status/duration_ms；
+  `/health` 不记（探活噪音）。request-id 优先透传调用方 `X-Request-ID`，否则生成 16 位 hex，
+  响应头回写，可跨网关串联。
+- **指标**：`/metrics`（Prometheus 文本，进程内计数）——Bearer `METRICS_TOKEN` 保护，
+  未配置 token 时端点 404（隐藏存在）。内容：请求总数/状态分类/方法/延迟直方图/未处理异常
+  分类/慢查询计数/uptime。**多 worker 各进程独立计数**，抓取端按实例聚合。
+- **慢查询**：`wanyu.db` logger，> `SLOW_QUERY_MS`（默认 200，0=关闭）记 warning（语句截断 200 字符）。
+- **限流降级**：Redis 不可达时 `wanyu.rate_limit` 记 error 并降级进程内兜底（60s 节流去重），
+  该告警出现=限流处于可击穿兜底态，应尽快恢复 Redis。
+- **告警建议**：5xx 比例突增、`wanyu_errors_total` 增长、慢查询突增、限流降级 error、
+  `/health` 503（含 db 探活）。
+- **部署状态**：`/opt/wanyu/deploy-state.json` 记录 PRECHECK/BUILT/SWITCHED/IMPORTED/HEALTHY/FAILED
+  + release + 时间戳（best-effort，不阻塞部署）；排障第一步先看它。
