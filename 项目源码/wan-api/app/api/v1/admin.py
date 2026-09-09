@@ -8,7 +8,7 @@ from sqlalchemy import func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
-from app.database import get_db
+from app.database import engine, get_db
 from app.dependencies import get_admin_user
 from app.models.job import Job
 from app.models.mirror_state import MirrorState
@@ -132,11 +132,11 @@ async def update_user(
         #    两个守卫可同读旧状态全部放行，清零管理入口；
         # 2) 计数排除"本次降权目标"：串行化后第二笔守卫看到第一笔已提交的结果，
         #    目标之外无其他 admin → 拒绝。
-        # SQLite（测试环境）为单写者，advisory lock 不存在则跳过，残余窗口仅理论存在。
-        try:
+        # SQLite（测试环境）为单写者，无 advisory lock——v17.10.1 改为按方言
+        # 显式跳过：原 `except Exception: pass` 连 PG 下锁失败（权限/连接异常）
+        # 也一并吞掉，守卫静默失效（审查 P2）。
+        if engine.dialect.name != "sqlite":
             await db.execute(text("SELECT pg_advisory_xact_lock(hashtext('wanyu-last-admin-guard'))"))
-        except Exception:
-            pass
         others = await db.execute(
             select(func.count(User.id)).where(
                 User.is_admin.is_(True),

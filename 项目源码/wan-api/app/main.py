@@ -1,4 +1,5 @@
 import logging
+import secrets
 
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
@@ -64,7 +65,9 @@ async def metrics_endpoint(request: Request):
     多 worker 下各进程独立计数，抓取端需按实例聚合。
     """
     token = settings.METRICS_TOKEN
-    if not token or request.headers.get("authorization") != f"Bearer {token}":
+    # v17.10.1：常量时间比较（审查 P2——`!=` 在逐字节失配即返回，理论侧信道）
+    auth = request.headers.get("authorization") or ""
+    if not token or not secrets.compare_digest(auth.encode("utf-8"), f"Bearer {token}".encode("utf-8")):
         raise HTTPException(status_code=404)
     return Response(content=metrics.render(), media_type="text/plain; version=0.0.4; charset=utf-8")
 

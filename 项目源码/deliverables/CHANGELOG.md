@@ -1,5 +1,30 @@
 # 皖域择岗交付更新日志
 
+## v17.10.1 · 审查修复轮（新鲜眼睛审查 P1/P2 收口）· 2026-09-09
+
+- **密钥扫描门禁扩面（审查 P1）**：`check_secrets.sh` 3/4 类 pattern 加 `-i` 且关键词后允许
+  变量名后缀（`[_a-z0-9]{0,20}`）——原实现双重漏检：大小写敏感 + `SECRET_KEY` 形态里
+  `secret` 后跟 `_KEY` 接不上 `[:=]`，大写 `SECRET_KEY='xxx'` 直接漏过（假饵实测复现）；
+  `--exclude-dir=tests`（fixture 假密钥豁免，真实密钥门禁由 config denylist + pip-audit
+  另行承担）；include 增补 `*.toml`/`*.cfg`。`check_release.sh` 扫描面从仅 `网站/` 扩到
+  整个源码树（原 wan-api/tools 靠手工补跑）。
+- **消除硬编码测试密钥（门禁扩面实测命中 config.py:113）**：`ENV=test` 且 SECRET_KEY
+  缺失时改为每进程随机 `secrets.token_hex(32)`——测试签发/校验同进程完成，无需跨进程
+  互认；denylist 保留原值（生产命中仍拒绝启动）。
+- **最后管理员守卫**：advisory lock 由 `except Exception: pass` 改为按方言显式跳过
+  （`engine.dialect.name != "sqlite"`）——PG 下锁失败（权限/连接异常）不再被静默吞掉。
+- **MemoryRateLimiter.reset() 补 ENV 门禁**：与 Redis 版同规（此前门禁只在 Redis 版，
+  Memory 版含降级兜底实例可被生产代码误调一键清空）。
+- **/metrics token 常量时间比较**：`secrets.compare_digest`（原 `!=` 逐字节短路，理论侧信道）。
+- **deploy.sh**：`ADMIN_EMAIL` 写入 secret heredoc 前先校验（含换行/引号的值会注入额外
+  env 行，fail-fast）；管理员引导密码改走 stdin 管道，不再经 argv（`/proc/<pid>/cmdline`
+  全员可读），`create_admin.py` 非 tty 时从 stdin 读取。
+- **CONTRACT.md 头部版本对齐**：v17.9.19 → v17.10.1（原滞后四个版本）。
+- 审查报告 P1「audit/review-queue 无认证」经核对 CONTRACT §6 属已书面豁免的设计
+  （同一数据已由静态站公开，收紧 API 镜像不改变暴露面），维持现状不改。
+- 回归锁：tests/test_ops_scripts.py（bootstrap stdin 化 + check_secrets 大写假饵命中）、
+  tests/test_round2_hardening.py（Memory reset 门禁双态）。
+
 ## v17.10.0 · 可观测性 + 部署状态持久化 · 2026-09-09
 
 - **request-id 全链路**：`RequestContextMiddleware` 透传/生成 `X-Request-ID`（响应头回写），
