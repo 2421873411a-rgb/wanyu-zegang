@@ -1,4 +1,15 @@
 {
+ "schema": "wanyu-req-fields/v1",
+ "cycle": "2026",
+ "fields_doc": {
+  "xl_norm": "学历归一(any/high_school_above/associate_above/associate_only/bachelor_above/bachelor_only/master_above)",
+  "gender": "any/male/female",
+  "fresh_only": "限应届",
+  "party_only": "限党员",
+  "cert_legal": "限法律职业资格",
+  "age_max": "年龄上限（岁）",
+  "confidence": "high/medium/low；非 high 不参与一票否决"
+ },
  "job-2026-a3b96e08cf15085d5ed9": {
   "xl_norm": "master_above",
   "xw_norm": "degree_above",
