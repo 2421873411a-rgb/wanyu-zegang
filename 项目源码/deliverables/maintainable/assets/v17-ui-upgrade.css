@@ -168,7 +168,7 @@ body {
 .maintain-header__inner { padding: 15px 0 12px; gap: 22px; }
 .maintain-brand { color: #25466f; }
 .maintain-brand strong { letter-spacing: .06em; }
-.maintain-brand small { color: #8299b8; letter-spacing: .13em; }
+.maintain-brand small { color: var(--text-muted,#5b7391); letter-spacing: .13em; }
 .maintain-brand__mark {
   width: 41px;
   height: 41px;
@@ -184,7 +184,7 @@ body {
   background: rgba(255, 255, 255, .84);
   box-shadow: 0 2px 8px rgba(39, 88, 150, .06);
 }
-.maintain-cycle-picker button { color: #7189aa; border-radius: 8px; }
+.maintain-cycle-picker button { color: var(--text-muted,#5b7391); border-radius: 8px; }
 .maintain-cycle-picker button:hover { color: #2f6fd5; background: #eff5ff; }
 .maintain-cycle-picker button.is-active { color: #fff; background: #3a83f7; box-shadow: 0 2px 6px rgba(58, 131, 247, .24); }
 /* v17.7.1 深色主题覆盖:头部/周期选择器此前硬编码浅色,深色下白字白底 1.12:1(P0-1) */
@@ -204,14 +204,14 @@ body {
 .maint-changes-badge[data-tone="unchanged"] { color: var(--changes-unchanged); background: var(--changes-unchanged-bg); }
 .maintain-nav { gap: 3px; }
 .maintain-nav a {
-  color: #7189aa;
+  color: var(--text-muted,#5b7391);
   border-radius: 7px;
   padding: 7px 10px;
   transition: color 160ms ease, background 160ms ease, transform 160ms ease;
 }
 .maintain-nav a:hover { color: #2f6fd5; background: #eff5ff; transform: translateY(-1px); }
 .maintain-nav a.is-active { color: #2f6fd5; background: #e5efff; font-weight: 800; }
-.maintain-status { color: #8299b8; }
+.maintain-status { color: var(--text-muted,#5b7391); }
 .maintain-theme-toggle { border-color: #dce8f8; color: #4f7fc4; background: #fff; }
 .maintain-theme-toggle:hover { color: #3a83f7; border-color: #3a83f7; }
 
@@ -219,7 +219,8 @@ body {
 .maintain-main { padding-top: 42px; }
 .maint-hero { gap: 44px; padding: 16px 0 36px; border-bottom-color: var(--ui-line); }
 .maint-eyebrow { color: var(--ui-teal); letter-spacing: .17em; }
-.maint-eyebrow__index { color: var(--ui-amber); }
+.maint-eyebrow__index { color: #9a620b; }
+:root[data-theme="dark"] .maint-eyebrow__index { color: var(--ui-amber); }
 .maint-eyebrow__index::after { color: var(--ui-line); }
 .maint-hero h1 {
   color: var(--text-display);

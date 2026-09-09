@@ -39,7 +39,7 @@
     notice: '',
     renderToken: 0,
   };
-  const validViews = new Set(['overview', 'cycle_compare', 'jobs_map', 'salary_map', 'jobs_ranking', 'jobs_search', 'saved', 'changes', 'data_boundary', 'help', 'changelog']);
+  const validViews = new Set(['overview', 'cycle_compare', 'jobs_map', 'salary_map', 'jobs_ranking', 'jobs_search', 'saved', 'changes', 'data_boundary', 'help', 'changelog', 'calendar', 'match']);
   const themeToggle = document.querySelector('#maintain-theme-toggle');
   const THEME_KEY = 'wanyu.v15.theme';
   const themeFromQuery = () => {
@@ -75,6 +75,8 @@
     salary_map: { full: '待遇对比', short: '待遇' },
     jobs_ranking: { full: '城市排行', short: '榜单' },
     cycle_compare: { full: '三年趋势', short: '三年' },
+    calendar: { full: '报考日历', short: '日历' },
+    match: { full: '为我匹配', short: '匹配' },
     changes: { full: '变更通报', short: '变更' },
     saved: { full: '我的收藏', short: '收藏' },
     data_boundary: { full: '数据说明', short: '数据' },
@@ -92,7 +94,12 @@
   };
   const educationAllows = (userLevel, xl) => {
     if (!userLevel || userLevel === '不限') return true;
-    return xlMinTier(xl) <= xlMinTier(userLevel);
+    const xlTier = xlMinTier(xl);
+    if (!xlTier) return true;
+    // F-EDU-1：「仅限X」是精确档位（仅限本科=硕士/博士不可报，大专亦不可报），
+    // 不能按「X 及以上」放行；无「仅限」字样才保持「达到即可报」的层级语义。
+    if (String(xl || '').includes('仅限')) return xlTier === xlMinTier(userLevel);
+    return xlTier <= xlMinTier(userLevel);
   };
   const paletteActions = () => [
     ...Object.entries(VIEW_META).map(([view, names]) => ({
@@ -124,7 +131,7 @@
       // P0-9: palette.json(1.44MB, jobs_lite 纯子集)退役——命令面板条目改由已在内存的 jobs_lite 行派生，零额外下载
       try {
         const lite = state.modules.get(`${state.cycle}:jobs_lite`) || await loadModule(state.cycle, 'jobs_lite');
-        palette.entries = (lite?.allMajors?.rows || []).map((row) => ({ id: row.job_id || row.code || '', code: row.code || '', title: row.zw || row.display_title || '', unit: row.unit || '', city: row.city || row.reg || '', exam: row.exam || '' }));
+        palette.entries = (lite?.allMajors?.rows || []).filter(isActiveRow).map((row) => ({ id: row.job_id || row.code || '', code: row.code || '', title: row.zw || row.display_title || '', unit: row.unit || '', city: row.city || row.reg || '', exam: row.exam || '' }));
       } catch (error) { palette.entries = []; }
       palette.loaded = true;
     }
@@ -203,7 +210,7 @@
   };
   const normalize = (value) => String(value || '').replace(/\s+/g, '').toLocaleLowerCase();
   const number = (value) => Number(value || 0).toLocaleString('en-US');
-  const VIEW_NUMBERS = { overview: '01', cycle_compare: '02', jobs_map: '03', salary_map: '04', jobs_ranking: '05', jobs_search: '06', saved: '07', data_boundary: '08', help: '09', changelog: '10', changes: '11' };
+  const VIEW_NUMBERS = { overview: '01', cycle_compare: '02', jobs_map: '03', salary_map: '04', jobs_ranking: '05', jobs_search: '06', saved: '07', data_boundary: '08', help: '09', changelog: '10', changes: '11', calendar: '12', match: '13' };
   const viewEyebrow = (view, text) => `<p class="maint-eyebrow"><span class="maint-eyebrow__index">${VIEW_NUMBERS[view] || '--'}</span>${text}</p>`;
   const prefersReducedMotion = () => Boolean(matchMedia('(prefers-reduced-motion: reduce)')?.matches);
   const REVEAL_SELECTOR = '.maint-hero, .bento, .maint-panel, .maint-kpis, .maint-callout, .maint-grid';
@@ -284,7 +291,9 @@
     if (!visible.length) return '<div class="maint-active-filters" data-maint-active-filter><span>未设置筛选</span></div>';
     return `<div class="maint-active-filters" data-maint-active-filter aria-label="已生效筛选"><span>已生效</span>${visible.map((entry) => `<button type="button" data-maint-clear-filter="${escapeHtml(entry.key)}" aria-label="清除${escapeHtml(entry.label)}筛选">${escapeHtml(entry.label)}：${escapeHtml(entry.value)} ×</button>`).join('')}</div>`;
   };
-  const rowsFor = (payload) => Array.isArray(payload?.allMajors?.rows) ? payload.allMajors.rows : [];
+// record_status 生命周期（wanyu-record-status/v1）：用户产品统计只认 active；排除记录保留在数据层供审计
+  const isActiveRow = (row) => !row || !row.record_status || row.record_status === "active";
+  const rowsFor = (payload) => Array.isArray(payload?.allMajors?.rows) ? payload.allMajors.rows.filter(isActiveRow) : [];
   const metaFor = (payload) => payload?.allMajors?.meta || {};
   const sourceText = (row) => [row?.code, row?.city, row?.exam, row?.unit, row?.zw, row?.zy, row?.bz, row?.lb].map((value) => String(value || '')).join(' ');
   const setStatus = (message, tone = '') => {
@@ -506,7 +515,7 @@
       app.insertAdjacentHTML('beforeend', `<nav class="maint-mobile-nav" data-maint-mobile-nav aria-label="移动端主导航"><a href="#overview" data-maintain-view="overview"><span aria-hidden="true">⌂</span><strong>${VIEW_META.overview.short}</strong></a><a href="#jobs_search" data-maintain-view="jobs_search"><span aria-hidden="true">⌕</span><strong>${VIEW_META.jobs_search.short}</strong></a><a href="#jobs_map" data-maintain-view="jobs_map"><span aria-hidden="true">⌁</span><strong>${VIEW_META.jobs_map.short}</strong></a><a href="#saved" data-maintain-view="saved"><span aria-hidden="true">☆</span><strong>${VIEW_META.saved.short}</strong></a><button type="button" data-maint-mobile-more-toggle aria-expanded="false"><span aria-hidden="true">•••</span><strong>更多</strong></button></nav>`);
     }
     if (!document.querySelector('[data-maint-mobile-more]')) {
-      app.insertAdjacentHTML('beforeend', `<div class="maint-mobile-more" data-maint-mobile-more hidden><div class="maint-mobile-more__panel" role="dialog" aria-modal="true" aria-label="更多视图"><div class="maint-mobile-more__head"><strong>更多视图</strong><button type="button" data-maint-mobile-more-close aria-label="关闭更多视图">×</button></div><div class="maint-mobile-more__grid">${['cycle_compare', 'salary_map', 'jobs_ranking', 'changes', 'data_boundary', 'help', 'changelog'].map((view) => `<a href="#${view}" data-maintain-view="${view}">${VIEW_META[view].full}</a>`).join('')}</div></div></div>`);
+      app.insertAdjacentHTML('beforeend', `<div class="maint-mobile-more" data-maint-mobile-more hidden><div class="maint-mobile-more__panel" role="dialog" aria-modal="true" aria-label="更多视图"><div class="maint-mobile-more__head"><strong>更多视图</strong><button type="button" data-maint-mobile-more-close aria-label="关闭更多视图">×</button></div><div class="maint-mobile-more__grid">${['match', 'cycle_compare', 'salary_map', 'jobs_ranking', 'calendar', 'help', 'changelog'].map((view) => `<a href="#${view}" data-maintain-view="${view}">${VIEW_META[view].full}</a>`).join('')}</div></div></div>`);
     }
     document.querySelectorAll('[data-maint-mobile-nav] [data-maintain-view], [data-maint-mobile-more] [data-maintain-view]').forEach((node) => {
       const active = node.dataset.maintainView === state.view;
@@ -878,10 +887,72 @@
     return `${notice}<section class="maint-hero maint-hero--compact"><div>${viewEyebrow('jobs_ranking', `${escapeHtml(state.cycle)} · 岗位排名`)}<h1>岗位榜单，先选专业再看城市。</h1><p>按专业、城市、考试和岗位类型组合筛选，随时可清空；筛选只改变你看到的结果，不改动任何岗位原文。</p></div></section><section class="maint-toolbar maint-toolbar--ranking"><label>专业关键词<input id="maint-ranking-major" list="maint-ranking-options" value="${escapeHtml(filters.major)}" placeholder="输入或选择，如：软件工程"></label><datalist id="maint-ranking-options">${majors.map((value) => `<option value="${escapeHtml(value)}" label="${number(majorCount(catalog, value))} 岗"></option>`).join('')}</datalist><span class="maint-filter-hint">按源专业文本关键词命中；详情保留专业原文</span>${majorTools('ranking', majors, catalog)}<label>城市<select id="maint-ranking-city">${optionMarkup(cities, filters.city)}</select></label><label>考试<select id="maint-ranking-exam">${optionMarkup(examScopeOptions, filters.exam, '全部考试')}</select></label><label>岗位类型<select id="maint-ranking-category">${optionMarkup(categories, filters.category)}</select></label><label>排序<select id="maint-ranking-metric"><option value="jobs" ${filters.metric === 'jobs' ? 'selected' : ''}>岗位数</option><option value="recruits" ${filters.metric === 'recruits' ? 'selected' : ''}>招录人数</option></select></label>${active}<span class="maint-toolbar__count">${filters.major ? `专业“${escapeHtml(filters.major)}” · ` : ''}${number(filtered.length)} / ${number(rowsFor(payload).length)} 个岗位 · ${number(rows.length)} 个城市</span><button type="button" data-maint-save-filter data-filter-view="jobs_ranking">保存筛选</button><button type="button" data-maintain-clear-ranking data-maintain-clear-major>重置筛选</button></section><section class="maint-panel"><div class="table-scroll"><table class="maint-table maint-table--ranking"><thead><tr><th>排名</th><th>城市</th><th>岗位数</th><th>招录人数</th><th>竞争覆盖</th><th>考试类别</th><th>专业关键词命中</th><th>岗位行</th></tr></thead><tbody>${rows.map((item, index) => `<tr data-maintain-ranking-row data-ranking-major="${escapeHtml(item.majors)}"><td class="rank">${index < 3 ? `<span class="rank-med rank-med--${index + 1}">${String(index + 1).padStart(2, '0')}</span>` : String(index + 1).padStart(2, '0')}</td><th>${escapeHtml(cityDisplay(item.city))}</th><td>${number(item.jobs)}</td><td class="num-bar"><i style="flex:0 0 ${(Number(item.recruits || 0) / maxRecruits * 100).toFixed(1)}%" aria-hidden="true"></i><b>${number(item.recruits)}</b></td><td>${coverageChip(item)}</td><td>${escapeHtml(item.exams || '—')}</td><td>${filters.major ? `命中“${escapeHtml(filters.major)}”` : '全部专业'}${filters.city ? ` · ${escapeHtml(cityDisplay(filters.city))}` : ''}</td><td><button type="button" class="maint-row-action" data-maint-ranking-city="${escapeHtml(item.city)}">查看岗位</button></td></tr>`).join('') || '<tr><td colspan="8" class="empty">当前条件没有匹配城市 <button type="button" class="maint-row-action" data-maintain-clear-ranking>重置筛选</button></td></tr>'}</tbody></table></div></section>`;
   };
   const searchFlowMarkup = () => `<section class="ui-search-flow" data-ui-search-flow aria-label="岗位决策路径"><div class="ui-search-flow__intro"><span>岗位检索</span><strong>把候选岗位变成可复核决定</strong><small>先缩小范围，再打开原文，最后留下你的选择。</small></div><div class="ui-search-flow__step is-current"><b>01</b><span><strong>缩小范围</strong><small>专业 · 城市 · 学历</small></span></div><div class="ui-search-flow__step"><b>02</b><span><strong>核对原文</strong><small>职位字段 · 来源定位</small></span></div><div class="ui-search-flow__step"><b>03</b><span><strong>保存或对比</strong><small>回到收藏 · 留下快照</small></span></div></section>`;
-  const renderSearch = (payload, catalog = {}) => {
+  const PROFILE_KEY = 'wanyu.profile.v1';
+  const readProfile = () => {
+    try {
+      const raw = JSON.parse(localStorage.getItem(PROFILE_KEY) || '{}');
+      return { gender: raw.gender || '', fresh: raw.fresh || '', party: raw.party || '', legal: raw.legal || '', age: raw.age || '' };
+    } catch (error) { return { gender: '', fresh: '', party: '', legal: '', age: '' }; }
+  };
+  const writeProfile = (profile) => {
+    try { localStorage.setItem(PROFILE_KEY, JSON.stringify(profile)); } catch (error) { /* 存储不可用时条件仅在本次会话生效 */ }
+  };
+  const profileActive = (p) => Boolean(p && (p.gender || p.fresh || p.party || p.legal || p.age));
+  const renderSearch = (payload, catalog = {}, majorIndex = null, reqFields = null) => {
+    const profile = readProfile();
+    const profileOn = profileActive(profile) && Boolean(reqFields);
+    const profileMiss = profileActive(profile) && !reqFields;
+    // T2 一票否决：仅硬性要求且用户明确不满足才否决；置信度非 high 一律不否决（标"待核对"）
+    const profileFail = (row) => {
+      if (!profileOn) return false;
+      const rf = reqFields[String(row.job_id || '')];
+      if (!rf || rf.confidence !== 'high') return false;
+      if (rf.fresh_only && profile.fresh === 'no') return true;
+      if (rf.party_only && profile.party === 'no') return true;
+      if (rf.cert_legal && profile.legal === 'no') return true;
+      if (rf.gender === 'male' && profile.gender === 'female') return true;
+      if (rf.gender === 'female' && profile.gender === 'male') return true;
+      if (rf.age_max != null && profile.age && Number(profile.age) > Number(rf.age_max)) return true;
+      return false;
+    };
+    const profilePending = (row) => {
+      if (!profileOn) return false;
+      const rf = reqFields[String(row.job_id || '')];
+      return Boolean(rf && rf.confidence !== 'high');
+    };
     const all = rowsFor(payload);
     const query = normalize(state.keyword);
     const majorQuery = normalize(state.searchMajor);
+    // T1 三级匹配：明确含 / 专业类可报（推导，亮明依据）/ 专业不限；目录未收录则回退原文包含
+    let tier = null;
+    if (majorIndex?.postings && majorQuery) {
+      const p = majorIndex.postings;
+      const explicitSet = new Set(p.explicit[majorQuery] || []);
+      const classSet = new Set();
+      (majorIndex.classes || []).forEach((c) => {
+        if ((c.members || []).includes(majorQuery) && Array.isArray(p.by_class[c.key])) {
+          p.by_class[c.key].forEach((id) => classSet.add(id));
+        }
+      });
+      const clsName = (majorIndex.classes || []).find((c) => (c.members || []).includes(majorQuery))?.key
+        || (Array.isArray(p.by_class[majorQuery]) ? majorQuery : '');
+      if (Array.isArray(p.by_class[majorQuery])) p.by_class[majorQuery].forEach((id) => classSet.add(id));
+      const unlimitSet = new Set(p.unlimited || []);
+      if (explicitSet.size || classSet.size || unlimitSet.size) {
+        tier = { explicit: explicitSet, byClass: classSet, clsName, unlimit: unlimitSet };
+      }
+    }
+    const rowTier = (row) => {
+      if (!tier) return 0;
+      const id = String(row.job_id || row.row_id || row.code || '');
+      if (tier.explicit.has(id)) return 1;
+      if (tier.byClass.has(id)) return 2;
+      if (tier.unlimit.has(id)) return 3;
+      return 9;
+    };
+    // 目录未命中提示：既无明确含也无类内（含 tier 未激活的原文回退路径）都要告知用户口径，
+    // 否则未收录专业只会看到「不限专业」清单，误以为本专业没有对口岗位。
+    const majorUnmatched = Boolean(majorQuery && (!tier || (!tier.explicit.size && !tier.byClass.size)));
     const cityGroup = state.searchCityGroup;
     const stealEligible = (row) => {
       const recruits = Number(row?.num ?? row?.recruits ?? 0);
@@ -897,12 +968,13 @@
       const rawMajor = normalize(row?.zy);
       const readableMajor = normalize(cleanMajorOption(row?.zy));
       return (!query || normalize(sourceText(row)).includes(query))
-        && (!majorQuery || rawMajor.includes(majorQuery) || readableMajor.includes(majorQuery))
+        && (!majorQuery || (tier ? rowTier(row) !== 9 : rawMajor.includes(majorQuery) || readableMajor.includes(majorQuery)))
         && (!state.city || String(row.city || row.reg || '') === state.city)
         && (!cityGroup || mapCityFor(row.city || row.reg) === cityGroup)
         && (!state.exam || examRowMatches(row, state.exam))
         && (!state.education || educationAllows(state.education, row.xl))
-        && (!state.searchSteal || stealEligible(row));
+        && (!state.searchSteal || stealEligible(row))
+        && !profileFail(row);
     });
     // 计算竞争比统计
     const competitionStats = { fierce: 0, medium: 0, easy: 0, unknown: 0 };
@@ -922,6 +994,10 @@
     const exams = uniqueValues(payload, 'exam');
     const majorOptions = curateMajorOptions(catalog, all);
     const sorted = [...filtered].sort((a, b) => {
+      if (tier) {
+        const tierDiff = rowTier(a) - rowTier(b);
+        if (tierDiff) return tierDiff;
+      }
       if (state.searchSteal) {
         const diff = stealRatio(a) - stealRatio(b);
         if (diff) return diff;
@@ -947,7 +1023,7 @@
       { key: 'search.steal', label: '捡漏雷达', value: state.searchSteal ? '按竞争比升序' : '' },
     ]);
     const educationLevels = ['本科', '研究生', '大专', '不限'];
-    return `${notice}<section class="maint-hero maint-hero--compact"><div>${viewEyebrow('jobs_search', '岗位检索')}<h1>找到适合你的岗位</h1><p>输入专业、选择城市和学历，快速筛选能报的岗位。点击"查看详情"了解岗位信息。</p></div></section><section class="maint-toolbar maint-toolbar--search"><label>关键词<input id="maint-search-keyword" type="search" value="${escapeHtml(state.keyword)}" placeholder="单位 / 职位 / 专业 / 代码"></label><label>专业<input id="maint-search-major" list="maint-search-major-options" value="${escapeHtml(state.searchMajor)}" placeholder="输入专业，如：法学、计算机"></label><datalist id="maint-search-major-options">${majorOptions.map((value) => `<option value="${escapeHtml(value)}" label="${number(majorCount(catalog, value))}个岗位"></option>`).join('')}</datalist><label>城市<select id="maint-search-city"><option value="">全部城市</option>${cities.map((city) => `<option ${state.city === city ? 'selected' : ''} value="${escapeHtml(city)}">${escapeHtml(city)}</option>`).join('')}</select></label><label>学历<select id="maint-search-education"><option value="">全部学历</option>${educationLevels.map((level) => `<option ${state.education === level ? 'selected' : ''} value="${escapeHtml(level)}">${escapeHtml(level)}</option>`).join('')}</select></label><label>考试<select id="maint-search-exam">${optionMarkup(examScopeOptions, state.exam, '全部考试')}</select></label><label>排序<select id="maint-search-sort"><option value="recruits" ${state.searchSort === 'recruits' ? 'selected' : ''}>招录人数</option><option value="source" ${state.searchSort === 'source' ? 'selected' : ''}>默认顺序</option><option value="city" ${state.searchSort === 'city' ? 'selected' : ''}>城市</option></select></label>${cityGroup ? `<button type="button" class="maint-row-action" data-maint-clear-city-group>清除地图筛选</button>` : ''}${active}<div class="maint-search-stats"><span class="maint-search-stats__total">找到 <strong>${number(filtered.length)}</strong> 个岗位</span><span class="maint-search-stats__fierce" title="竞争比5:1以上">🔥 竞争激烈 ${number(competitionStats.fierce)}个</span><span class="maint-search-stats__medium" title="竞争比2-5:1">⚠️ 竞争适中 ${number(competitionStats.medium)}个</span><span class="maint-search-stats__easy" title="竞争比2:1以下">✅ 竞争较小 ${number(competitionStats.easy)}个</span></div><div class="maint-search-actions">${state.searchSteal ? '<span class="maint-steal-hint">口径：招录 ≥3 人 · 有官方报名观测 · 按竞争比从低到高；竞争比 = 官方报名人数 ÷ 招录数</span>' : ''}<button type="button" data-maint-steal-toggle class="${state.searchSteal ? 'is-active' : ''}" aria-pressed="${state.searchSteal ? 'true' : 'false'}" title="招录≥3人且官方公布报名人数的岗位，按竞争比从低到高">🎯 捡漏雷达</button><button type="button" data-maint-clear-search>清空筛选</button><button type="button" data-maint-save-filter data-filter-view="jobs_search">保存筛选</button><button type="button" data-maint-export-search>导出结果</button></div></section><section class="maint-panel"><div class="table-scroll"><table class="maint-table maint-table--search"><thead><tr><th>城市</th><th>单位</th><th>职位</th><th>专业</th><th>学历</th><th>招录</th><th>竞争</th><th>操作</th></tr></thead><tbody>${pageRows.map((row) => { const recordId = row.job_id || row.row_id || row.code || ''; const recruits = Number(row.num ?? row.recruits ?? 0); const examinees = Number(row.competition_observations?.examinees?.value ?? row.bm ?? 0); let compBadge = ''; if (examinees > 0 && recruits > 0) { const ratio = (examinees / recruits).toFixed(1); if (examinees / recruits >= 5) compBadge = `<span class="comp-badge comp-fierce" title="报名${examinees}人/招${recruits}人">${ratio}:1 🔥</span>`; else if (examinees / recruits >= 2) compBadge = `<span class="comp-badge comp-medium" title="报名${examinees}人/招${recruits}人">${ratio}:1</span>`; else compBadge = `<span class="comp-badge comp-easy" title="报名${examinees}人/招${recruits}人">${ratio}:1 ✅</span>`; } else { compBadge = '<span class="comp-badge comp-unknown">暂无数据</span>'; } return `<tr data-maint-search-row data-record-id="${escapeHtml(recordId)}"><td>${escapeHtml(row.city)}</td><td>${escapeHtml(row.unit)}</td><td>${escapeHtml(row.zw || row.display_title || '源表未单列披露')}</td><td class="major-cell" title="${escapeHtml(row.zy)}">${escapeHtml(row.zy)}</td><td>${escapeHtml(row.xl || '—')}</td><td>${escapeHtml(row.num ?? row.recruits ?? '—')}</td><td>${compBadge}</td><td><button type="button" class="maint-row-action" data-maint-position-detail data-record-id="${escapeHtml(recordId)}">查看详情</button></td></tr>`; }).join('') || '<tr><td colspan="8" class="empty">没有找到匹配的岗位 <button type="button" class="maint-row-action" data-maint-clear-search>清空全部筛选</button></td></tr>'}</tbody></table></div><div class="maint-pagination" data-maint-pagination aria-label="分页"><span class="maint-pagination__label">第 ${number(page + 1)} / ${number(pageCount)} 页</span><div class="maint-pagination__buttons"><button type="button" data-maint-search-page="prev" ${page <= 0 ? 'disabled' : ''}>上一页</button><button type="button" data-maint-search-page="next" ${page >= pageCount - 1 ? 'disabled' : ''}>下一页</button></div></div></section>`;
+    return `${notice}<section class="maint-hero maint-hero--compact"><div>${viewEyebrow('jobs_search', '岗位检索')}<h1>找到适合你的岗位</h1><p>输入专业、选择城市和学历，快速筛选能报的岗位。点击"查看详情"了解岗位信息。</p></div></section><section class="maint-toolbar maint-toolbar--search"><label>关键词<input id="maint-search-keyword" type="search" value="${escapeHtml(state.keyword)}" placeholder="单位 / 职位 / 专业 / 代码"></label><label>专业<input id="maint-search-major" list="maint-search-major-options" value="${escapeHtml(state.searchMajor)}" placeholder="输入专业，如：法学、计算机"></label><datalist id="maint-search-major-options">${majorOptions.map((value) => `<option value="${escapeHtml(value)}" label="${number(majorCount(catalog, value))}个岗位"></option>`).join('')}</datalist><label>城市<select id="maint-search-city"><option value="">全部城市</option>${cities.map((city) => `<option ${state.city === city ? 'selected' : ''} value="${escapeHtml(city)}">${escapeHtml(city)}</option>`).join('')}</select></label><label>学历<select id="maint-search-education"><option value="">全部学历</option>${educationLevels.map((level) => `<option ${state.education === level ? 'selected' : ''} value="${escapeHtml(level)}">${escapeHtml(level)}</option>`).join('')}</select></label><label>考试<select id="maint-search-exam">${optionMarkup(examScopeOptions, state.exam, '全部考试')}</select></label><label>排序<select id="maint-search-sort"><option value="recruits" ${state.searchSort === 'recruits' ? 'selected' : ''}>招录人数</option><option value="source" ${state.searchSort === 'source' ? 'selected' : ''}>默认顺序</option><option value="city" ${state.searchSort === 'city' ? 'selected' : ''}>城市</option></select></label>${cityGroup ? `<button type="button" class="maint-row-action" data-maint-clear-city-group>清除地图筛选</button>` : ''}${active}<div class="maint-search-stats"><span class="maint-search-stats__total">找到 <strong>${number(filtered.length)}</strong> 个岗位</span><span class="maint-search-stats__fierce" title="竞争比5:1以上">🔥 竞争激烈 ${number(competitionStats.fierce)}个</span><span class="maint-search-stats__medium" title="竞争比2-5:1">⚠️ 竞争适中 ${number(competitionStats.medium)}个</span><span class="maint-search-stats__easy" title="竞争比2:1以下">✅ 竞争较小 ${number(competitionStats.easy)}个</span>${tier ? `<span class="maint-search-stats__tier t1" title="岗位专业要求原文明确包含「${escapeHtml(majorQuery)}」">✔ 明确含 ${number(filtered.filter((row) => rowTier(row) === 1).length)}</span><span class="maint-search-stats__tier t2" title="依据：该岗要求『${escapeHtml(tier.clsName)}』，「${escapeHtml(majorQuery)}」属该专业类（推导，依据可展开原文）">🔁 类内可报·推导 ${number(filtered.filter((row) => rowTier(row) === 2).length)}</span><span class="maint-search-stats__tier t3" title="该岗不限专业">➖ 不限专业 ${number(filtered.filter((row) => rowTier(row) === 3).length)}</span>` : ''}${profileOn ? `<span class="maint-search-stats__tier t1" title="按「我的条件」核对：应届/性别/党员/法考/年龄硬性要求，一票否决；存疑岗位不否决">👤 符合我的条件 ${number(filtered.length)}</span>` : ''}${profileMiss ? '<span class="maint-filter-hint">「我的条件」核对目前覆盖 2026 周期</span>' : ''}</div><div class="maint-search-actions">${majorUnmatched ? `<span class="maint-filter-hint">专业目录未收录「${escapeHtml(majorQuery)}」${tier ? '：没有明确含/类内可报岗位，以下均为不限专业岗位' : '，当前按岗位原文包含匹配'}；可尝试目录内规范名</span>` : ''}${state.searchSteal ? '<span class="maint-steal-hint">口径：招录 ≥3 人 · 有官方报名观测 · 按竞争比从低到高；竞争比 = 官方报名人数 ÷ 招录数</span>' : ''}<button type="button" data-maint-steal-toggle class="${state.searchSteal ? 'is-active' : ''}" aria-pressed="${state.searchSteal ? 'true' : 'false'}" title="招录≥3人且官方公布报名人数的岗位，按竞争比从低到高">🎯 捡漏雷达</button><button type="button" data-maint-profile-toggle class="${profileOn ? 'is-active' : ''}" aria-expanded="${state.profileOpen ? 'true' : 'false'}" title="填写学历/应届/性别/党员/法考/年龄，全站自动标注可报">👤 我的条件</button><a class="maint-row-action" href="#match" data-maintain-view="match" title="专业+条件一次生成可报榜">⚡ 为我匹配</a><button type="button" data-maint-clear-search>清空筛选</button><button type="button" data-maint-save-filter data-filter-view="jobs_search">保存筛选</button><button type="button" data-maint-export-search>导出结果</button></div>${state.profileOpen ? `<div class="maint-profile-panel"><span class="maint-profile-panel__title">我的条件（仅存本机浏览器）</span><label>性别<select id="maint-profile-gender"><option value="">不限</option><option value="male" ${profile.gender === 'male' ? 'selected' : ''}>男</option><option value="female" ${profile.gender === 'female' ? 'selected' : ''}>女</option></select></label><label>应届身份<select id="maint-profile-fresh"><option value="">不限</option><option value="yes" ${profile.fresh === 'yes' ? 'selected' : ''}>是</option><option value="no" ${profile.fresh === 'no' ? 'selected' : ''}>否</option></select></label><label>政治面貌<select id="maint-profile-party"><option value="">不限</option><option value="yes" ${profile.party === 'yes' ? 'selected' : ''}>党员（含预备）</option><option value="no" ${profile.party === 'no' ? 'selected' : ''}>群众</option></select></label><label>法律职业资格<select id="maint-profile-legal"><option value="">不限</option><option value="yes" ${profile.legal === 'yes' ? 'selected' : ''}>有</option><option value="no" ${profile.legal === 'no' ? 'selected' : ''}>无</option></select></label><label>年龄<input id="maint-profile-age" type="number" min="16" max="60" value="${escapeHtml(profile.age)}" placeholder="周岁"></label><button type="button" class="maint-row-action" data-maint-profile-clear>清除条件</button><span class="maint-filter-hint">硬性要求不满足即隐藏该岗；条件解析存疑的岗位不否决、标「待核对」；最终以官方公告为准</span></div>` : ''}</section><section class="maint-panel"><div class="table-scroll"><table class="maint-table maint-table--search"><thead><tr><th scope="col">城市</th><th scope="col">单位</th><th scope="col">职位</th><th scope="col">专业</th><th scope="col">学历</th><th scope="col">招录</th><th scope="col">竞争</th><th scope="col">操作</th></tr></thead><tbody>${pageRows.map((row) => { const recordId = row.job_id || row.row_id || row.code || ''; const recruits = Number(row.num ?? row.recruits ?? 0); const examinees = Number(row.competition_observations?.examinees?.value ?? row.bm ?? 0); let compBadge = ''; if (examinees > 0 && recruits > 0) { const ratio = (examinees / recruits).toFixed(1); if (examinees / recruits >= 5) compBadge = `<span class="comp-badge comp-fierce" title="报名${examinees}人/招${recruits}人">${ratio}:1 🔥</span>`; else if (examinees / recruits >= 2) compBadge = `<span class="comp-badge comp-medium" title="报名${examinees}人/招${recruits}人">${ratio}:1</span>`; else compBadge = `<span class="comp-badge comp-easy" title="报名${examinees}人/招${recruits}人">${ratio}:1 ✅</span>`; } else { compBadge = '<span class="comp-badge comp-unknown">暂无数据</span>'; } return `<tr data-maint-search-row data-record-id="${escapeHtml(recordId)}"><td>${escapeHtml(row.city)}</td><td>${escapeHtml(row.unit)}</td><td>${escapeHtml(row.zw || row.display_title || '源表未单列披露')}</td><td class="major-cell" title="${escapeHtml(row.zy)}">${escapeHtml(row.zy)}${(() => { const t = rowTier(row); if (!tier || t === 9) return ''; if (t === 1) return '<span class="tier-badge tb1">✔ 明确含</span>'; if (t === 2) return `<span class="tier-badge tb2" title="依据：该岗要求『${escapeHtml(tier.clsName)}』，「${escapeHtml(majorQuery)}」属该专业类（推导）">类内可报·推导</span>`; return '<span class="tier-badge tb3">不限专业</span>'; })()}${profilePending(row) ? '<span class="tier-badge tb2" title="该岗条件解析置信度较低，请以原文核对">待核对</span>' : ''}</td><td>${escapeHtml(row.xl || '—')}</td><td>${escapeHtml(row.num ?? row.recruits ?? '—')}</td><td>${compBadge}</td><td><button type="button" class="maint-row-action" data-maint-position-detail data-record-id="${escapeHtml(recordId)}">查看详情</button></td></tr>`; }).join('') || '<tr><td colspan="8" class="empty">没有找到匹配的岗位 <button type="button" class="maint-row-action" data-maint-clear-search>清空全部筛选</button></td></tr>'}</tbody></table></div><div class="maint-pagination" data-maint-pagination aria-label="分页"><span class="maint-pagination__label">第 ${number(page + 1)} / ${number(pageCount)} 页</span><div class="maint-pagination__buttons"><button type="button" data-maint-search-page="prev" ${page <= 0 ? 'disabled' : ''}>上一页</button><button type="button" data-maint-search-page="next" ${page >= pageCount - 1 ? 'disabled' : ''}>下一页</button></div></div></section>`;
   };
   const detailStatusLabel = (status) => ({ verified: '已核验', partial_evidence: '部分证据已核验', source_bundle: '源包接入', derived: '派生指标', registered: '已登记', unpublished_or_unavailable: '未发布或未取得', ambiguous_join: '无法唯一关联', needs_review: '待复核', unavailable: '未取得', suspected_sentinel: '疑似哨兵值', incompatible_scale: '量纲不兼容', not_applicable: '不适用' }[String(status)] || '未知');
   const detailValue = (value, status = '') => {
@@ -957,6 +1033,21 @@
     return `<span class="maint-value-null">${escapeHtml(detailStatusLabel(status || 'unavailable'))}</span>`;
   };
   const positionIndexRow = (positions, recordId) => (positions?.rows || []).find((item) => String(item.record_id) === String(recordId));
+  /* A4-B1：lite 行 + 周期级来源登记 ⇒ 现场重建证据对象。
+     ss 分类码与 build_position_index._source_status 三分支一致：v=verified/官方、b=source_bundle、d=derived。 */
+  const deriveSource = (row, meta) => {
+    const ss = row?.ss === 'v' || row?.ss === 'b' || row?.ss === 'd' ? row.ss : 'd';
+    const status = ss === 'v' ? 'verified' : (ss === 'b' ? 'source_bundle' : 'derived');
+    const method = ss === 'v' ? 'official_page' : ss;
+    return {
+      status,
+      method,
+      source_ref: meta?.source_ref || 'jobs.json',
+      locator: Number.isInteger(row?.ji) ? `jobs.json#allMajors.rows[${row.ji}]` : (meta?.source_ref || 'jobs.json'),
+      observed_at: meta?.observed_at || null,
+      note: meta?.evidence_note || '详情展示源字段；目录清洗不覆盖原始岗位文本',
+    };
+  };
   const renderDetailDrawer = (row, indexRow, historyEntry) => {
     const source = indexRow?.source || {};
     const recordId = row.job_id || row.row_id || row.code || '';
@@ -974,7 +1065,26 @@
           const ratioText = h.num > 0 && h.bm != null ? `${(h.bm / h.num).toFixed(1)}:1` : '—';
           return `<tr><td>${cycle}</td><td>${h.posts} 岗</td><td>${number(h.num)} 人</td><td>${h.bm != null ? number(h.bm) : '—'}</td><td>${ratioText}</td><td>${lineText}</td></tr>`;
         }).join('');
-        historyBlock = `<section class="maint-detail-section"><h3>跨年走势 · 同单位同职位族</h3><div class="table-scroll"><table class="maint-table maint-table--history"><thead><tr><th>年份</th><th>岗位</th><th>招录</th><th>报名</th><th>竞争比</th><th>入围线</th></tr></thead><tbody>${rowsHtml}</tbody></table></div><p class="maint-detail-footnote">按“城市+单位+职位名称”聚合的同职位族跨年数据，仅显示有数据的年份；报名与入围线在官方未公布或无法唯一匹配时保持空值，不以 0 冒充。</p></section>`;
+        const vizYears = order.filter((y) => historyEntry.cycles[y]?.lo != null);
+        const vizPosts = order.map((y) => ({ year: y, posts: historyEntry.cycles[y]?.posts ?? 0 }));
+        let spark = '';
+        let trendBadge = '';
+        if (vizYears.length >= 2) {
+          const los = vizYears.map((y) => historyEntry.cycles[y].lo);
+          const minV = Math.min(...los), maxV = Math.max(...los);
+          const span = maxV - minV || 1;
+          const W = 500, H = 88, PAD = 14;
+          const pts = los.map((v, i) => [PAD + (i * (W - PAD * 2)) / (los.length - 1), H - PAD - ((v - minV) / span) * (H - PAD * 2)]);
+          const poly = pts.map((pt) => `${pt[0].toFixed(1)},${pt[1].toFixed(1)}`).join(' ');
+          spark = `<svg class="maint-trend-spark" viewBox="0 0 ${W} ${H}" role="img" aria-label="同职位族入围线走势：${vizYears.join('、')}年分别为 ${los.join('、')} 分"><polyline points="${poly}" fill="none" stroke="var(--accent-primary,#3a83f7)" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>${pts.map((pt, i) => `<circle cx="${pt[0].toFixed(1)}" cy="${pt[1].toFixed(1)}" r="4.5" fill="var(--accent-primary,#3a83f7)"/><text x="${pt[0].toFixed(1)}" y="${pt[1].toFixed(1) - 10}" text-anchor="middle" class="maint-trend-spark__val">${los[i]}</text>`).join('')}<text x="${PAD}" y="${H - 2}" text-anchor="start" class="maint-trend-spark__year">${vizYears[0]}</text><text x="${W - PAD}" y="${H - 2}" text-anchor="end" class="maint-trend-spark__year">${vizYears[vizYears.length - 1]}</text></svg>`;
+        }
+        if (vizPosts.length >= 2) {
+          const p0 = vizPosts[0].posts, p1 = vizPosts[vizPosts.length - 1].posts;
+          if (p1 > p0) trendBadge = `<span class="tier-badge tb1" title="同职位族招录人数 ${p0}→${p1}">扩招 ↗（${p0}→${p1}）</span>`;
+          else if (p1 < p0) trendBadge = `<span class="tier-badge tb2" title="同职位族招录人数 ${p0}→${p1}">缩招 ↘（${p0}→${p1}）</span>`;
+          else trendBadge = `<span class="tier-badge tb3" title="同职位族招录人数持平（${p0}）">招录持平（${p0}）</span>`;
+        }
+        historyBlock = `<section class="maint-detail-section"><h3>跨年走势 · 同单位同职位族 ${trendBadge}</h3>${spark}<div class="table-scroll"><table class="maint-table maint-table--history"><thead><tr><th scope="col">年份</th><th scope="col">岗位</th><th scope="col">招录</th><th scope="col">报名</th><th scope="col">竞争比</th><th scope="col">入围线</th></tr></thead><tbody>${rowsHtml}</tbody></table></div><p class="maint-detail-footnote">按“城市+单位+职位名称”聚合的同职位族跨年数据，仅显示有数据的年份；报名与入围线在官方未公布或无法唯一匹配时保持空值，不以 0 冒充。</p></section>`;
       }
     }
     const fields = [
@@ -983,16 +1093,55 @@
       ['专业要求（源文）', row.zy, ''], ['学历', row.xl, ''], ['学位', row.xw, ''], ['政治面貌', row.xz, ''],
       ['年龄要求', row.age, ''], ['备注', row.bz, ''], ['成绩/入围线', score.value, score.status],
     ];
-    return `<div class="maint-detail-backdrop" data-maint-detail-drawer role="presentation"><aside class="maint-detail-drawer" role="dialog" aria-modal="true" aria-labelledby="maint-detail-title"><header class="maint-detail-head"><div><p class="maint-eyebrow">${escapeHtml(state.cycle)} · 岗位详情</p><h2 id="maint-detail-title">${escapeHtml(row.zw || row.display_title || '岗位详情')}</h2><p>${escapeHtml(row.unit || '未提供单位')} · ${escapeHtml(row.code || '')} · ${escapeHtml(row.city || row.reg || '')} · ${escapeHtml(row.exam || '')}</p></div><button type="button" class="maint-detail-close" data-maint-detail-close aria-label="关闭岗位详情">×</button></header><div class="maint-detail-actions"><div class="maint-detail-action-group"><button type="button" data-maint-save-position data-record-id="${escapeHtml(recordId)}">${saved ? '已收藏' : '收藏岗位'}</button><button type="button" data-maint-position-compare data-record-id="${escapeHtml(recordId)}">${compared ? '移出对比' : '加入对比'}</button></div><details class="maint-detail-id"><summary>岗位编号</summary><code>${escapeHtml(recordId)}</code></details></div><section class="maint-detail-section"><h3>岗位原始字段</h3><dl class="maint-detail-fields">${fields.map(([label, value, status]) => `<div><dt>${escapeHtml(label)}</dt><dd>${detailValue(value, status)}</dd></div>`).join('')}</dl></section>${historyBlock}<section class="maint-detail-section maint-detail-evidence"><h3>证据与来源</h3><div class="maint-detail-status"><span class="audit-chip">${escapeHtml(detailStatusLabel(source.status))}</span><span>${escapeHtml(methodLabel(source.method))}</span></div><details class="maint-source-details"><summary>查看来源定位</summary><dl class="maint-detail-fields"><div><dt>来源文件</dt><dd><code>${escapeHtml(source.source_ref || '未提供')}</code></dd></div><div><dt>源定位</dt><dd><code>${escapeHtml(source.source_locator || '未提供')}</code></dd></div><div><dt>源材料获取日期</dt><dd>${source.observed_at || '未提供'}</dd></div><div><dt>说明</dt><dd>${escapeHtml(source.note || '原始值保留在岗位数据中')}</dd></div></dl></details></section><p class="maint-detail-footnote">专业候选是展示层关键词；报考资格仍以当年官方公告、职位表和专业目录为准。岗位原文未被清洗或改写。</p></aside></div>`;
+    return `<div class="maint-detail-backdrop" data-maint-detail-drawer role="presentation"><aside class="maint-detail-drawer" role="dialog" aria-modal="true" aria-labelledby="maint-detail-title"><header class="maint-detail-head"><div><p class="maint-eyebrow">${escapeHtml(state.cycle)} · 岗位详情</p><h2 id="maint-detail-title">${escapeHtml(row.zw || row.display_title || '岗位详情')}</h2><p>${escapeHtml(row.unit || '未提供单位')} · ${escapeHtml(row.code || '')} · ${escapeHtml(row.city || row.reg || '')} · ${escapeHtml(row.exam || '')}</p><p class="maint-evidence-chip">✔ 来源可核对${source.observed_at ? ` · 材料取得 ${escapeHtml(source.observed_at)}` : ''}</p></div><button type="button" class="maint-detail-close" data-maint-detail-close aria-label="关闭岗位详情">×</button></header><div class="maint-detail-actions"><div class="maint-detail-action-group"><button type="button" data-maint-save-position data-record-id="${escapeHtml(recordId)}">${saved ? '已收藏' : '收藏岗位'}</button><button type="button" data-maint-position-compare data-record-id="${escapeHtml(recordId)}">${compared ? '移出对比' : '加入对比'}</button><button type="button" data-maint-share-job data-record-id="${escapeHtml(recordId)}">复制分享文本</button></div><details class="maint-detail-id"><summary>岗位编号</summary><code>${escapeHtml(recordId)}</code></details></div><section class="maint-decision-bar" aria-label="报考决策要点">${(() => {
+      const num = Number(row.num ?? row.recruits ?? 0);
+      const examinees = Number(row.competition_observations?.examinees?.value ?? row.bm ?? 0);
+      const ratio = examinees > 0 && num > 0 ? `${(examinees / num).toFixed(1)}:1` : null;
+      const lineVal = row.score_observation?.value;
+      const lineOk = row.score_observation?.status === 'comparable';
+      const cyc = historyEntry?.cycles ? ['2024', '2025', '2026'].filter((y) => historyEntry.cycles[y]) : [];
+      let trend = '首年岗，无跨年参照';
+      if (cyc.length >= 2) {
+        const first = historyEntry.cycles[cyc[0]];
+        const last = historyEntry.cycles[cyc[cyc.length - 1]];
+        if (first.lo != null && last.lo != null) {
+          const arrow = last.lo > first.lo ? '↗ 走高' : (last.lo < first.lo ? '↘ 走低' : '→ 持平');
+          trend = `${cyc[0]}–${cyc[cyc.length - 1]} 入围线 ${first.lo}→${last.lo} ${arrow}`;
+        } else trend = `${cyc.length} 个年度有招录，入围线未全公布`;
+      }
+      return `<div class="maint-decision-bar__cell"><span>招录</span><strong>${num > 0 ? number(num) : '未公布'}</strong><small>人</small></div><div class="maint-decision-bar__cell"><span>官方报名竞争</span><strong>${ratio || '未公布'}</strong><small>${ratio ? `报名 ${number(examinees)} 人` : '无官方观测'}</small></div><div class="maint-decision-bar__cell"><span>入围线</span><strong>${lineOk && lineVal != null ? escapeHtml(String(lineVal)) : '未公布'}</strong><small>${lineOk ? '可复核口径' : (lineVal != null ? '量纲不符，不参与比较' : '未公布不推断')}</small></div><div class="maint-decision-bar__cell maint-decision-bar__cell--wide"><span>跨年走势</span><strong>${escapeHtml(trend)}</strong><small>${cyc.length ? `同单位同职位族 · ${cyc.join('/')}` : '本族仅今年在库'}</small></div>`;
+    })()}</section><section class="maint-detail-section"><h3>岗位原始字段</h3><dl class="maint-detail-fields">${fields.map(([label, value, status]) => `<div><dt>${escapeHtml(label)}</dt><dd>${detailValue(value, status)}</dd></div>`).join('')}</dl></section>${historyBlock}<section class="maint-detail-section maint-detail-evidence"><h3>证据与来源</h3><div class="maint-detail-status"><span class="audit-chip">${escapeHtml(detailStatusLabel(source.status))}</span><span>${escapeHtml(methodLabel(source.method))}</span></div><details class="maint-source-details"><summary>查看来源定位</summary><dl class="maint-detail-fields"><div><dt>来源文件</dt><dd><code>${escapeHtml(source.source_ref || '未提供')}</code></dd></div><div><dt>源定位</dt><dd><code>${escapeHtml(source.source_locator || '未提供')}</code></dd></div><div><dt>源材料获取日期</dt><dd>${source.observed_at || '未提供'}</dd></div><div><dt>说明</dt><dd>${escapeHtml(source.note || '原始值保留在岗位数据中')}</dd></div></dl></details></section><p class="maint-detail-footnote">专业候选是展示层关键词；报考资格仍以当年官方公告、职位表和专业目录为准。岗位原文未被清洗或改写。</p></aside></div>`;
   };
+  const lockBodyScroll = (lock) => {
+    if (lock) {
+      if (!('scrollLock' in document.body.dataset)) {
+        document.body.dataset.scrollLock = document.body.style.overflow || '';
+        document.body.style.overflow = 'hidden';
+      }
+    } else if ('scrollLock' in document.body.dataset) {
+      document.body.style.overflow = document.body.dataset.scrollLock || '';
+      delete document.body.dataset.scrollLock;
+    }
+  };
+  let detailInflight = null;
   const openDetail = async (recordId, options = {}) => {
+    if (detailInflight) return detailInflight;
+    detailInflight = (async () => {
+    const lite = state.modules.get(`${state.cycle}:jobs_lite`) || await loadModule(state.cycle, 'jobs_lite');
+    let row = rowsFor(lite).find((item) => String(item.job_id || item.row_id || item.code) === String(recordId));
+    let indexRow = null;
+    if (row) {
+      indexRow = { source: deriveSource(row, (lite && lite.allMajors && lite.allMajors.meta) || {}) };
+    } else {
     const jobs = state.modules.get(`${state.cycle}:jobs`) || await loadModule(state.cycle, 'jobs'); const positions = state.modules.get(`${state.cycle}:positions`) || await loadModule(state.cycle, 'positions');
-    const row = rowsFor(jobs).find((item) => String(item.job_id || item.row_id || item.code) === String(recordId));
+    row = rowsFor(jobs).find((item) => String(item.job_id || item.row_id || item.code) === String(recordId));
+    indexRow = positionIndexRow(positions, recordId);
+    }
     if (!row) { setStatus('岗位详情不存在', 'error'); return; }
-    const indexRow = positionIndexRow(positions, recordId);
     const jobHistory = await loadJobHistory().catch(() => null);
     const historyEntry = jobHistory?.jobs?.[jobHistoryKey(row)] || null;
     state.detail = { recordId };
+    lockBodyScroll(true);
     if (!options.fromHash) {
       const defaultCycle = state.manifest?.default_cycle || '2026';
       const cycleQuery = String(state.cycle) !== String(defaultCycle) ? `?cycle=${encodeURIComponent(String(state.cycle))}` : '';
@@ -1002,11 +1151,14 @@
     main.insertAdjacentHTML('beforeend', renderDetailDrawer(row, indexRow, historyEntry));
     setStatus(`${state.cycle} · 岗位详情已打开`, 'ready');
     document.querySelector('[data-maint-detail-close]')?.focus();
+    })();
+    try { await detailInflight; } finally { detailInflight = null; }
   };
   const closeDetail = () => {
     const recordId = state.detail?.recordId;
     document.querySelector('[data-maint-detail-drawer]')?.remove();
     state.detail = null;
+    lockBodyScroll(false);
     const viewHash = `#${state.view}`;
     if ((location.hash || '#overview') !== viewHash) history.replaceState({}, '', `${location.pathname}${location.search}${viewHash}`);
     const rowsPayload = state.modules.get(`${state.cycle}:jobs_lite`) || state.modules.get(`${state.cycle}:jobs`);
@@ -1014,7 +1166,86 @@
     if (recordId) [...document.querySelectorAll('[data-maint-position-detail]')].find((node) => node.dataset.recordId === recordId)?.focus();
   };
   const currentRowsPayload = () => scopeExamPayload(state.modules.get(`${state.cycle}:jobs_lite`) || state.modules.get(`${state.cycle}:jobs`) || null);
-  const renderSaved = () => {
+  const renderMatch = (payload, catalog, majorIndex, reqFields) => {
+    if (!state.matchMajor) state.matchMajor = normalize(state.searchMajor || '');
+    const all = rowsFor(payload);
+    const majorQuery = normalize(state.matchMajor);
+    const profile = readProfile();
+    const profileOn = profileActive(profile) && Boolean(reqFields);
+    const p = majorIndex?.postings || null;
+    const explicitSet = new Set(p && majorQuery ? p.explicit[majorQuery] || [] : []);
+    const classSet = new Set();
+    let clsName = '';
+    if (p && majorQuery) {
+      (majorIndex.classes || []).forEach((c) => {
+        if ((c.members || []).includes(majorQuery) && Array.isArray(p.by_class[c.key])) {
+          if (!clsName) clsName = c.key;
+          p.by_class[c.key].forEach((id) => classSet.add(id));
+        }
+      });
+      if (Array.isArray(p.by_class[majorQuery])) {
+        if (!clsName) clsName = majorQuery;
+        p.by_class[majorQuery].forEach((id) => classSet.add(id));
+      }
+    }
+    const unlimitSet = new Set(p ? p.unlimited || [] : []);
+    const tierOf = (row) => {
+      const id = String(row.job_id || row.row_id || row.code || '');
+      if (explicitSet.has(id)) return 1;
+      if (classSet.has(id)) return 2;
+      if (unlimitSet.has(id)) return 3;
+      return 9;
+    };
+    const profileFail = (row) => {
+      if (!profileOn) return false;
+      const rf = reqFields[String(row.job_id || '')];
+      if (!rf || rf.confidence !== 'high') return false;
+      if (rf.fresh_only && profile.fresh === 'no') return true;
+      if (rf.party_only && profile.party === 'no') return true;
+      if (rf.cert_legal && profile.legal === 'no') return true;
+      if (rf.gender === 'male' && profile.gender === 'female') return true;
+      if (rf.gender === 'female' && profile.gender === 'male') return true;
+      if (rf.age_max != null && profile.age && Number(profile.age) > Number(rf.age_max)) return true;
+      return false;
+    };
+    const matched = majorQuery && p
+      ? all.filter((row) => tierOf(row) !== 9 && !profileFail(row))
+      : [];
+    const n1 = matched.filter((row) => tierOf(row) === 1).length;
+    const n2 = matched.filter((row) => tierOf(row) === 2).length;
+    const n3 = matched.filter((row) => tierOf(row) === 3).length;
+    const ratioOf = (row) => {
+      const num = Number(row.num ?? row.recruits ?? 0);
+      const examinees = Number(row.competition_observations?.examinees?.value ?? row.bm ?? 0);
+      return num > 0 && examinees > 0 ? examinees / num : Number.POSITIVE_INFINITY;
+    };
+    const top = [...matched].sort((a, b) => (tierOf(a) - tierOf(b)) || (ratioOf(a) - ratioOf(b))).slice(0, 30);
+    const majorOptions = curateMajorOptions(catalog, all);
+    const input = `<div class="maint-match-input"><input id="maint-match-major" list="maint-match-major-options" value="${escapeHtml(state.matchMajor)}" placeholder="输入你的专业，如：知识产权、软件工程、会计学"><datalist id="maint-match-major-options">${majorOptions.slice(0, 500).map(([value]) => `<option value="${escapeHtml(value)}"></option>`).join('')}</datalist><button type="button" class="maint-action" data-maint-match-go>生成我的可报榜</button>${profileOn ? '<span class="tier-badge tb1">👤 条件已启用</span>' : `<a class="maint-filter-hint" href="#jobs_search" data-maintain-view="jobs_search">先去「我的条件」填应届/性别/党员/法考，结果更准 →</a>`}</div>`;
+    if (!majorQuery) {
+      return `<section class="maint-hero maint-hero--compact"><div>${viewEyebrow('match', '为我匹配')}<h1>一步得到你的可报榜。</h1><p>输入专业 + 可选的个人条件，本页把「明确含你的专业」「专业类可报（推导）」「不限专业」三类岗位一次性排好，每条亮明依据。</p></div></section><section class="maint-panel">${input}<p class="maint-filter-hint">数据：${escapeHtml(String(state.cycle))} 周期 · 匹配口径与「找岗位」一致，依据均可展开原文核对。</p></section>`;
+    }
+    const tiersBar = `<div class="maint-search-stats"><span class="maint-search-stats__tier t1">✔ 明确可报 ${number(n1)}</span><span class="maint-search-stats__tier t2">🔁 类内可报·推导 ${number(n2)}</span><span class="maint-search-stats__tier t3">➖ 不限专业 ${number(n3)}</span>${profileOn ? `<span class="maint-search-stats__tier t1">👤 已按我的条件过滤</span>` : ''}</div>`;
+    const tableRows = top.map((row) => {
+      const t = tierOf(row);
+      const num = Number(row.num ?? row.recruits ?? 0);
+      const examinees = Number(row.competition_observations?.examinees?.value ?? row.bm ?? 0);
+      const ratio = num > 0 && examinees > 0 ? `${(examinees / num).toFixed(1)}:1` : '暂无数据';
+      const tierBadge = t === 1 ? '<span class="tier-badge tb1">✔ 明确含</span>' : (t === 2 ? `<span class="tier-badge tb2" title="依据：该岗要求『${escapeHtml(clsName)}』，「${escapeHtml(majorQuery)}」属该专业类（推导）">类内可报·推导</span>` : '<span class="tier-badge tb3">不限专业</span>');
+      return `<tr data-maint-search-row data-record-id="${escapeHtml(row.job_id || row.code)}"><td>${escapeHtml(row.city)}</td><td>${escapeHtml(row.unit)}</td><td>${escapeHtml(row.zw || row.display_title || '—')}</td><td class="major-cell" title="${escapeHtml(row.zy)}">${tierBadge}</td><td>${escapeHtml(row.xl || '—')}</td><td>${escapeHtml(num || '—')}</td><td>${escapeHtml(ratio)}</td><td><button type="button" class="maint-row-action" data-maint-position-detail data-record-id="${escapeHtml(row.job_id || row.code)}">查看详情</button></td></tr>`;
+    }).join('');
+    const result = majorQuery && !p
+      ? `<p class="empty">匹配索引尚未加载完成，请稍候自动刷新；或回到<a href="#jobs_search" data-maintain-view="jobs_search">找岗位</a>先行检索。</p>`
+      : `${tiersBar}<div class="table-scroll"><table class="maint-table"><thead><tr><th scope="col">城市</th><th scope="col">单位</th><th scope="col">职位</th><th scope="col">匹配依据</th><th scope="col">学历</th><th scope="col">招录</th><th scope="col">竞争</th><th scope="col">操作</th></tr></thead><tbody>${tableRows || '<tr><td colspan="8" class="empty">没有匹配的岗位：可清空部分条件，或确认专业名在目录内（回找岗位页可按原文检索）</td></tr>'}</tbody></table></div><p class="maint-filter-hint">显示竞争最友好的前 30 岗（命中档优先，再按竞争比升序）；完整清单用「找岗位」按同条件导出。</p>`;
+    return `<section class="maint-hero maint-hero--compact"><div>${viewEyebrow('match', '为我匹配')}<h1>${escapeHtml(majorQuery)} · 你的可报榜。</h1><p>三类命中一次排开，每条亮明匹配依据；个人条件只做硬性一票否决，存疑岗位不否决。</p></div></section><section class="maint-panel">${input}${result}</section>`;
+  };
+  const renderCalendar = (cal) => {
+    const items = Array.isArray(cal?.items) ? cal.items : [];
+    const statusLabel = { expected: '预计', live: '进行中', done: '已发生' };
+    const rows = items.map((item) => `<tr><th scope="row">${escapeHtml(item.stage || '')}</th><td>${item.date ? escapeHtml(item.date) : `<span class="tier-badge tb2">${escapeHtml(statusLabel[item.status] || '预计')}</span>`}</td><td>${escapeHtml(item.expect || '—')}</td><td class="major-cell">${escapeHtml(item.basis || '')}</td></tr>`).join('');
+    return `<section class="maint-hero maint-hero--compact"><div>${viewEyebrow('calendar', '报考日历')}<h1>关键时间，一眼看清。</h1><p>未公布的节点不填具体日期，只给预计窗口与依据；一切以官方公告为准。本页与职位表数据同步更新。</p></div><div class="maint-hero__stamp"><span>窗口提醒</span><strong>2027 国考</strong><small>预计 10 月中旬出公告 · 报名约 10 天</small></div></section><section class="maint-panel"><header><div><p class="maint-eyebrow">节点清单</p><h2>报名前后的关键节点</h2></div><span class="maint-audit-date">${escapeHtml(cal?.updated || '')} 更新</span></header><div class="table-scroll"><table class="maint-table"><thead><tr><th>节点</th><th>日期</th><th>窗口</th><th>依据 / 口径</th></tr></thead><tbody>${rows || '<tr><td colspan="4" class="empty">日历数据待更新</td></tr>'}</tbody></table></div><p class="maint-callout" style="margin-top:14px"><strong>数据同步承诺</strong><span>2027 官方职位表发布后，本站按「构建 → 校验 → 发布」管线尽快上线新周期数据，并在首页同步预告；发布前本站数据仍为 2026 快照，报前参考请以官方公告为准。</span></p></section><section class="maint-callout"><strong>现在能做什么</strong><span>先用 <a href="#jobs_search" data-maintain-view="jobs_search">找岗位</a> 熟悉三年职位表与竞争行情，收藏目标岗并关注 <a href="#changes" data-maintain-view="changes">变更通报</a>；新公告发布后回到同一收藏夹即可对照新表。</span></section>`;
+  };
+  const renderSaved = (savedChanges = null) => {
     const store = window.WanyuUserStore;
     const snapshots = store?.loadFilterSnapshots?.() || [];
     const positions = store?.loadPositions?.() || [];
@@ -1065,7 +1296,23 @@
       }).join('');
       return `<section class="maint-panel maint-panel--compare"><header><div><p class="maint-eyebrow">对比差异</p><h2>对比差异</h2></div><span class="maint-audit-date">${number(compareRows.length)} 岗 · 差异 ${number(diffCount)} 处</span></header><div class="table-scroll"><table class="maint-table maint-table--compare-diff"><thead><tr><th>字段</th>${head}</tr></thead><tbody>${body}</tbody></table></div><div class="maint-detail-actions"><button type="button" data-maint-export-compare>导出对比 CSV</button><small>差异单元格以左侧标记高亮；“未提供”保持空值语义，不推断。</small></div></section>`;
     })() : '';
-    return `${notice}<section class="maint-hero maint-hero--compact"><div>${viewEyebrow('saved', '我的收藏')}<h1>把筛选和重点岗位留在手边。</h1><p>快照只保存周期、条件和版本；收藏和对比只保存稳定岗位 ID，不复制或改写源数据。</p></div></section><section class="maint-grid maint-grid--saved" data-maint-saved-panel><section class="maint-panel"><header><div><p class="maint-eyebrow">筛选快照</p><h2>筛选快照</h2></div><span class="maint-workspace-actions"><button type="button" class="maint-row-action" data-maint-export-workspace>导出工作台</button><button type="button" class="maint-row-action" data-maint-import-workspace>导入工作台</button><span class="maint-audit-date">${number(snapshots.length)} 个</span></span></header><div class="saved-list">${snapshots.map((snapshot) => `<article class="saved-item"><div><strong>${escapeHtml(filterSummary(snapshot.filters || {}))}</strong><small>${escapeHtml(snapshot.cycle || '—')} · ${escapeHtml(snapshot.view === 'jobs_ranking' ? '岗位榜单' : '岗位检索')} · ${escapeHtml(formatSavedDate(snapshot.createdAt))}</small></div><button type="button" data-maint-load-snapshot data-snapshot-id="${escapeHtml(snapshot.id)}">恢复</button></article>`).join('') || '<p class="empty">还没有筛选快照。先在岗位检索或岗位榜单点击“保存筛选”。</p>'}</div></section><section class="maint-panel"><header><div><p class="maint-eyebrow">已收藏岗位</p><h2>已收藏岗位</h2></div><span class="maint-audit-date">${number(positions.length)} 个</span></header><div class="saved-list">${positions.map((item) => renderSavedPosition(item)).join('') || '<p class="empty">还没有收藏岗位。打开岗位详情即可收藏。</p>'}</div></section><section class="maint-panel"><header><div><p class="maint-eyebrow">对比清单</p><h2>对比清单</h2></div><span class="maint-audit-date">${number(compareIds.length)} / 4</span></header><div class="saved-list">${compareIds.map((recordId) => renderCompareItem(recordId)).join('') || '<p class="empty">还没有加入对比的岗位。岗位详情或检索行内可加入，最多 4 个。</p>'}</div></section></section>${compareDiffSection}`;
+    const changeAlert = (() => {
+      if (!savedChanges?.changes || !positions.length) return '';
+      const ids = new Set(positions.map((item) => String(item.recordId)));
+      const hit = savedChanges.changes.filter((item) => item.target_record_id && ids.has(String(item.target_record_id)));
+      if (!hit.length) return '';
+      const substantiveStatus = { withdrawn: '停招', needs_review: '待人工复核' };
+      const substantiveFields = ['recruits', 'major', 'xl', 'exam', 'code'];
+      const substantive = hit.filter((item) => substantiveStatus[item.status] || (item.changed_fields || []).some((f) => substantiveFields.includes(String(f))));
+      const items = hit.slice(0, 5).map((item) => {
+        const row = rowFor(String(item.target_record_id));
+        const name = row ? `${row.unit || ''} ${row.zw || row.display_title || ''}`.trim() : String(item.target_record_id);
+        const what = substantiveStatus[item.status] || (item.changed_fields || []).map((f) => ({ recruits: '招录人数', major: '专业', xl: '学历', exam: '考试类别', code: '职位代码', unit: '单位', post_name: '职位名称' }[String(f)] || f)).join('、') || '信息修订';
+        return `<li><strong>${escapeHtml(name)}</strong> — ${escapeHtml(what)}</li>`;
+      }).join('');
+      return `<section class="maint-panel maint-saved-alert"><header><div><p class="maint-eyebrow">我的岗位动态</p><h2>你收藏的岗位有 ${number(hit.length)} 条年度变化</h2></div><a class="maint-action" href="#changes" data-maintain-view="changes">查看变更通报 →</a></header><p>其中 <strong>${number(substantive.length)}</strong> 条为实质变化（招录人数 / 专业 / 学历 / 停招 / 待复核）。以下为最近示例，逐岗依据以变更通报原文为准：</p><ul class="maint-saved-alert__list">${items}</ul></section>`;
+    })();
+    return `${notice}${changeAlert}<section class="maint-hero maint-hero--compact"><div>${viewEyebrow('saved', '我的收藏')}<h1>把筛选和重点岗位留在手边。</h1><p>快照只保存周期、条件和版本；收藏和对比只保存稳定岗位 ID，不复制或改写源数据。</p></div></section><section class="maint-grid maint-grid--saved" data-maint-saved-panel><section class="maint-panel"><header><div><p class="maint-eyebrow">筛选快照</p><h2>筛选快照</h2></div><span class="maint-workspace-actions"><button type="button" class="maint-row-action" data-maint-export-workspace>导出工作台</button><button type="button" class="maint-row-action" data-maint-import-workspace>导入工作台</button><span class="maint-audit-date">${number(snapshots.length)} 个</span></span></header><div class="saved-list">${snapshots.map((snapshot) => `<article class="saved-item"><div><strong>${escapeHtml(filterSummary(snapshot.filters || {}))}</strong><small>${escapeHtml(snapshot.cycle || '—')} · ${escapeHtml(snapshot.view === 'jobs_ranking' ? '岗位榜单' : '岗位检索')} · ${escapeHtml(formatSavedDate(snapshot.createdAt))}</small></div><button type="button" data-maint-load-snapshot data-snapshot-id="${escapeHtml(snapshot.id)}">恢复</button></article>`).join('') || '<p class="empty">还没有筛选快照。先在岗位检索或岗位榜单点击“保存筛选”。</p>'}</div></section><section class="maint-panel"><header><div><p class="maint-eyebrow">已收藏岗位</p><h2>已收藏岗位</h2></div><span class="maint-audit-date">${number(positions.length)} 个</span></header><div class="saved-list">${positions.map((item) => renderSavedPosition(item)).join('') || '<p class="empty">还没有收藏岗位。打开岗位详情即可收藏。</p>'}</div></section><section class="maint-panel"><header><div><p class="maint-eyebrow">对比清单</p><h2>对比清单</h2></div><span class="maint-audit-date">${number(compareIds.length)} / 4</span></header><div class="saved-list">${compareIds.map((recordId) => renderCompareItem(recordId)).join('') || '<p class="empty">还没有加入对比的岗位。岗位详情或检索行内可加入，最多 4 个。</p>'}</div></section></section>${compareDiffSection}`;
   };
   const saveCurrentFilter = (view) => {
     const store = window.WanyuUserStore;
@@ -1121,7 +1368,7 @@
     const reviewItems = (reviewQueue?.items || []).filter((item) => activeFilter === 'all' || (activeFilter === 'high' ? ['high', 'critical'].includes(item.severity) : String(item.kind) === activeFilter));
     const filterButtons = [['all', '全部'], ['high', '高风险'], ['unpublished_or_unavailable', '未发布'], ['ambiguous_join', '连接歧义'], ['needs_review', '待复核']].map(([value, label]) => `<button type="button" data-maint-review-filter="${value}" class="${activeFilter === value ? 'is-active' : ''}">${label}</button>`).join('');
     const statusDefinitions = `<details class="maint-source-details"><summary>证据状态怎么理解</summary><p class="maint-detail-footnote">“部分证据已核验”表示岗位主表已有可复核来源，但部分报名、拟聘或成绩资料仍未发布、未回收或无法唯一匹配；空值不等于 0。</p></details>`;
-    return `<section class="maint-hero maint-hero--compact"><div>${viewEyebrow('data_boundary', '2024—2026 · 数据说明')}<h1>数据审计中心，先看证据再看结论。</h1><p>这里把三年规模、已登记公开边界和成绩匹配边界分开呈现；没有官方逐项证据时，保留空值与原因，不用推测补齐。</p></div></section><section class="maint-kpis maint-kpis--audit"><article><span>三年岗位行</span><strong data-countup>${number(summary.post_count)}</strong><small>三周期汇总</small></article><article><span>三年招录人数</span><strong data-countup>${number(summary.recruit_count)}</strong><small>公告口径合计</small></article><article><span>公开缺口事件</span><strong>${number(queueSummary.public_boundary_count ?? summary.gap_count)}</strong><small>跨三年已登记，不等同于为零</small></article><article><span>成绩待复核</span><strong>${number(queueSummary.unresolved_score_count ?? summary.unresolved_score_count)}</strong><small>无法唯一匹配</small></article></section><section class="maint-panel"><header><div><p class="maint-eyebrow">三年数据</p><h2>三年审计对照</h2></div><span class="maint-audit-date">审计快照 ${escapeHtml(globalAudit.generated_on || '—')}</span></header>${statusDefinitions}<div class="table-scroll"><table class="maint-table maint-table--audit"><thead><tr><th>周期</th><th>证据层</th><th>岗位</th><th>招录</th><th>公开缺口</th><th>成绩待复核</th><th>状态</th></tr></thead><tbody>${cycleItems.map((item) => `<tr data-maint-audit-cycle-row><th>${escapeHtml(item.cycle)}</th><td><span class="audit-chip">${escapeHtml(readableStatus(item.evidence_level || '—'))}</span></td><td>${number(item.posts)}</td><td>${number(item.recruits)}</td><td>${number((item.gaps || []).length)}</td><td>${number(item.score_unresolved)}</td><td>${escapeHtml(readableStatus(item.status || item.dominant_status || item.evidence_level || 'registered'))}</td></tr>`).join('')}</tbody></table></div></section><section class="maint-panel maint-review-panel"><header><div><p class="maint-eyebrow">待办事项 · ${number(queueSummary.event_count || reviewItems.length)}  条待办</p><h2>复核队列</h2></div><div class="review-filters">${filterButtons}</div></header><div class="review-list">${reviewItems.map((item) => `<article class="review-item" data-maint-review-item data-review-kind="${escapeHtml(item.kind)}" data-review-severity="${escapeHtml(item.severity)}"><div class="review-item__meta"><span class="audit-chip">${escapeHtml(readableStatus(item.kind))}</span><span>${escapeHtml(severityLabel(item.severity))}</span><span>${escapeHtml(item.cycle || '')}</span></div><strong>${escapeHtml(item.title || '未命名审计事件')}</strong><p>${escapeHtml(item.detail || '暂无详细说明')}</p><details class="maint-source-details"><summary>查看证据与处理条件</summary><small>来源：官方公告核对记录 · 出现 ${number(item.occurrences || 1)} 次 · ${escapeHtml(item.resolution_trigger || '取得新证据后重新构建')}</small></details></article>`).join('') || '<p class="empty">当前筛选没有复核事件。</p>'}</div></section><section class="maint-grid maint-grid--audit"><section class="maint-panel"><header><div><p class="maint-eyebrow">${escapeHtml(state.cycle)} · 登记事项</p><h2>当前周期公开缺口</h2></div></header><div class="boundary-list">${gaps.map((item) => { const text = typeof item === 'string' ? item : (item.title || item.detail || item.note || JSON.stringify(item)); const status = typeof item === 'object' ? (item.status || item.kind || 'registered') : 'registered'; return `<article><span>${escapeHtml(readableStatus(status))}</span><strong>${escapeHtml(text)}</strong><small>保持公开标记，取得官方公告后再进入构建链路。</small></article>`; }).join('') || '<p class="empty">本周期没有额外登记缺口。</p>'}</div></section><aside class="maint-panel maint-panel--note"><p class="maint-eyebrow">数据来源</p><h2>数据怎样进入页面</h2><div class="audit-chain"><span>官方/原始来源</span><b>→</b><span>周期数据包</span><b>→</b><span>数据文件</span><b>→</b><span>页面展示</span></div><p>当前周期审计状态：<strong>${escapeHtml(readableStatus(audit.evidence_level || '—'))}</strong>。</p><details class="maint-source-details"><summary>查看维护链路</summary><p class="maint-detail-footnote">数据来自官方公告与公示名单，更新时逐项人工核对后上线。</p></details></aside></section>`;
+    return `<section class="maint-hero maint-hero--compact"><div>${viewEyebrow('data_boundary', '2024—2026 · 数据说明')}<h1>数据审计中心，先看证据再看结论。</h1><p>这里把三年规模、已登记公开边界和成绩匹配边界分开呈现；没有官方逐项证据时，保留空值与原因，不用推测补齐。</p></div></section><section class="maint-kpis maint-kpis--audit"><article><span>三年有效岗位</span><strong data-countup>${number(summary.active_post_count ?? summary.post_count)}</strong><small>排除跨市重复收录行后</small></article><article><span>三年有效招录</span><strong data-countup>${number(summary.active_recruit_count ?? summary.recruit_count)}</strong><small>有效岗位口径合计</small></article><article><span>公开缺口事件</span><strong>${number(queueSummary.public_boundary_count ?? summary.gap_count)}</strong><small>跨三年已登记，不等同于为零</small></article><article><span>成绩待复核</span><strong>${number(queueSummary.unresolved_score_count ?? summary.unresolved_score_count)}</strong><small>无法唯一匹配</small></article></section><section class="maint-panel"><header><div><p class="maint-eyebrow">三年数据</p><h2>三年审计对照</h2></div><span class="maint-audit-date">审计快照 ${escapeHtml(globalAudit.generated_on || '—')}</span></header>${statusDefinitions}<div class="table-scroll"><table class="maint-table maint-table--audit"><thead><tr><th>周期</th><th>证据层</th><th>岗位</th><th>招录</th><th>公开缺口</th><th>成绩待复核</th><th>状态</th></tr></thead><tbody>${cycleItems.map((item) => `<tr data-maint-audit-cycle-row><th>${escapeHtml(item.cycle)}</th><td><span class="audit-chip">${escapeHtml(readableStatus(item.evidence_level || '—'))}</span></td><td>${number(item.posts)}</td><td>${number(item.recruits)}</td><td>${number((item.gaps || []).length)}</td><td>${number(item.score_unresolved)}</td><td>${escapeHtml(readableStatus(item.status || item.dominant_status || item.evidence_level || 'registered'))}</td></tr>`).join('')}</tbody></table></div></section><section class="maint-panel maint-review-panel"><header><div><p class="maint-eyebrow">待办事项 · ${number(queueSummary.event_count || reviewItems.length)}  条待办</p><h2>复核队列</h2></div><div class="review-filters">${filterButtons}</div></header><div class="review-list">${reviewItems.map((item) => `<article class="review-item" data-maint-review-item data-review-kind="${escapeHtml(item.kind)}" data-review-severity="${escapeHtml(item.severity)}"><div class="review-item__meta"><span class="audit-chip">${escapeHtml(readableStatus(item.kind))}</span><span>${escapeHtml(severityLabel(item.severity))}</span><span>${escapeHtml(item.cycle || '')}</span></div><strong>${escapeHtml(item.title || '未命名审计事件')}</strong><p>${escapeHtml(item.detail || '暂无详细说明')}</p><details class="maint-source-details"><summary>查看证据与处理条件</summary><small>来源：官方公告核对记录 · 出现 ${number(item.occurrences || 1)} 次 · ${escapeHtml(item.resolution_trigger || '取得新证据后重新构建')}</small></details></article>`).join('') || '<p class="empty">当前筛选没有复核事件。</p>'}</div></section><section class="maint-grid maint-grid--audit"><section class="maint-panel"><header><div><p class="maint-eyebrow">${escapeHtml(state.cycle)} · 登记事项</p><h2>当前周期公开缺口</h2></div></header><div class="boundary-list">${gaps.map((item) => { const text = typeof item === 'string' ? item : (item.title || item.detail || item.note || JSON.stringify(item)); const status = typeof item === 'object' ? (item.status || item.kind || 'registered') : 'registered'; return `<article><span>${escapeHtml(readableStatus(status))}</span><strong>${escapeHtml(text)}</strong><small>保持公开标记，取得官方公告后再进入构建链路。</small></article>`; }).join('') || '<p class="empty">本周期没有额外登记缺口。</p>'}</div></section><aside class="maint-panel maint-panel--note"><p class="maint-eyebrow">数据来源</p><h2>数据怎样进入页面</h2><div class="audit-chain"><span>官方/原始来源</span><b>→</b><span>周期数据包</span><b>→</b><span>数据文件</span><b>→</b><span>页面展示</span></div><p>当前周期审计状态：<strong>${escapeHtml(readableStatus(audit.evidence_level || '—'))}</strong>。</p><details class="maint-source-details"><summary>查看维护链路</summary><p class="maint-detail-footnote">数据来自官方公告与公示名单，更新时逐项人工核对后上线。</p></details></aside></section>`;
   };
   const renderHelp = () => `<section class="maint-hero maint-hero--compact"><div>${viewEyebrow('help', '使用指南')}${state.manifest?.release ? `<small>${escapeHtml(state.manifest.release)}</small>` : ''}<h1>如何找到合适的岗位</h1><p>三步帮你快速定位目标岗位，所有数据均来自官方公告。</p></div></section><section class="maint-grid maint-grid--guide"><article class="maint-panel guide-step"><span>01</span><h2>搜索专业或城市</h2><p>在岗位检索中输入专业关键词，比如”法学””计算机””会计”，或直接选择城市筛选。系统会自动匹配相关岗位。</p><a href="#jobs_search" data-maintain-view="jobs_search">去岗位检索 →</a></article><article class="maint-panel guide-step"><span>02</span><h2>查看岗位详情</h2><p>点击岗位卡片查看完整信息：招录单位、职位代码、专业要求、学历门槛、招录人数等。竞争比和分数线一目了然。</p><a href="#jobs_ranking" data-maintain-view="jobs_ranking">去岗位榜单 →</a></article><article class="maint-panel guide-step"><span>03</span><h2>对比与收藏</h2><p>把心仪的岗位加入收藏或对比列表，方便后续筛选。收藏数据保存在本地，换设备需重新添加。</p><a href="#saved" data-maintain-view="saved">查看收藏 →</a></article></section><section class="maint-panel guide-note"><h2>如何判断一个岗位</h2><p>先筛选，再看岗位原文与证据，最后确认资料边界。页面上的“未提供”不等于 0，只有来源明确为 0 才显示 0。</p></section><section class="maint-panel guide-note"><h2>快捷操作</h2><p>按 <code>Ctrl</code>+<code>K</code> 打开搜索面板，可快速切换视图、周期或搜索岗位。<code>↑</code><code>↓</code> 选择，<code>Enter</code> 确认，<code>Esc</code> 关闭。</p></section><section class="maint-panel guide-note"><h2>数据说明</h2><p>本平台数据覆盖安徽16市，包含省考、事业编、国考三类考试。数据按年度分周期整理，支持2024-2026年对比查看。所有数据均可追溯到官方来源。</p></section><section class="maint-panel guide-note"><h2>常见问题</h2><p><strong>数据多久更新？</strong>官方公告发布后会尽快更新。<br><strong>为什么有些字段为空？</strong>官方未公布的信息会保留空白，不会推测填充。<br><strong>如何导出数据？</strong>岗位检索结果可导出 CSV；「收藏与快照」页可把收藏、对比和筛选快照一键导出为带版本的 JSON 文件，也能重新导入。</p></section>`;
   const restoreUpdateChecklist = () => {
@@ -1135,7 +1382,7 @@
     const queueSummary = reviewQueue.summary || {};
     const cycles = state.manifest?.cycles || [];
     const release = state.manifest?.release || '当前版本';
-    return `<section class="maint-hero maint-hero--compact"><div>${viewEyebrow('changelog', `更新日志 · ${escapeHtml(release)}`)}<h1>更新日志，记录每一次数据变化。</h1><p>每次数据更新都会逐项核对官方来源，确认无误后才上线。</p></div></section><section class="maint-panel changelog-panel"><header><div><p class="maint-eyebrow">${escapeHtml(release)} · ${escapeHtml(state.manifest?.snapshot_date || '快照日期未提供')}</p><h2>长期维护升级</h2></div><span class="maint-audit-date">${number(cycles.length)} 个周期</span></header><div class="changelog-list"><article><strong>数据组织</strong><p>岗位、专业目录、成绩等数据按年份分层存放，读取更快，也便于逐项核对。</p></article><article><strong>用户路径</strong><p>地图、岗位榜单、逐岗检索、岗位详情、收藏/对比和筛选快照在同一入口完成，筛选状态会明确显示。</p></article><article><strong>审计可见</strong><p>当前三年共 ${number(summary.post_count)} 岗、${number(summary.recruit_count)} 人；已登记公开缺口事件 ${number(queueSummary.public_boundary_count || summary.gap_count || 0)} 项，成绩无法唯一匹配 ${number(queueSummary.unresolved_score_count || summary.unresolved_score_count || 0)} 条。未取得的数值一律留空，不用推测补齐。</p></article><article><strong>数据更新方式</strong><p>三年数据按周期独立存放，更新时逐周期替换，不会影响已有年份。</p></article></div></section><section class="maint-callout"><strong>下一次更新</strong><span>下一个周期官方公告发布后，我们会尽快核对并更新，请留意页面提示。</span></section>`;
+    return `<section class="maint-hero maint-hero--compact"><div>${viewEyebrow('changelog', `更新日志 · ${escapeHtml(release)}`)}<h1>更新日志，记录每一次数据变化。</h1><p>每次数据更新都会逐项核对官方来源，确认无误后才上线。</p></div></section><section class="maint-panel changelog-panel"><header><div><p class="maint-eyebrow">${escapeHtml(release)} · ${escapeHtml(state.manifest?.snapshot_date || '快照日期未提供')}</p><h2>长期维护升级</h2></div><span class="maint-audit-date">${number(cycles.length)} 个周期</span></header><div class="changelog-list"><article><strong>数据组织</strong><p>岗位、专业目录、成绩等数据按年份分层存放，读取更快，也便于逐项核对。</p></article><article><strong>用户路径</strong><p>地图、岗位榜单、逐岗检索、岗位详情、收藏/对比和筛选快照在同一入口完成，筛选状态会明确显示。</p></article><article><strong>审计可见</strong><p>当前三年共 ${number(summary.active_post_count ?? summary.post_count)} 个有效岗位、${number(summary.active_recruit_count ?? summary.recruit_count)} 人（含重复收录的原始行在数据说明的审计表单独可见）；已登记公开缺口事件 ${number(queueSummary.public_boundary_count || summary.gap_count || 0)} 项，成绩无法唯一匹配 ${number(queueSummary.unresolved_score_count || summary.unresolved_score_count || 0)} 条。未取得的数值一律留空，不用推测补齐。</p></article><article><strong>数据更新方式</strong><p>三年数据按周期独立存放，更新时逐周期替换，不会影响已有年份。</p></article></div></section><section class="maint-callout"><strong>下一次更新</strong><span>下一个周期官方公告发布后，我们会尽快核对并更新，请留意页面提示。</span></section>`;
   };
 
   const render = async (opts = {}) => {
@@ -1172,7 +1419,12 @@
         markup = renderCompare(changes, derived);
       } else if (state.view === 'saved') {
         await loadModule(state.cycle, 'jobs_lite');
-        markup = renderSaved();
+        let savedChanges = null;
+        try {
+          const store0 = window.WanyuUserStore;
+          if ((store0?.loadPositions?.() || []).length && moduleUrl(state.cycle, 'changes')) savedChanges = await loadModule(state.cycle, 'changes');
+        } catch (error) { savedChanges = null; }
+        markup = renderSaved(savedChanges);
       } else if (state.view === 'changes') {
         const hasChangesModule = Boolean(moduleUrl(state.cycle, 'changes'));
         const changes = hasChangesModule ? await loadModule(state.cycle, 'changes') : null;
@@ -1201,19 +1453,52 @@
         await loadMap();
         await loadSalary();
         markup = renderSalaryMap();
+      } else if (state.view === 'match') {
+        await loadModule(state.cycle, 'jobs_lite');
+        const matchCatalog = await loadModule(state.cycle, 'catalog');
+        let matchIndex = null;
+        try { matchIndex = await loadModule(state.cycle, 'major_index'); } catch (error) { matchIndex = null; }
+        let matchReq = null;
+        const mp = readProfile();
+        if (profileActive(mp)) {
+          matchReq = state.modules.get(`${state.cycle}:req_fields`) || null;
+          if (!matchReq) void loadModule(state.cycle, 'req_fields').then(() => { if (state.view === 'match') render(); }).catch(() => {});
+        }
+        markup = renderMatch(scopeExamPayload(state.modules.get(`${state.cycle}:jobs_lite`)), matchCatalog, matchIndex, matchReq);
+      } else if (state.view === 'calendar') {
+        let cal = null;
+        try { cal = await state.dataStore.loadGlobal('calendar'); } catch (error) { cal = null; }
+        markup = renderCalendar(cal);
       } else {
         const overview = await loadModule(state.cycle, 'overview');
         const jobs = await loadModule(state.cycle, 'jobs_lite');
         let derived = null;
         try { derived = await loadModule(state.cycle, 'derived'); } catch (error) { derived = null; }
         const catalog = ['jobs_ranking', 'jobs_search'].includes(state.view) ? await loadModule(state.cycle, 'catalog') : null;
+        let majorIndex = null;
+        if (state.view === 'jobs_search' && normalize(state.searchMajor)) {
+          // F1 修复：带专业筛选时必须先拿到 major_index 再渲染——
+          // 旧实现先出 substring 回退帧再异步自愈，弱网下用户会长时间看到降级结果。
+          try { majorIndex = await loadModule(state.cycle, 'major_index'); } catch (error) { majorIndex = null; }
+        }
         const scopedJobs = scopeExamPayload(jobs);
-        const views = { overview: () => renderOverview(overview, scopedJobs, derived), jobs_ranking: () => renderRanking(scopedJobs, catalog), jobs_search: () => renderSearch(scopedJobs, catalog) };
+        let reqFields = null;
+        if (state.view === 'jobs_search') {
+          const activeProfile = readProfile();
+          if (profileActive(activeProfile)) {
+            // 与 F1 同源：画像生效时先等 req_fields 再渲染，避免先出未过滤帧再异步自愈。
+            try { reqFields = await loadModule(state.cycle, 'req_fields'); } catch (error) { reqFields = null; }
+          }
+        }
+        const views = { overview: () => renderOverview(overview, scopedJobs, derived), jobs_ranking: () => renderRanking(scopedJobs, catalog), jobs_search: () => renderSearch(scopedJobs, catalog, majorIndex, reqFields) };
         markup = (views[state.view] || views.overview)();
       }
       if (token !== state.renderToken) return;
-      state.detail = null;
+      // 抽屉保持：后台渲染（懒加载完成等）不得吞掉用户正打开的详情抽屉。
+      const preservedDrawer = state.detail ? main.querySelector('[data-maint-detail-drawer]') : null;
+      if (!preservedDrawer) state.detail = null;
       main.innerHTML = markup;
+      if (preservedDrawer) main.appendChild(preservedDrawer);
       if (state.view === 'jobs_search') main.querySelector('.maint-toolbar--search')?.insertAdjacentHTML('beforebegin', searchFlowMarkup());
       state.notice = '';
       if (instant) main.querySelectorAll(REVEAL_SELECTOR).forEach((node) => node.classList.add('is-in'));
@@ -1252,8 +1537,11 @@
   };
   const renderPreservingInput = async (id, update) => {
     const input = document.querySelector(`#${id}`); const start = input?.selectionStart; const end = input?.selectionEnd;
+    // 仅当输入框本来持有焦点才回焦：渲染中旧节点卸载会触发一次 focusout，
+    // 若无条件回焦会与 focusout 定时器互相催生，形成 ~340ms/轮的永动重渲染。
+    const wasFocused = Boolean(input && document.activeElement === input);
     update(); await render({ instant: true }); const next = document.querySelector(`#${id}`);
-    if (next) { next.focus(); const length = next.value.length; next.setSelectionRange(Math.min(start ?? length, length), Math.min(end ?? length, length)); }
+    if (next && wasFocused) { next.focus(); const length = next.value.length; next.setSelectionRange(Math.min(start ?? length, length), Math.min(end ?? length, length)); }
   };
   let inputRenderTimer = null;
   const debouncedInputRender = (id, update) => {
@@ -1429,6 +1717,35 @@
       await render({ instant: true });
       return;
     }
+    if (event.target.closest('[data-maint-share-job]')) {
+      const btn = event.target.closest('[data-maint-share-job]');
+      const row = rowsFor(state.modules.get(`${state.cycle}:jobs`) || state.modules.get(`${state.cycle}:jobs_lite`) || null).find((item) => String(item.job_id || item.code) === String(btn.dataset.recordId));
+      if (!row) { setStatus('分享失败：岗位数据未加载', 'error'); return; }
+      const num = Number(row.num ?? row.recruits ?? 0);
+      const examinees = Number(row.competition_observations?.examinees?.value ?? row.bm ?? 0);
+      const lineVal = row.score_observation?.status === 'comparable' ? row.score_observation.value : null;
+      const url = `${location.origin}${location.pathname}?cycle=${encodeURIComponent(state.cycle)}#job/${encodeURIComponent(String(row.job_id || row.code))}`;
+      const text = `${row.unit || ''} ${row.zw || row.display_title || ''}（${row.city || ''} · ${row.code || ''}）招${num || '?'}人，官方报名${examinees > 0 ? examinees : '未公布'}人，入围线${lineVal != null ? lineVal : '未公布'} ${url}`;
+      navigator.clipboard?.writeText(text).then(() => setStatus('分享文本已复制，可粘贴给研友', 'ready')).catch(() => setStatus('复制失败：浏览器未授权剪贴板', 'error'));
+      return;
+    }
+    if (event.target.closest('[data-maint-match-go]')) {
+      const input = document.getElementById('maint-match-major');
+      state.matchMajor = normalize(input?.value || '');
+      render();
+      return;
+    }
+    if (event.target.closest('[data-maint-profile-toggle]')) {
+      state.profileOpen = !state.profileOpen;
+      render();
+      return;
+    }
+    if (event.target.closest('[data-maint-profile-clear]')) {
+      writeProfile({ gender: '', fresh: '', party: '', legal: '', age: '' });
+      state.profileOpen = true;
+      render();
+      return;
+    }
     if (event.target.closest('[data-maint-clear-search]')) {
       state.keyword = '';
       state.searchMajor = '';
@@ -1570,11 +1887,27 @@
       case 'maint-map-major': state.mapMajor = value; if (state.mapMetric === 'salary') state.mapMetric = 'jobs'; return true;
       case 'maint-search-keyword': state.keyword = value; state.searchPage = 0; return true;
       case 'maint-search-major': state.searchMajor = value; state.searchPage = 0; return true;
+      case 'maint-match-major': state.matchMajor = normalize(value); return true;
+      case 'maint-profile-age':
+      case 'maint-profile-gender':
+      case 'maint-profile-fresh':
+      case 'maint-profile-party':
+      case 'maint-profile-legal': {
+        const key = event.target.id.replace('maint-profile-', '');
+        const next = readProfile();
+        next[key] = value;
+        writeProfile(next);
+        state.searchPage = 0;
+        return true;
+      }
       default: return false;
     }
   };
 
   app.addEventListener('focusout', (event) => {
+    // 渲染替换 DOM 时旧节点被卸载会补发一次 focusout：目标已断连就不再排队重渲染，
+    // 否则与 renderPreservingInput 的回焦互相触发，形成永动渲染循环。
+    if (!event.target?.isConnected) return;
     if (!event.target?.id || !applyTextInputValue(event.target.id, event.target.value)) return;
     setTimeout(() => { void renderPreservingInput(event.target.id, () => {}); }, 150);
   });

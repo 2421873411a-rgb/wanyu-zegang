@@ -1,23 +1,24 @@
 /* 皖域择岗维护站 Service Worker
-   策略：页面导航与数据 JSON 一律 network-first（在线立即拿新，离线回退缓存）；
+   策略：页面导航与无 sha 的 JSON 走 network-first（在线立即拿新，离线回退缓存）；
+   带 ?sha= 的内容寻址 JSON 走 cache-first（manifest 变更 → URL 变更 → 自动失效）；
    其余静态资产 cache-first 并后台刷新（URL 带 ?v= 版本号，改版即失效）。 */
-const VERSION = "wanyu-shell-v41";
+const VERSION = "wanyu-shell-v50";
 const PRECACHE = [
   "index.html",
   "manifest.webmanifest",
-  "assets/maintainable-tokens.css?v=17.7.1",
-  "assets/maintainable-site.css?v=17.7.1",
-  "assets/v17-ui-upgrade.css?v=17.7.1",
-  "assets/v17-search.css?v=17.7.1",
-  "assets/v17-tools.css?v=17.7.1",
-  "assets/v17-exam-picker.css?v=17.7.1",
-  "assets/maintainable-data.js?v=17.7.1",
-  "assets/maintainable-major-city.js?v=17.7.1",
-  "assets/maintainable-user-store.js?v=17.7.1",
-  "assets/v17-tools.js?v=17.7.1",
-  "assets/maintainable-site.js?v=17.7.1",
+  "assets/maintainable-tokens.css?v=17.9.0",
+  "assets/maintainable-site.css?v=17.9.0",
+  "assets/v17-ui-upgrade.css?v=17.9.0",
+  "assets/v17-search.css?v=17.9.0",
+  "assets/v17-tools.css?v=17.9.0",
+  "assets/v17-exam-picker.css?v=17.9.0",
+  "assets/maintainable-data.js?v=17.9.0",
+  "assets/maintainable-major-city.js?v=17.9.0",
+  "assets/maintainable-user-store.js?v=17.9.0",
+  "assets/v17-tools.js?v=17.9.0",
+  "assets/maintainable-site.js?v=17.9.0",
   "data/audit/supplement-20260904.json",
-  "assets/wanyu-icon.svg?v=17.7.1",
+  "assets/wanyu-icon.svg?v=17.9.0",
 ];
 
 self.addEventListener("install", (event) => {
@@ -55,6 +56,31 @@ self.addEventListener("fetch", (event) => {
     return;
   }
   if (url.pathname.includes("/data/") || url.pathname.endsWith(".json")) {
+    // 内容寻址（?sha=）：URL 即版本，命中即回，miss 才回源；同路径旧 sha 条目顺手清理
+    if (url.searchParams.has("sha")) {
+      event.respondWith(
+        caches.match(request).then((hit) => {
+          if (hit) return hit;
+          return fetch(request).then((response) => {
+            if (!response || !response.ok) throw new Error("bad response");
+            const copy = response.clone();
+            caches.open(VERSION).then((cache) => {
+              cache.put(request, copy).catch(() => {});
+              cache.keys().then((keys) => {
+                for (const key of keys) {
+                  const kUrl = new URL(key.url);
+                  if (kUrl.pathname === url.pathname && kUrl.searchParams.get("sha") !== url.searchParams.get("sha")) {
+                    cache.delete(key).catch(() => {});
+                  }
+                }
+              }).catch(() => {});
+            }).catch(() => {});
+            return response;
+          });
+        })
+      );
+      return;
+    }
     event.respondWith(
       fetch(request)
         .then((response) => {

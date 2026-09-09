@@ -17,6 +17,8 @@
     if (module === 'changes' && (!Array.isArray(payload.changes) || !payload.summary || !payload.target_cycle)) throw new Error(`${cycle} changes.json 缺少跨周期变化摘要`);
     if (module === 'scores' && (!payload.summary || !payload.keyed)) throw new Error(`${cycle} scores.json 缺少成绩索引摘要`);
     if (module === 'audit' && !payload.audit) throw new Error(`${cycle} audit.json 缺少周期审计`);
+    if (module === 'req_fields' && payload.schema !== 'wanyu-req-fields/v1') throw new Error(`${cycle} req-fields 结构不符`);
+    if (module === 'major_index' && (!payload.postings?.explicit || !Array.isArray(payload.majors))) throw new Error(`${cycle} major-index.json 缺少倒排索引`);
     if (module === 'major_city' && (payload.schema !== 'wanyu-maintainable-major-city/v1' || !payload.keywords || typeof payload.keywords !== 'object' || !Number.isFinite(Number(payload.rows_total)))) throw new Error(`${cycle} major_city.json 缺少专业城市索引`);
     return payload;
   };
@@ -27,8 +29,8 @@
       this.cache = new Map();
       this.inflight = new Map();
     }
-    async requestJson(url, entry = null) {
-      const response = await this.fetchWithRetry(url);
+    async requestJson(url, entry = null, addressed = false) {
+      const response = await this.fetchWithRetry(url, addressed);
       if (typeof response.text !== 'function') return await response.json();
       const raw = await response.text();
       // 只编码一次，字节数与 SHA-256 校验复用同一份 Uint8Array，避免大文件重复拷贝
@@ -38,18 +40,18 @@
       if (entry?.bytes != null && bytes && bytes.byteLength !== Number(entry.bytes)) {
         throw new Error(`${url} · 字节数与 manifest 不一致`);
       }
-      if (entry?.sha256 && globalThis.crypto?.subtle && bytes) {
+      if (!addressed && entry?.sha256 && globalThis.crypto?.subtle && bytes) {
         const digest = await globalThis.crypto.subtle.digest('SHA-256', bytes);
         const actual = [...new Uint8Array(digest)].map((value) => value.toString(16).padStart(2, '0')).join('');
         if (actual !== String(entry.sha256)) throw new Error(`${url} · SHA-256 与 manifest 不一致`);
       }
       return JSON.parse(raw);
     }
-    async fetchWithRetry(url) {
+    async fetchWithRetry(url, addressed = false) {
       let lastError;
       for (let attempt = 0; attempt < 2; attempt += 1) {
         try {
-          const response = await this.fetcher(url, { cache: 'no-cache' });
+          const response = await this.fetcher(url, { cache: addressed ? 'default' : 'no-cache' });
           if (!response?.ok) throw new Error(`${url} · HTTP ${response?.status ?? 'unknown'}`);
           return response;
         } catch (error) {
@@ -64,9 +66,11 @@
       const key = `${cycle}:${module}:${entry?.sha256 || 'unhashed'}`;
       if (this.cache.has(key)) return this.cache.get(key);
       if (this.inflight.has(key)) return this.inflight.get(key);
-      const url = modulePath(this.manifest, cycle, module);
-      if (!url) throw new Error(`manifest 未登记 ${cycle} ${module} 模块`);
-      const pending = this.requestJson(url, entry).then((payload) => {
+      const base = modulePath(this.manifest, cycle, module);
+      if (!base) throw new Error(`manifest 未登记 ${cycle} ${module} 模块`);
+      const addressed = Boolean(entry?.sha256);
+      const url = addressed ? `${base}?sha=${String(entry.sha256).slice(0, 16)}` : base;
+      const pending = this.requestJson(url, entry, addressed).then((payload) => {
         const validated = validatePayload(payload, cycle, module);
         this.cache.set(key, validated);
         this.inflight.delete(key);
@@ -83,9 +87,11 @@
       if (this.cache.has(key)) return this.cache.get(key);
       if (this.inflight.has(key)) return this.inflight.get(key);
       const entry = this.manifest?.[name];
-      const url = entry?.data;
-      if (!url) throw new Error(`manifest 未登记全局 ${name} 模块`);
-      const pending = this.requestJson(url, entry).then((payload) => {
+      const base = entry?.data;
+      if (!base) throw new Error(`manifest 未登记全局 ${name} 模块`);
+      const addressed = Boolean(entry?.sha256);
+      const url = addressed ? `${base}?sha=${String(entry.sha256).slice(0, 16)}` : base;
+      const pending = this.requestJson(url, entry, addressed).then((payload) => {
         if (!payload || typeof payload !== 'object' || Array.isArray(payload)) throw new Error(`${name} JSON 不是对象`);
         this.cache.set(key, payload);
         this.inflight.delete(key);
