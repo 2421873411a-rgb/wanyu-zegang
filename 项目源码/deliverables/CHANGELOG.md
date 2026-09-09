@@ -1,5 +1,16 @@
 # 皖域择岗交付更新日志
 
+## v17.9.23 · 安全生命周期（Dependabot + weekly 漏洞审计 + SBOM + 密钥轮换 runbook）· 2026-09-09
+
+- `.github/dependabot.yml`：pip（wan-api 与 canonical 工具链两个目录）+ github-actions 周更检查；
+  lock 刷新仍走发布纪律（requirements.lock.txt 精确安装 + 全量门禁）。
+- CI 新增 `security-scan` job：仅 schedule（每周一 03:00 UTC，三 required check 顺带作周度 canary）
+  与手动 dispatch 触发，不进 PR 门禁；pip-audit 双 lock `--strict` 失败即红；产出 CycloneDX JSON
+  SBOM artifact（保留 90 天）。
+- RUNBOOK 新增「密钥轮换 runbook」：SSH（已完成）/SECRET_KEY（token 全失效预期）/管理员密码
+  （最后管理员保护下的删旧建新流程），只写步骤不写值。
+- 回归锁：tests/test_security_lifecycle.py（dependabot 覆盖面 + scan job 接线 + 不进 PR 门禁断言）。
+
 ## v17.9.22 · 真机演练暴露缺陷修复（生产证据闭环轮）· 2026-09-09
 
 - **P1-006 upgrade_drill 前置路径错位**：幽灵文件注入在载荷 `app/` 包内，而 release/app == 载荷根，

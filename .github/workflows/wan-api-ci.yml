@@ -4,6 +4,10 @@ on:
   push:
     branches: [main]
   pull_request:
+  # 每周一 03:00 UTC 周检：required 三 check 作 canary 重跑 + security-scan（pip-audit + SBOM）
+  schedule:
+    - cron: "0 3 * * 1"
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -123,3 +127,33 @@ jobs:
         run: >-
           python -c "import asyncio; from app.database import init_db;
           asyncio.run(init_db()); print('production init_db PASS')"
+
+  # v17.9.23 安全生命周期：定时依赖审计 + SBOM。仅 schedule/dispatch 触发（不进 PR 门禁，
+  # 避免新增 required-check 期望）；失败即红（pip-audit --strict 不吞退出码）。
+  security-scan:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: 项目源码/wan-api
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: 安装 pip-audit
+        run: python -m pip install --upgrade pip && pip install pip-audit
+      - name: runtime lock 漏洞审计
+        run: pip-audit -r requirements.lock.txt --strict --desc
+      - name: dev lock 漏洞审计
+        run: pip-audit -r requirements-dev.lock.txt --strict --desc
+      - name: 生成 SBOM（CycloneDX JSON）
+        run: |
+          pip-audit -r requirements.lock.txt --format cyclonedx-json -o wanyu-api-sbom.json
+          python -c "import json; d=json.load(open('wanyu-api-sbom.json')); print('SBOM components:', len(d.get('components', [])))"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wanyu-api-sbom
+          path: 项目源码/wan-api/wanyu-api-sbom.json
+          retention-days: 90

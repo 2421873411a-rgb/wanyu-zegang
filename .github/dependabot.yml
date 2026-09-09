@@ -1,0 +1,15 @@
+# 依赖与-actions 自动更新（每周检查；lock 刷新仍走发布纪律，见 wan-api/docs/CONTRACT.md §4）
+version: 2
+updates:
+  - package-ecosystem: pip
+    directory: "/项目源码/wan-api"
+    schedule:
+      interval: weekly
+  - package-ecosystem: pip
+    directory: "/项目源码"
+    schedule:
+      interval: weekly
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
