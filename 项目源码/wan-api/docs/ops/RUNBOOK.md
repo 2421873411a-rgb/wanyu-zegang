@@ -112,3 +112,24 @@ deploy.sh 的 smoke 会断言 `/health` 版本 == 部署版本，`systemctl rest
 - `curl -s http://127.0.0.1:8000/health`
 - `curl -s "http://127.0.0.1:8000/api/v1/jobs/search?page_size=1"` → total 应为 28568（2024+2025+2026 active 口径）
 - 日志：`/var/log/wanyu/gunicorn-*.log`（www-data:750）
+
+## 密钥轮换 runbook（v17.9.23；只写步骤不写值）
+
+1. **SSH 私钥**（已完成 2026-09-08）：ed25519 新钥已入 `authorized_keys` 并验证连通，
+   旧 wanyu111 已移除；腾讯云平台层注入的 `skey-*` 解绑仍属控制台待办。
+2. **SECRET_KEY**（影响面：所有 access/refresh token 立即失效，全部用户需重新登录）：
+   ```bash
+   # 1) 生成新值（≥32 字符，禁止使用历史值/公开样例）
+   openssl rand -hex 32
+   # 2) 写入独立 secret 文件（保持 640 root:www-data）
+   sudo sed -i "s/^SECRET_KEY=.*/SECRET_KEY=<新值>/" /etc/wanyu/wanyu.env
+   # 3) 重启并验证（/health 200；旧 token 401 属预期）
+   sudo systemctl restart wanyu-api && curl -sf http://127.0.0.1:8000/health
+   ```
+   轮换后删除本机 shell 历史（`history -c`），新值不入任何仓库/聊天/工单。
+3. **管理员密码**：`scripts/create_admin.py --promote <邮箱>` 管升权；改密走「删旧建新」：
+   先用 `--email/--username/--password` 建好新管理员并登录验证，再降权/禁用旧账号
+   （最后管理员保护生效中，不可直接禁用唯一管理员）。凭据文件
+   `/opt/wanyu/credentials/admin.txt`（600）同步更新。
+4. **依赖漏洞**：每周一 CI `security-scan`（schedule）跑 pip-audit 双 lock 并产 SBOM
+   artifact（wanyu-api-sbom，保留 90 天）；红即修（升级 lock → 全量门禁 → 发布）。
