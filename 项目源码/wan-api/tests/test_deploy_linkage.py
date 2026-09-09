@@ -181,3 +181,12 @@ def test_deploy_failure_rollback_and_precheck_invariants():
     assert "for cycle in 2024 2025 2026" in script
     assert "salary/anhui.json" in script
     assert "audit/review-queue.json" in script
+
+
+def test_deploy_state_file_invariants():
+    """v17.10.0：部署状态持久化——排障第一步看 /opt/wanyu/deploy-state.json。"""
+    script = _deploy_sh()
+    assert "record_deploy_state" in script
+    assert "deploy-state.json" in script
+    assert 'record_deploy_state "HEALTHY"' in script
+    assert 'record_deploy_state "FAILED"' in script

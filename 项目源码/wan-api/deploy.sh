@@ -99,9 +99,23 @@ rollback_to_previous() {
     fi
 }
 
+# v17.10.0 部署状态持久化：排障时先看 /opt/wanyu/deploy-state.json（无密钥，可读）
+DEPLOY_STATE_FILE="${DEPLOY_STATE_FILE:-/opt/wanyu/deploy-state.json}"
+
+record_deploy_state() {
+    # best-effort：状态文件只服务排障，写失败绝不阻断部署（失败全在 if 条件内消化）
+    local tmp="${DEPLOY_STATE_FILE}.tmp"
+    if printf '{"phase":"%s","release":"%s","timestamp":"%s"}
+'         "$1" "${APP_VERSION:-}" "$(date -Is 2>/dev/null || date)" > "$tmp" 2>/dev/null         && mv -f "$tmp" "$DEPLOY_STATE_FILE" 2>/dev/null; then
+        :
+    fi
+    return 0
+}
+
 on_error() {
     local exit_code=$?
     log_error "部署失败：line=${BASH_LINENO[0]:-unknown} command=${BASH_COMMAND:-unknown} exit=${exit_code}"
+    record_deploy_state "FAILED"
     rollback_to_previous
     log_error "回滚处理完成（详见上方）。人工预案：docs/ops/RUNBOOK.md"
     exit "$exit_code"
@@ -387,6 +401,7 @@ atomic_switch() {
         exit 1
     }
     SWITCHED=1
+    record_deploy_state "SWITCHED"
     log_info "✓ current -> ${RELEASE_DIR}"
 }
 
@@ -589,6 +604,7 @@ import_data() {
     log_info "✓ 导入后快照：${post_dump}"
     # 迁移+导入完成：此后失败允许自动回切旧 release（DB schema 已与新代码兼容）
     MIGRATION_DONE=1
+    record_deploy_state "IMPORTED"
 }
 
 start_service() {
@@ -667,6 +683,7 @@ post_deploy_smoke() {
         log_error "岗位数据为空或响应非法：${jobs_count}"
         exit 1
     fi
+    record_deploy_state "HEALTHY"
     log_info "✓ 健康/版本(${actual_version})/岗位(${jobs_count}) smoke 全通过"
 }
 
@@ -686,6 +703,7 @@ bootstrap_admin() {
 
 main() {
     log_info "开始部署皖域择岗 API（Immutable Release）..."
+    record_deploy_state "PRECHECK"
     check_root
     check_prerequisites
     # 版本必须先于任何 secret 写入解析；build_release 不再隐式修改全局版本。
@@ -694,6 +712,7 @@ main() {
     setup_database
     setup_secret_env
     build_release
+    record_deploy_state "BUILT"
     setup_service
     setup_logrotate
     setup_backup_automation
