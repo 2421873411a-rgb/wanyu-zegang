@@ -1,6 +1,7 @@
 /* 皖域择岗维护站 Service Worker
    策略：页面导航与无 sha 的 JSON 走 network-first（在线立即拿新，离线回退缓存）；
-   带 ?sha= 的内容寻址 JSON 走 cache-first（manifest 变更 → URL 变更 → 自动失效）；
+   带 ?sha= 的 JSON 走 cache-first（manifest 变更 → URL 变更 → 自动失效）；
+   注意：URL 里的 sha 只是「缓存键/版本号」，不证明内容正确——内容完整性由 DataStore 的 SHA-256 digest 校验保证；
    其余静态资产 cache-first 并后台刷新（URL 带 ?v= 版本号，改版即失效）。 */
 const VERSION = "wanyu-shell-v51";
 const PRECACHE = [
