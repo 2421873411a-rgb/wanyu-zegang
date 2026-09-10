@@ -1,0 +1,67 @@
+{
+  "release": "v17.9.1",
+  "created_on": "2026-09-10T02:02:31.895716+00:00",
+  "git_commit": "daf2ad9697f9d9c38db655ab584f8639ff4b57ce",
+  "git_dirty": false,
+  "canonical_schema": "wanyu-cycle-bundle/v1",
+  "metrics_contract": {
+    "active_posts": "排除 record_status≠active 后的用户口径岗位数",
+    "excluded_posts": "被生命周期排除的行数（raw_posts = active_posts + excluded_posts）",
+    "name": "wanyu-metrics/v1",
+    "posts": "deprecated：active_posts 的兼容别名，禁止按 raw 语义解读",
+    "raw_posts": "含排除行的原始收录行数",
+    "raw_recruits": "含排除行的招录人数",
+    "recruits": "active（有效岗位）招录人数"
+  },
+  "source_lock_sha256": "bcb4cdf5f57283e1fc4c0f551e613535277eb7cacac6f3cb6e2bea63c6057a66",
+  "locked_inputs_sha256": {
+    "sources.lock.json": "bcb4cdf5f57283e1fc4c0f551e613535277eb7cacac6f3cb6e2bea63c6057a66",
+    "canonical/schema.json": "6fba692ee2bb39813434b3dc84e6a748f25ca30a3be828365490e51317e58417",
+    "canonical/cycles/2024.json": "e2774daecb82880ad6a7fad26b054a9be219e0271e02024c7cdb8a47c99a4c50",
+    "canonical/cycles/2025.json": "b5507bebfb8e6169290768a20ace09c70c4014d0a7e29ed83a1f1e573e158f5b",
+    "canonical/cycles/2026.json": "733abcc8d417a0af6d7f4828b20dc3b7d4494f5e9cb870e6d96db0a63d3711b7",
+    "canonical/curated/req-fields-2026.json": "259283928605bc79d3614ba8a012c560aa8db9770b864c96558c4000681b5159",
+    "canonical/curated/calendar.json": "1defdd8b0332123c8bd8ac66f4b51c9377e7573d2c67376f26aa329a13fe3a65",
+    "tools/anhui_web/data/record_status_overrides.json": "19eb6f7b51ab3c14c4965b3916187bc1ff3e093ee6afd6e3dbe9122258b077c3",
+    "tools/anhui_web/data/three_year_audit.json": "e5d030346c3438f5575b48e82fcdfc27b2707a80cabc65f32472234111520784"
+  },
+  "validation_status": "verified",
+  "browser_smoke_skipped": [],
+  "tag_allowed": true,
+  "tests": {
+    "status": "pass",
+    "python_modules": 27,
+    "node_suites": 4,
+    "browser_smoke_scripts": 3
+  },
+  "data_facts": {
+    "2026": {
+      "raw_posts": 8511,
+      "active_posts": 8401,
+      "excluded_posts": 110,
+      "raw_recruits": 12006,
+      "recruits": 11883,
+      "lite_rows": 8401,
+      "score_unresolved": 0,
+      "resolved": 116
+    },
+    "module_globals": [
+      "audit",
+      "calendar",
+      "job_history",
+      "map",
+      "review_queue",
+      "salary",
+      "supplement"
+    ],
+    "job_history_total": 1797
+  },
+  "artifacts": {
+    "maintainable_site": "网站/"
+  },
+  "rollback": {
+    "unit": "whole-site",
+    "backup": "网站.previous",
+    "rule": "原子提升失败自动回滚；手工回滚 = 还原 网站.previous 并重跑 verify_maintainable_site。"
+  }
+}
