@@ -5,6 +5,7 @@ from uuid import uuid4
 
 import jwt
 from passlib.context import CryptContext
+from starlette.concurrency import run_in_threadpool
 
 from app.config import settings
 from app.utils.time import utcnow_naive
@@ -21,6 +22,15 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 def get_password_hash(password: str) -> str:
     return pwd_context.hash(password)
+
+
+async def verify_password_async(plain_password: str, hashed_password: str) -> bool:
+    """bcrypt 是纯 CPU 工作，绝不能直接占 async 事件循环（v17.10.2 P1-05）。"""
+    return await run_in_threadpool(verify_password, plain_password, hashed_password)
+
+
+async def get_password_hash_async(password: str) -> str:
+    return await run_in_threadpool(get_password_hash, password)
 
 
 def sha256_hex(value: str) -> str:

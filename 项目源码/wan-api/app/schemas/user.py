@@ -22,7 +22,8 @@ class UserCreate(BaseModel):
 class UserLogin(BaseModel):
     """用户登录请求"""
     email: EmailStr
-    password: str
+    # 登录密码与注册同上限：超长直接 422，不进 bcrypt（匿名可达面资源边界）
+    password: str = Field(min_length=1, max_length=128)
 
 
 class UserResponse(BaseModel):

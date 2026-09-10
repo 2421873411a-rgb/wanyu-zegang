@@ -3,7 +3,7 @@ from datetime import timedelta
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy import select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -27,9 +27,11 @@ from app.utils.security import (
     create_refresh_token,
     decode_token,
     get_password_hash,
+    get_password_hash_async,
     pwd_context,
     sha256_hex,
     verify_password,
+    verify_password_async,
 )
 from app.utils.time import utcnow_naive
 
@@ -46,12 +48,16 @@ def _client_ip(request: Request) -> str:
     return request.client.host if request.client else "unknown"
 
 
+# 匿名可达字段一律有资源上限：合法 refresh JWT 远小于 4KB，超长直接 422，不进 decode/DB
+_MAX_TOKEN_LEN = 4096
+
+
 class RefreshRequest(BaseModel):
-    refresh_token: str
+    refresh_token: str = Field(min_length=1, max_length=_MAX_TOKEN_LEN)
 
 
 class LogoutRequest(BaseModel):
-    refresh_token: str
+    refresh_token: str = Field(min_length=1, max_length=_MAX_TOKEN_LEN)
 
 
 def _issue_session(db: AsyncSession, user: User) -> TokenResponse:
@@ -97,7 +103,7 @@ async def register(user_data: UserCreate, request: Request, db: AsyncSession = D
     user = User(
         email=email,
         username=user_data.username,
-        password_hash=get_password_hash(user_data.password),
+        password_hash=await get_password_hash_async(user_data.password),
         display_name=user_data.display_name or user_data.username,
         is_admin=False,
     )
@@ -127,10 +133,10 @@ async def login(login_data: UserLogin, request: Request, db: AsyncSession = Depe
     user = (await db.execute(select(User).where(User.email == email))).scalar_one_or_none()
     if not user:
         # 未知邮箱也执行完整 bcrypt：消除邮箱枚举时序侧信道
-        verify_password(login_data.password, _DUMMY_HASH)
+        await verify_password_async(login_data.password, _DUMMY_HASH)
         logger.warning("login failed ip=%s reason=unknown_user", _client_ip(request))
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="邮箱或密码错误")
-    if not verify_password(login_data.password, user.password_hash):
+    if not await verify_password_async(login_data.password, user.password_hash):
         logger.warning("login failed ip=%s reason=bad_password", _client_ip(request))
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="邮箱或密码错误")
     if not user.is_active:
@@ -140,7 +146,7 @@ async def login(login_data: UserLogin, request: Request, db: AsyncSession = Depe
     await login_limiter.clear(rl_key)
     user.last_login_at = utcnow_naive()
     if pwd_context.needs_update(user.password_hash):
-        user.password_hash = get_password_hash(login_data.password)
+        user.password_hash = await get_password_hash_async(login_data.password)
     return _issue_session(db, user)
 
 

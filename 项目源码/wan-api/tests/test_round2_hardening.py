@@ -52,13 +52,13 @@ async def test_unknown_user_login_still_costs_bcrypt(monkeypatch):
     """时序侧信道：未知邮箱也必须执行一次 bcrypt（调用计数断言）。"""
     from app.api.v1 import auth as auth_mod
     calls = {"n": 0}
-    real_verify = auth_mod.verify_password
+    real_verify = auth_mod.verify_password_async
 
-    def counting_verify(plain, hashed):
+    async def counting_verify(plain, hashed):
         calls["n"] += 1
-        return real_verify(plain, hashed)
+        return await real_verify(plain, hashed)
 
-    monkeypatch.setattr(auth_mod, "verify_password", counting_verify)
+    monkeypatch.setattr(auth_mod, "verify_password_async", counting_verify)
     from app.main import app
 
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:

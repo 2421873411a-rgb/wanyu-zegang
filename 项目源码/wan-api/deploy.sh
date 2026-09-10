@@ -483,7 +483,24 @@ server {
     listen [::]:80;
     server_name wan.kaogong.art;
     location /.well-known/acme-challenge/ { root /var/www/certbot; }
+    # 普通匿名 API 收紧到 512k（v17.10.2 P1-04）；64MB 只给 admin JSON 导入。
+    # 两段 proxy 指令完全一致：改 proxy 行为时两处必须同步改。
     location /api/ {
+        limit_req zone=wanapi burst=60 nodelay;
+        client_max_body_size 512k;
+        proxy_pass http://wanyu_api;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Connection "";
+        proxy_http_version 1.1;
+        proxy_read_timeout 120s;
+        proxy_send_timeout 120s;
+        add_header Cache-Control "no-store, no-cache, must-revalidate";
+    }
+    # admin 单周期 JSON 导入独享 64MB（应用层另有流式 413 兜底）
+    location ~ ^/api/v1/admin/import/ {
         limit_req zone=wanapi burst=60 nodelay;
         client_max_body_size 64m;
         proxy_pass http://wanyu_api;
