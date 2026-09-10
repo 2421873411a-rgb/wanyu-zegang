@@ -1,0 +1,5 @@
+# 字节级精确仓库：产物与数据的 sha256/字节数受 site-manifest 与 sources.lock 门禁约束，
+# 任何 git 换行转换（core.autocrlf 等）都会让 Windows 克隆的字节数漂移、门禁误报。
+# 2026-09-10 审查修复轮实测：autocrlf=true 克隆导致 site-manifest 字节校验 6399≠6398。
+# 此处统一禁用 git 的 EOL 处理（对已入库内容零转换，仅约束未来 checkout/checkin）。
+* -text

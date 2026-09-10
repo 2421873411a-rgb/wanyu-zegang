@@ -241,6 +241,12 @@ setup_database() {
 
 setup_secret_env() {
     # 生产 secret 与代码目录彻底分离：/etc/wanyu/wanyu.env（root:www-data 0640）
+    # v17.10.1 审查修复：ADMIN_EMAIL 写入 secret heredoc 前先校验——heredoc 无引号
+    # 展开，含换行/引号/空白的值会注入额外 env 行（operator 自伤面，fail-fast）。
+    if [ -n "${ADMIN_EMAIL:-}" ] && ! printf '%s' "${ADMIN_EMAIL}" | grep -Eq '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+$'; then
+        log_error "ADMIN_EMAIL 格式非法（须为不含空白/引号/换行的邮箱字面量），拒绝继续：${ADMIN_EMAIL}"
+        exit 1
+    fi
     sudo mkdir -p /etc/wanyu
     if [ ! -f "${SECRET_ENV}" ]; then
         if [ -z "$DB_PASSWORD" ]; then
@@ -690,10 +696,12 @@ post_deploy_smoke() {
 bootstrap_admin() {
     cd "${CURRENT_LINK}/app"
     if [ -n "${ADMIN_BOOTSTRAP_PASSWORD:-}" ]; then
-        run_as_app "${CURRENT_LINK}/venv/bin/python" scripts/create_admin.py \
+        # v17.10.1 审查修复：密码走 stdin 管道，不再经 argv——/proc/<pid>/cmdline
+        # 全员可读，env 亦受限；run_as_app 的 python3 -c 不占 stdin，管道原样透传
+        # 到目标 python（create_admin.py 侧非 tty 时从 stdin 读取）。
+        printf '%s' "${ADMIN_BOOTSTRAP_PASSWORD}" | run_as_app "${CURRENT_LINK}/venv/bin/python" scripts/create_admin.py \
             --email "${ADMIN_EMAIL:-admin@kaogong.art}" \
-            --username admin \
-            --password "$ADMIN_BOOTSTRAP_PASSWORD"
+            --username admin
         log_info "✓ 管理员引导完成（${ADMIN_EMAIL:-admin@kaogong.art}）"
     else
         log_warn "未设置 ADMIN_BOOTSTRAP_PASSWORD，跳过管理员引导。生产管理员必须补做："

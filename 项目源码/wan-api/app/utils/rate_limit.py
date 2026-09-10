@@ -95,6 +95,12 @@ class MemoryRateLimiter:
             self._last_seen.pop(key, None)
 
     def reset(self) -> None:
+        # 仅测试环境允许清空（v17.10.1 补门禁：与 RedisRateLimiter.reset 同规——
+        # 此前门禁只在 Redis 版，Memory 版（含 Redis 降级兜底实例）可被生产
+        # 代码误调一键清空限流状态，审查 P2）
+        if settings.ENV != "test":
+            logger.warning("MemoryRateLimiter.reset() 在非 test 环境被拒绝执行")
+            return
         with self._lock:
             self._events.clear()
             self._locked_until.clear()

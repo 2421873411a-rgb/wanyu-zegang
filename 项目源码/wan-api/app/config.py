@@ -103,14 +103,19 @@ class Settings(BaseSettings):
 def _validate_production_safety(settings: "Settings") -> None:
     """SECRET_KEY 安全门（v17.9.12 全面收紧）。
 
-    - ENV=test：允许空并注入固定测试密钥（测试需要真实签发/校验 token）。
+    - ENV=test：允许空并注入每进程随机密钥（测试需要真实签发/校验 token）。
     - 其余任何环境：缺失或命中已知公开默认值 → 拒绝启动；
       长度 <32 字符 → 拒绝启动（此前 'secret' 这类弱密钥在生产也放行）。
     """
     # 精确匹配（Round-3 RA-5）：' TEST '/'Test' 之类笔误绝不享受 test 豁免
     if settings.ENV == "test":
         if not settings.SECRET_KEY:
-            settings.SECRET_KEY = "wanyu-test-only-secret-key-0123456789abcdef"
+            # v17.10.1 审查修复：固定测试密钥是硬编码字面量，任何密钥扫描门禁
+            # 都必须命中它（check_secrets.sh 扩面后实测命中 config.py:113）。
+            # 测试的签发/校验同进程完成，不需要跨进程 token 互认——随机即可。
+            import secrets as _secrets
+
+            settings.SECRET_KEY = _secrets.token_hex(32)
         return
     if not settings.SECRET_KEY:
         raise RuntimeError(

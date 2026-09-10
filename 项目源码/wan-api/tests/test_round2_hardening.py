@@ -392,3 +392,24 @@ async def test_per_ip_rate_limit_bucket_independent_of_email(client: AsyncClient
         if r.status_code == 429:
             break
     assert last == 429, "换邮箱绕过 per-IP 桶仍然可行"
+
+
+async def test_memory_limiter_reset_refused_outside_test_env(monkeypatch):
+    """v17.10.1 回归锁：Memory limiter 的 reset() 门禁与 Redis 版同规。
+
+    此前门禁只在 RedisRateLimiter.reset()，Memory 版（含 Redis 降级兜底实例）
+    可被生产代码误调一键清空限流状态。生产 ENV 下必须拒绝；test ENV 仍可
+    确定性清空（conftest fixture 依赖此行为）。
+    """
+    from app.config import settings
+
+    limiter = rl.MemoryRateLimiter(max_events=1, window_seconds=60)
+    assert await limiter.check("k") is True
+
+    monkeypatch.setattr(settings, "ENV", "production")
+    limiter.reset()
+    assert await limiter.check("k") is False  # 锁定状态保留 = reset 未执行
+
+    monkeypatch.setattr(settings, "ENV", "test")
+    limiter.reset()
+    assert await limiter.check("k") is True  # test 环境允许清空

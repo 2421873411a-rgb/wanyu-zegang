@@ -175,22 +175,29 @@ migrate_and_import_release
 
 
 def test_admin_bootstrap_uses_the_environment_runner():
-    """The admin CLI must not bypass the external production EnvironmentFile."""
+    """The admin CLI must not bypass the external production EnvironmentFile.
+
+    v17.10.1 审查修复：密码经 stdin 管道传递，不再进 argv（/proc/<pid>/cmdline
+    全员可读）——回归锁断言 argv 无 --password 且 stdin 原样送达。
+    """
     with tempfile.TemporaryDirectory(prefix="_ops-admin-", dir=WAN_API / "tests") as temp_name:
         current = Path(temp_name) / "current"
         call_log = Path(temp_name) / "calls.log"
+        stdin_log = Path(temp_name) / "stdin.log"
         (current / "app").mkdir(parents=True)
         current_rel = current.relative_to(WAN_API).as_posix()
         call_log_rel = call_log.relative_to(WAN_API).as_posix()
+        stdin_log_rel = stdin_log.relative_to(WAN_API).as_posix()
         result = run_bash(
             rf'''
 source ./deploy.sh
 CURRENT_LINK="$(pwd)/{current_rel}"
 CALL_LOG="$(pwd)/{call_log_rel}"
+STDIN_LOG="$(pwd)/{stdin_log_rel}"
 ADMIN_BOOTSTRAP_PASSWORD="fixture-password"
 ADMIN_EMAIL="admin@example.test"
 sudo() {{ :; }}
-run_as_app() {{ printf '%s\n' "$*" >> "$CALL_LOG"; }}
+run_as_app() {{ printf '%s\n' "$*" >> "$CALL_LOG"; cat > "$STDIN_LOG"; }}
 bootstrap_admin
 '''
         )
@@ -199,7 +206,32 @@ bootstrap_admin
         call = call_log.read_text(encoding="utf-8")
         assert "/venv/bin/python scripts/create_admin.py" in call
         assert "--email admin@example.test" in call
-        assert "--password fixture-password" in call
+        assert "--password" not in call
+        assert stdin_log.read_text(encoding="utf-8") == "fixture-password"
+
+
+def test_check_secrets_flags_uppercase_secret_with_suffix():
+    """v17.10.1 审查回归锁：SECRET_KEY='xxx'（大小写+变量后缀）必须命中。
+
+    原实现双重漏检：pattern 大小写敏感，且 SECRET_KEY 形态里 secret 后跟
+    _KEY 接不上 [:=]——假饵实测复现后已修（-i + 后缀通配）。
+    """
+    script = WAN_API.parent / "tools" / "anhui_web" / "check_secrets.sh"
+    with tempfile.TemporaryDirectory(prefix="_ops-secret-", dir=WAN_API / "tests") as temp_name:
+        bait_dir = Path(temp_name)
+        (bait_dir / "settings.py").write_text(
+            "SECRET_KEY='abcdef1234567890'\n", encoding="utf-8"
+        )
+        result = subprocess.run(
+            [BASH, str(script), str(bait_dir)],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+        )
+        assert result.returncode == 1, result.stdout + result.stderr
+        assert "hardcoded password/secret" in result.stdout
+        assert "SECRET_KEY" in result.stdout
 
 
 def test_import_data_snapshots_are_atomic_checksummed_and_revision_anchored():

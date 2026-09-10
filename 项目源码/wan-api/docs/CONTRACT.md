@@ -1,4 +1,4 @@
-# wan-api 与 canonical 数据链的接口契约（随版本滚动更新；当前 v17.9.19 · Round-9）
+# wan-api 与 canonical 数据链的接口契约（随版本滚动更新；当前 v17.10.1 · 审查修复轮）
 
 > 一句话：**canonical/cycles/*.json 仍是唯一正式数据真源；wan-api 是用户状态层与读取服务层，永远不产生第二数据真源。**
 

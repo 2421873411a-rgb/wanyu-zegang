@@ -7,6 +7,9 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-RH3yFko9Gowhl8zVMGWH23zUlRaXNhgw63ga1b8tW5k=' 'sha256-lSnm4IzxbqofdqKhio1HGiWt2IYSpmoxUrnDrejU8ek='; connect-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
   <meta name="description" content="安徽三年公考/事业编岗位数据：按专业、城市、学历找岗位，看竞争比、入围线与各地待遇。数据来自官方公告，来源可核对。">
   <title>皖域择岗 · 安徽公考岗位查询</title>
+  <!-- v17.9.1-w17 审查修复：theme-color meta 先于 THEME_BOOT——引导脚本
+       querySelector 才能取到节点，首帧深色模式下浏览器地址栏色按存储值更新。 -->
+  <meta name="theme-color" content="#3a83f7">
   <script>
     /* 主题引导:先于样式执行,读取持久化选择,避免首帧闪烁。 */
     (function () {
@@ -24,20 +27,21 @@
     })();
   </script>
   <link rel="manifest" href="manifest.webmanifest">
-  <meta name="theme-color" content="#3a83f7">
   <meta property="og:type" content="website">
   <meta property="og:title" content="皖域择岗 · 安徽公考岗位查询">
   <meta property="og:description" content="三年 28,568 岗逐岗可溯源：专业匹配亮依据、官方竞争与入围线、报考日历盯节点。未公布不显示，推导亮明依据。">
-  <meta property="og:image" content="assets/og-card.png">
+  <!-- v17.9.1-w17 审查修复：og:image 改绝对 URL（og:url 同源）——微信/Twitter
+       等爬虫对相对路径不解析，分享卡片此前大概率无图。 -->
+  <meta property="og:image" content="https://wan.kaogong.art/maintainable/assets/og-card.png">
   <meta property="og:url" content="https://wan.kaogong.art/maintainable/">
   <meta name="twitter:card" content="summary_large_image">
-  <link rel="icon" href="assets/wanyu-icon.svg?v=17.9.0" type="image/svg+xml">
-  <link rel="stylesheet" href="assets/maintainable-tokens.css?v=17.9.0">
-  <link rel="stylesheet" href="assets/maintainable-site.css?v=17.9.0">
-  <link rel="stylesheet" href="assets/v17-ui-upgrade.css?v=17.9.0">
-  <link rel="stylesheet" href="assets/v17-search.css?v=17.9.0">
-  <link rel="stylesheet" href="assets/v17-tools.css?v=17.9.0">
-  <link rel="stylesheet" href="assets/v17-exam-picker.css?v=17.9.0">
+  <link rel="icon" href="assets/wanyu-icon.svg?v=17.9.1" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/maintainable-tokens.css?v=17.9.1">
+  <link rel="stylesheet" href="assets/maintainable-site.css?v=17.9.1">
+  <link rel="stylesheet" href="assets/v17-ui-upgrade.css?v=17.9.1">
+  <link rel="stylesheet" href="assets/v17-search.css?v=17.9.1">
+  <link rel="stylesheet" href="assets/v17-tools.css?v=17.9.1">
+  <link rel="stylesheet" href="assets/v17-exam-picker.css?v=17.9.1">
 </head>
 <body>
   <div id="maintainable-app" class="maintainable-app">
@@ -91,11 +95,11 @@
       <span>第一次使用？请看导航里的「使用说明」</span>
     </footer>
   </div>
-  <script src="assets/maintainable-data.js?v=17.9.0"></script>
-  <script src="assets/maintainable-major-city.js?v=17.9.0"></script>
-  <script src="assets/maintainable-user-store.js?v=17.9.0"></script>
-  <script src="assets/v17-tools.js?v=17.9.0"></script>
-  <script type="module" src="assets/maintainable-site.js?v=17.9.0"></script>
+  <script src="assets/maintainable-data.js?v=17.9.1"></script>
+  <script src="assets/maintainable-major-city.js?v=17.9.1"></script>
+  <script src="assets/maintainable-user-store.js?v=17.9.1"></script>
+  <script src="assets/v17-tools.js?v=17.9.1"></script>
+  <script type="module" src="assets/maintainable-site.js?v=17.9.1"></script>
   <script>
   if ('serviceWorker' in navigator) {
     addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });

@@ -718,13 +718,17 @@ def _index_html(three_year: dict[str, object] | None = None) -> str:
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' __CSP_SCRIPT_HASHES__; connect-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
   <meta name="description" content="安徽三年公考/事业编岗位数据：按专业、城市、学历找岗位，看竞争比、入围线与各地待遇。数据来自官方公告，来源可核对。">
   <title>皖域择岗 · 安徽公考岗位查询</title>
+  <!-- v17.9.1-w17 审查修复：theme-color meta 先于 THEME_BOOT——引导脚本
+       querySelector 才能取到节点，首帧深色模式下浏览器地址栏色按存储值更新。 -->
+  <meta name="theme-color" content="#3a83f7">
   {THEME_BOOT}
   <link rel="manifest" href="manifest.webmanifest">
-  <meta name="theme-color" content="#3a83f7">
   <meta property="og:type" content="website">
   <meta property="og:title" content="皖域择岗 · 安徽公考岗位查询">
   <meta property="og:description" content="三年 {posts:,} 岗逐岗可溯源：专业匹配亮依据、官方竞争与入围线、报考日历盯节点。未公布不显示，推导亮明依据。">
-  <meta property="og:image" content="assets/og-card.png">
+  <!-- v17.9.1-w17 审查修复：og:image 改绝对 URL（og:url 同源）——微信/Twitter
+       等爬虫对相对路径不解析，分享卡片此前大概率无图。 -->
+  <meta property="og:image" content="https://wan.kaogong.art/maintainable/assets/og-card.png">
   <meta property="og:url" content="https://wan.kaogong.art/maintainable/">
   <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" href="assets/wanyu-icon.svg?v={ASSET_VERSION}" type="image/svg+xml">

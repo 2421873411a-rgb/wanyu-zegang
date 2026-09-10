@@ -57,6 +57,15 @@ if [ -f "$HERE/check_secrets.sh" ]; then
 else
   err "check_secrets.sh not found next to check_release.sh"
 fi
+# 6b) v17.10.1 审查修复：secrets 扫描覆盖源码树——原实现只扫 $SITE，
+#     wan-api/tools/docs 全靠手工补跑（self-iterate 手工 evidence 为证，审查 P1）。
+#     tests 目录已在 check_secrets.sh 内豁免（fixture 假密钥）。
+ROOT="$(cd "$HERE/../.." && pwd)"
+if [ -d "$ROOT" ]; then
+  bash "$HERE/check_secrets.sh" "$ROOT" || fail=1
+else
+  err "source tree root not found: $ROOT"
+fi
 if [ -f "$HERE/verify_maintainable_site.py" ]; then
   python "$HERE/verify_maintainable_site.py" "$SITE" >/tmp/check_release_verify.txt 2>&1 \
     && echo "PASS | disk verifier" \
