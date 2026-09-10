@@ -1,6 +1,6 @@
 {
  "schema": "wanyu-release/v1",
- "release": "v17.9.1",
- "asset_version": "17.9.1",
- "service_worker_version": "wanyu-shell-v51"
+ "release": "v17.9.2",
+ "asset_version": "17.9.2",
+ "service_worker_version": "wanyu-shell-v52"
 }
