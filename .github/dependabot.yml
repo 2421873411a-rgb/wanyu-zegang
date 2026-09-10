@@ -9,6 +9,11 @@ updates:
     directory: "/项目源码"
     schedule:
       interval: weekly
+  # v17.9.2 P2-SEC-001：Node 发布工具链（playwright-core 等）纳入依赖治理
+  - package-ecosystem: npm
+    directory: "/项目源码"
+    schedule:
+      interval: weekly
   - package-ecosystem: github-actions
     directory: "/"
     schedule:

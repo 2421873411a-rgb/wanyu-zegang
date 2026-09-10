@@ -2,7 +2,12 @@ const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
 const { spawn } = require('child_process');
-const { chromium } = require('playwright-core');
+// v17.9.2：三引擎矩阵——SMOKE_BROWSER=chromium|firefox|webkit（默认 chromium）。
+// window.event 这类 Chromium 特有行为只有跨引擎才抓得到。
+const playwright = require('playwright-core');
+const browserName = process.env.SMOKE_BROWSER || 'chromium';
+const engine = playwright[browserName];
+if (!engine) throw new Error(`未知 SMOKE_BROWSER: ${browserName}`);
 
 const root = path.resolve(__dirname, '..');
 const port = 8765;
@@ -13,7 +18,7 @@ const siteDir = (process.env.WANYU_SITE_DIR && fs.existsSync(path.resolve(proces
   : fs.existsSync(path.resolve(root, '..', '网站'))
     ? path.resolve(root, '..', '网站')
     : path.resolve(root, 'deliverables', 'maintainable');
-const artifacts = path.join(root, 'tests', 'artifacts', 'maintainable');
+const artifacts = path.join(root, 'tests', 'artifacts', 'maintainable', browserName);
 
 async function waitForServer(url) {
   for (let attempt = 0; attempt < 60; attempt += 1) {
@@ -35,7 +40,7 @@ async function waitForServer(url) {
   let browser;
   try {
     await waitForServer(baseUrl);
-    browser = await chromium.launch({ headless: true });
+    browser = await engine.launch({ headless: true });
     const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: 'reduce' });
     const page = await context.newPage();
     const errors = [];

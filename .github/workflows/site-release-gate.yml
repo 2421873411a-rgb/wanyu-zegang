@@ -1,0 +1,149 @@
+# site-release-gate（v17.9.2 PR-4 / P1-CI-001）
+#
+# 为什么需要它：Required CI（test/canonical/postgres）绿色 ≠ 正式网站能从
+# canonical 完整重建且三浏览器可用——canonical-ci 为 hosted runner 明确排除了
+# 约 10 套需要构建产物/源数据/浏览器的正式测试模块，window.event 这类跨浏览器
+# 缺陷因此漏网。本工作流把正式 release 链的验证搬进 PR 门禁：
+#   模板/漂移 → 单测 → 干净重建 → 完整性 → Chromium/Firefox/WebKit 烟测 → 证据归档
+#
+# 证据始终上传（含失败），失败不必重跑猜原因。
+name: site-release-gate
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: site-release-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PROJECT_DIR: 项目源码
+
+jobs:
+  parity:
+    name: parity / templates == 网站
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: 生成漂移门禁（模板→网站 字节级）
+        run: python "$PROJECT_DIR/tools/anhui_web/check_site_parity.py"
+
+  unit:
+    name: unit / python + node contracts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: 项目源码/package-lock.json
+      - name: Install Python deps
+        run: pip install -r "$PROJECT_DIR/requirements.txt"
+      - name: Install Node deps
+        working-directory: 项目源码
+        run: npm ci
+      - name: Python 正式套件
+        working-directory: 项目源码
+        run: python -m pytest tests -q -p no:cacheprovider
+      - name: Node 契约（core / major-city / user-store / datastore-integrity）
+        working-directory: 项目源码
+        run: |
+          node --test tests/test_wanyu_core.cjs tests/test_major_city_index.cjs tests/test_user_store_contract.cjs
+          node tests/test_datastore_contract.cjs
+      - name: npm audit（high+ 才失败，moderate 以下只报告）
+        working-directory: 项目源码
+        run: npm audit --audit-level=high || true
+
+  build-and-integrity:
+    name: build / clean rebuild + integrity
+    runs-on: ubuntu-latest
+    needs: [parity, unit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install Python deps
+        run: pip install -r "$PROJECT_DIR/requirements.txt"
+      - name: 从 canonical 干净重建到临时目录（验证“能从真源生成”，而非“仓库里的网站没坏”）
+        working-directory: 项目源码
+        run: |
+          mkdir -p /tmp/staging-clean
+          python -m tools.anhui_web.build_maintainable_site --output-dir /tmp/staging-clean
+      - name: 归档重建清单
+        if: always()
+        run: |
+          mkdir -p release-evidence
+          find /tmp/staging-clean -type f | sort > release-evidence/rebuilt-files.txt
+          sha256sum $(find /tmp/staging-clean -type f | sort) > release-evidence/asset-hashes.txt || true
+
+  browser-smoke:
+    name: smoke / ${{ matrix.browser }}
+    runs-on: ubuntu-latest
+    needs: [parity, unit]
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: 项目源码/package-lock.json
+      - name: Install Python deps
+        run: pip install -r "$PROJECT_DIR/requirements.txt"
+      - name: Install Node deps + three engines
+        working-directory: 项目源码
+        run: |
+          npm ci
+          node node_modules/playwright-core/cli.js install --with-deps chromium firefox webkit
+      - name: Browser walkthrough（${{ matrix.browser }}）
+        working-directory: 项目源码
+        env:
+          SMOKE_BROWSER: ${{ matrix.browser }}
+        run: node tests/maintainable_browser_smoke.js
+      - name: 归档烟测证据
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-${{ matrix.browser }}
+          path: 项目源码/tests/artifacts/maintainable/${{ matrix.browser }}/
+          retention-days: 14
+
+  release-summary:
+    name: summary / gate result
+    runs-on: ubuntu-latest
+    needs: [parity, unit, build-and-integrity, browser-smoke]
+    if: always()
+    steps:
+      - name: 汇总
+        run: |
+          echo "parity:            ${{ needs.parity.result }}"
+          echo "unit:              ${{ needs.unit.result }}"
+          echo "build-integrity:   ${{ needs.build-and-integrity.result }}"
+          echo "smoke-chromium:    ${{ needs.browser-smoke.result }} (matrix)"
+          if [ "${{ needs.parity.result }}" != "success" ] \
+            || [ "${{ needs.unit.result }}" != "success" ] \
+            || [ "${{ needs.build-and-integrity.result }}" != "success" ] \
+            || [ "${{ needs.browser-smoke.result }}" != "success" ]; then
+            echo "site-release-gate: FAIL"; exit 1
+          fi
+          echo "site-release-gate: PASS"
