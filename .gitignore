@@ -37,3 +37,6 @@ _密钥_勿入git/
 
 # wan-api 本地虚拟环境
 项目源码/wan-api/.venv/
+
+# 卫生专项（2026-09-10）：退役镜像不复发——本地保留、不再跟踪
+项目源码/deliverables/maintainable/
