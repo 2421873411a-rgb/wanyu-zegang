@@ -139,8 +139,8 @@ class RedisRateLimiter:
         self.window_seconds = window_seconds
         self._redis = None
         self._script = None
-        # 兜底：按多 worker 稀释收紧（单进程内仍是原子的）
-        workers = max(1, min(int(settings.RATE_LIMIT_FALLBACK_WORKERS), 4))
+        # 兜底：按真实 worker 数稀释收紧（v17.10.2 P2-10：与 WANYU_WEB_CONCURRENCY 同源）
+        workers = max(1, int(settings.RATE_LIMIT_FALLBACK_WORKERS or 1))
         self._fallback = MemoryRateLimiter(max_events=max(1, max_events // workers),
                                            window_seconds=window_seconds)
         self._last_error_log = 0.0

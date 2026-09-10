@@ -29,10 +29,21 @@ async def lifespan(app: FastAPI):
     """应用生命周期管理"""
     # 启动时初始化数据库
     await init_db()
+    # v17.10.2 P2-10：非敏感运行容量摘要——排障不再靠猜（绝不打印密钥/URL 凭证）
+    logger.info(
+        "runtime: env=%s workers=%s rate_limit=%s db=%s release=%s",
+        settings.ENV,
+        settings.WEB_CONCURRENCY,
+        settings.RATE_LIMIT_BACKEND,
+        (settings.DATABASE_URL.split("://", 1)[0] if "://" in settings.DATABASE_URL else "unknown"),
+        settings.APP_VERSION,
+    )
     yield
     # 关闭时清理资源
     await close_db()
 
+
+logger = logging.getLogger("wanyu.main")
 
 app = FastAPI(
     title=settings.APP_NAME,
