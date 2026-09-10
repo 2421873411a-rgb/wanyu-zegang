@@ -27,6 +27,11 @@ FULL_BUILD="${FULL_BUILD:-0}"
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 SITE_DIR="$(cd "$REPO/.." && pwd)/网站"
+# Git Bash 下 pwd 产生 /c/... 形式路径，直接传给 Windows 原生 python 会
+# 打不开（2026-09-10 实测：verify_maintainable_site 对 /c/... 报
+# manifest.present FAIL，fail-closed 中止于第 2 步，未触碰服务器）。
+# cygpath -m 归一化为 C:/... 混合形式；无 cygpath 的 Linux 环境原样跳过。
+command -v cygpath >/dev/null 2>&1 && SITE_DIR="$(cygpath -m "$SITE_DIR")"
 TMP_TGZ="/tmp/wan-deploy-$(date +%Y%m%d%H%M%S).tgz"
 
 log(){ printf '\033[1;36m[deploy_wan]\033[0m %s\n' "$*"; }
