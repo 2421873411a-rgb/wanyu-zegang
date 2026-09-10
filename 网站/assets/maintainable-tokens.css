@@ -14,7 +14,10 @@
   --text-display: #0e1b2c;
   --text-strong: #25466f;
   --text-body: #3f5570;
-  --text-muted: #748cac;
+  /* v17.9.1-w17 审查修复：#748cac 在 #f5f9ff 上仅 3.26:1（AA 需 4.5），
+     改 #566e8a——四个浅色表面(f5f9ff/fff/fbfdff/eef3fb)全部 ≥4.7:1，色相不变。
+     大量 10-11px 中文小字使用此 token，对比度是可读性下限。 */
+  --text-muted: #566e8a;
   /* 边界 */
   --border-subtle: #dce8f8;
   --line: #dce8f8;
@@ -56,7 +59,7 @@
   --changes-unchanged-bg: rgba(95, 99, 104, .12);
   /* 旧名兼容(v13–v14 组件继续引用,值随主题走) */
   --ink: #25466f;
-  --muted: #748cac;
+  --muted: #566e8a;
   --canvas: #f5f9ff;
   --card: #ffffff;
   --blue: #3a83f7;
