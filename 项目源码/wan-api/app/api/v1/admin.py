@@ -217,9 +217,6 @@ async def import_cycle_data(
             detail=f"快照校验失败（已拒绝导入，数据库零写入）：{exc}"
         )
 
-    from app.api.v1.jobs import invalidate_stats_cache
-    invalidate_stats_cache()
-
     imported = stats.get("imported", 0)
     updated = stats.get("updated", 0)
     deactivated = stats.get("deactivated", 0)
@@ -229,6 +226,16 @@ async def import_cycle_data(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="导入对账失败（写入口径与源行数不一致），事务已回滚"
         )
+
+    # v17.10.2 P1-03：事务边界收口——显式 commit 后才允许 invalidate stats。
+    # get_db() 是「endpoint 返回后才 commit」，此前 invalidate 先于 commit，
+    # 竞态窗口内并发的 /stats 会把旧统计写回缓存并存活一个 TTL。
+    # 现在：commit 失败 → 异常上抛（get_db rollback）→ 缓存绝不清错；
+    #       commit 成功 → 缓存失效，之后的 /stats 必然读到新库。
+    await db.commit()
+
+    from app.api.v1.jobs import invalidate_stats_cache
+    invalidate_stats_cache()
 
     # v17.9.11：返回全周期镜像摘要——管理员单周期导入造成的跨周期版本错位
     # 必须当场可见，而不是事后去查 mirror_state 表。
