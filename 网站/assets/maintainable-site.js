@@ -887,17 +887,18 @@
     return `${notice}<section class="maint-hero maint-hero--compact"><div>${viewEyebrow('jobs_ranking', `${escapeHtml(state.cycle)} · 岗位排名`)}<h1>岗位榜单，先选专业再看城市。</h1><p>按专业、城市、考试和岗位类型组合筛选，随时可清空；筛选只改变你看到的结果，不改动任何岗位原文。</p></div></section><section class="maint-toolbar maint-toolbar--ranking"><label>专业关键词<input id="maint-ranking-major" list="maint-ranking-options" value="${escapeHtml(filters.major)}" placeholder="输入或选择，如：软件工程"></label><datalist id="maint-ranking-options">${majors.map((value) => `<option value="${escapeHtml(value)}" label="${number(majorCount(catalog, value))} 岗"></option>`).join('')}</datalist><span class="maint-filter-hint">按源专业文本关键词命中；详情保留专业原文</span>${majorTools('ranking', majors, catalog)}<label>城市<select id="maint-ranking-city">${optionMarkup(cities, filters.city)}</select></label><label>考试<select id="maint-ranking-exam">${optionMarkup(examScopeOptions, filters.exam, '全部考试')}</select></label><label>岗位类型<select id="maint-ranking-category">${optionMarkup(categories, filters.category)}</select></label><label>排序<select id="maint-ranking-metric"><option value="jobs" ${filters.metric === 'jobs' ? 'selected' : ''}>岗位数</option><option value="recruits" ${filters.metric === 'recruits' ? 'selected' : ''}>招录人数</option></select></label>${active}<span class="maint-toolbar__count">${filters.major ? `专业“${escapeHtml(filters.major)}” · ` : ''}${number(filtered.length)} / ${number(rowsFor(payload).length)} 个岗位 · ${number(rows.length)} 个城市</span><button type="button" data-maint-save-filter data-filter-view="jobs_ranking">保存筛选</button><button type="button" data-maintain-clear-ranking data-maintain-clear-major>重置筛选</button></section><section class="maint-panel"><div class="table-scroll"><table class="maint-table maint-table--ranking"><thead><tr><th>排名</th><th>城市</th><th>岗位数</th><th>招录人数</th><th>竞争覆盖</th><th>考试类别</th><th>专业关键词命中</th><th>岗位行</th></tr></thead><tbody>${rows.map((item, index) => `<tr data-maintain-ranking-row data-ranking-major="${escapeHtml(item.majors)}"><td class="rank">${index < 3 ? `<span class="rank-med rank-med--${index + 1}">${String(index + 1).padStart(2, '0')}</span>` : String(index + 1).padStart(2, '0')}</td><th>${escapeHtml(cityDisplay(item.city))}</th><td>${number(item.jobs)}</td><td class="num-bar"><i style="flex:0 0 ${(Number(item.recruits || 0) / maxRecruits * 100).toFixed(1)}%" aria-hidden="true"></i><b>${number(item.recruits)}</b></td><td>${coverageChip(item)}</td><td>${escapeHtml(item.exams || '—')}</td><td>${filters.major ? `命中“${escapeHtml(filters.major)}”` : '全部专业'}${filters.city ? ` · ${escapeHtml(cityDisplay(filters.city))}` : ''}</td><td><button type="button" class="maint-row-action" data-maint-ranking-city="${escapeHtml(item.city)}">查看岗位</button></td></tr>`).join('') || '<tr><td colspan="8" class="empty">当前条件没有匹配城市 <button type="button" class="maint-row-action" data-maintain-clear-ranking>重置筛选</button></td></tr>'}</tbody></table></div></section>`;
   };
   const searchFlowMarkup = () => `<section class="ui-search-flow" data-ui-search-flow aria-label="岗位决策路径"><div class="ui-search-flow__intro"><span>岗位检索</span><strong>把候选岗位变成可复核决定</strong><small>先缩小范围，再打开原文，最后留下你的选择。</small></div><div class="ui-search-flow__step is-current"><b>01</b><span><strong>缩小范围</strong><small>专业 · 城市 · 学历</small></span></div><div class="ui-search-flow__step"><b>02</b><span><strong>核对原文</strong><small>职位字段 · 来源定位</small></span></div><div class="ui-search-flow__step"><b>03</b><span><strong>保存或对比</strong><small>回到收藏 · 留下快照</small></span></div></section>`;
-  const PROFILE_KEY = 'wanyu.profile.v1';
-  const readProfile = () => {
-    try {
-      const raw = JSON.parse(localStorage.getItem(PROFILE_KEY) || '{}');
-      return { gender: raw.gender || '', fresh: raw.fresh || '', party: raw.party || '', legal: raw.legal || '', age: raw.age || '' };
-    } catch (error) { return { gender: '', fresh: '', party: '', legal: '', age: '' }; }
+  // 「我的条件」持久化与字段映射全部由 user-store 负责：主文件不再知道存储 key，也不再直接触达 localStorage
+  const readProfile = () => window.WanyuUserStore.readProfile();
+  const writeProfile = (profile) => window.WanyuUserStore.writeProfile(profile);
+  const profileActive = (p) => window.WanyuUserStore.profileActive(p);
+  // 本地存储被浏览器阻止/写满时给用户明确说法，而不是静默丢失
+  const storageNotice = () => {
+    const status = window.WanyuUserStore?.storageStatus?.() || 'ok';
+    if (status === 'ok') return '';
+    if (status === 'quota') return '浏览器本地存储已满，本次改动未能保存；请清理收藏或导出工作台后重试。';
+    if (status === 'corrupt') return '本地保存的数据已损坏，已按空工作台处理；如有备份可通过「导入工作台」恢复。';
+    return '当前浏览器禁止本地保存（隐私模式或站点设置），收藏与条件仅在本次页面有效。';
   };
-  const writeProfile = (profile) => {
-    try { localStorage.setItem(PROFILE_KEY, JSON.stringify(profile)); } catch (error) { /* 存储不可用时条件仅在本次会话生效 */ }
-  };
-  const profileActive = (p) => Boolean(p && (p.gender || p.fresh || p.party || p.legal || p.age));
   const renderSearch = (payload, catalog = {}, majorIndex = null, reqFields = null) => {
     const profile = readProfile();
     const profileOn = profileActive(profile) && Boolean(reqFields);
@@ -1321,7 +1322,7 @@
     const snapshot = store.makeSnapshot(state.cycle, filters, view === 'jobs_ranking' ? state.ranking.metric : 'jobs', state.manifest?.release || '');
     snapshot.view = view;
     store.saveFilterSnapshot(snapshot);
-    state.notice = '筛选已保存';
+    state.notice = storageNotice() || '筛选已保存';
   };
   const exportCurrentSearch = () => {
     const store = window.WanyuUserStore;
@@ -1596,7 +1597,8 @@
         if (!file) return;
         try {
           const counts = window.WanyuUserStore.importAll(await file.text());
-          state.notice = `工作台已导入：快照 ${number(counts.snapshots)} · 收藏 ${number(counts.positions)} · 对比 ${number(counts.compare)}`;
+          const extras = [counts.deduplicated ? `去重 ${number(counts.deduplicated)}` : '', counts.ignored_invalid ? `忽略非法项 ${number(counts.ignored_invalid)}` : ''].filter(Boolean);
+          state.notice = `工作台已导入：快照 ${number(counts.snapshots)} · 收藏 ${number(counts.positions)} · 对比 ${number(counts.compare)}${extras.length ? ` · ${extras.join(' · ')}` : ''}`;
         } catch (error) {
           state.notice = `导入失败：${error.message}`;
         }
@@ -1762,7 +1764,8 @@
     if (savePositionButton) {
       window.WanyuUserStore?.savePosition(savePositionButton.dataset.recordId);
       savePositionButton.textContent = '已收藏';
-      setStatus('岗位已收藏', 'ready');
+      const saveNotice = storageNotice();
+      setStatus(saveNotice || '岗位已收藏', saveNotice ? 'error' : 'ready');
       return;
     }
     const compareButton = event.target.closest('[data-maint-position-compare]');
@@ -1773,7 +1776,8 @@
         ? window.WanyuUserStore?.removeCompare?.(recordId)
         : window.WanyuUserStore?.saveCompare?.(recordId);
       compareButton.textContent = (next || []).includes(recordId) ? '移出对比' : '加入对比';
-      setStatus((next || []).includes(recordId) ? '已加入岗位对比' : '已移出岗位对比', 'ready');
+      const compareNotice = storageNotice();
+      setStatus(compareNotice || ((next || []).includes(recordId) ? '已加入岗位对比' : '已移出岗位对比'), compareNotice ? 'error' : 'ready');
       return;
     }
     const savedPosition = event.target.closest('[data-maint-saved-position]');
@@ -1870,9 +1874,12 @@
   app.addEventListener('input', (event) => {
     if (event.isComposing) return;
     if (event.target.matches('[data-maint-check-step]')) {
-      const done = new Set(JSON.parse(localStorage.getItem('wanyu.update.checklist.v1') || '[]'));
-      if (event.target.checked) done.add(event.target.dataset.maintCheckStep); else done.delete(event.target.dataset.maintCheckStep);
-      localStorage.setItem('wanyu.update.checklist.v1', JSON.stringify([...done]));
+      // 更新清单是次要功能：存储被浏览器阻止时静默降级，不影响主流程
+      try {
+        const done = new Set(JSON.parse(localStorage.getItem('wanyu.update.checklist.v1') || '[]'));
+        if (event.target.checked) done.add(event.target.dataset.maintCheckStep); else done.delete(event.target.dataset.maintCheckStep);
+        localStorage.setItem('wanyu.update.checklist.v1', JSON.stringify([...done]));
+      } catch (error) { /* 隐私模式等场景：清单仅在本次会话生效 */ }
       return;
     }
     if (event.target.id === 'maint-palette-input') { palette.query = event.target.value; palette.active = 0; paletteRender(); return; }
@@ -1893,11 +1900,15 @@
       case 'maint-profile-fresh':
       case 'maint-profile-party':
       case 'maint-profile-legal': {
-        const key = event.target.id.replace('maint-profile-', '');
+        // 只依赖传入的 id，绝不引用隐式的 window.event（Chromium 之外没有这个保证）
+        const key = window.WanyuUserStore.profileFieldFromInputId(id);
+        if (!key) return false;
         const next = readProfile();
         next[key] = value;
         writeProfile(next);
         state.searchPage = 0;
+        const notice = storageNotice();
+        if (notice) state.notice = notice;
         return true;
       }
       default: return false;
