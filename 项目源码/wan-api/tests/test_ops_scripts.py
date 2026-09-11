@@ -244,6 +244,7 @@ def test_import_data_snapshots_are_atomic_checksummed_and_revision_anchored():
 source ./deploy.sh
 BACKUP_ROOT="$(pwd)/{backup_rel}"
 date() {{ printf '20260908-040000\n'; }}
+chown() {{ :; }}
 sudo() {{
     if [ "${{1:-}}" = "-u" ]; then shift 2; fi
     case "${{1:-}}" in

@@ -63,7 +63,7 @@ drop_drill_database
 DB_CREATED=1
 sudo -u postgres psql -v ON_ERROR_STOP=1 \
     -c "CREATE DATABASE \"${DRILL_DB}\";" > /dev/null
-sudo -u postgres pg_restore --exit-on-error --no-owner -d "$DRILL_DB" "$LATEST" \
+sudo cat "$LATEST" | sudo -u postgres pg_restore --exit-on-error --no-owner -d "$DRILL_DB" \
     || fail "pg_restore 失败"
 echo "[drill] pg_restore PASS"
 

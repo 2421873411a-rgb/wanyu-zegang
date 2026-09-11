@@ -82,6 +82,21 @@ rollback_to_previous() {
         log_error "自动回滚中止：上一 release 目录不存在：${prev_dir}"
         return 0
     fi
+    # 审计 API-002：迁移已应用后（DB head 前移，旧代码 head 停留在迁移前 revision），
+    # 直接回切会被旧 release 的启动门（alembic 版本一致性）拒绝——服务起不来。
+    # 用迁移前 sidecar 判定：不一致则拒绝自动回切，给出人工降库路径。
+    local latest_sidecar before_rev db_rev
+    latest_sidecar="$(ls -1t "${BACKUP_ROOT}"/*.alembic-before.txt 2>/dev/null | head -1 || true)"
+    db_rev="$(sudo -u postgres psql -v ON_ERROR_STOP=1 -d wanyu_db -tAc "SELECT version_num FROM alembic_version LIMIT 1" 2>/dev/null | tr -d '[:space:]' || true)"
+    if [ -n "$latest_sidecar" ] && [ -n "$db_rev" ]; then
+        before_rev="$(sudo cat "$latest_sidecar" 2>/dev/null | tr -d '[:space:]')"
+        if [ -n "$before_rev" ] && [ "$before_rev" != "base" ] && [ "$db_rev" != "$before_rev" ]; then
+            log_error "自动回滚中止：迁移已应用（DB=${db_rev}，迁移前=${before_rev}），旧代码无法运行新 schema。"
+            log_error "人工路径A：${prev_dir}/venv/bin/alembic downgrade ${before_rev} 后重试回切；"
+            log_error "人工路径B：直接修复新版问题后重新部署。恢复点 dump：${latest_sidecar%.alembic-before.txt}"
+            return 0
+        fi
+    fi
     log_error "自动回滚：current -> ${PREVIOUS_RELEASE}"
     sudo ln -sfn "$prev_dir" "${CURRENT_LINK}.tmp"
     sudo mv -T "${CURRENT_LINK}.tmp" "${CURRENT_LINK}"
@@ -588,13 +603,15 @@ create_database_snapshot() {
         log_error "pg_dump 产物为空，拒绝继续：${stem}"
         return 1
     fi
-    chmod 600 "$temp_file"
+    chmod 640 "$temp_file"
+    sudo chown root:postgres "$temp_file"
     mv "$temp_file" "$dump_file"
     (
         cd "$BACKUP_ROOT"
         sha256sum "$(basename "$dump_file")" > "$(basename "$dump_file").sha256"
     )
-    chmod 600 "${dump_file}.sha256"
+    chmod 640 "${dump_file}.sha256"
+    sudo chown root:postgres "${dump_file}.sha256"
     printf '%s\n' "$dump_file"
 }
 
@@ -615,7 +632,10 @@ import_data() {
     log_info "导入数据（使用新 release venv）..."
     # 迁移前数据库快照（数据级还原点）
     sudo mkdir -p "$BACKUP_ROOT"
-    sudo chmod 700 "$BACKUP_ROOT"
+    # 审计 API-003：与 backup_database.sh 统一为 750 root:postgres——700 会让
+    # postgres 无法遍历读取部署期快照，部署后到下一次定时备份之间恢复链是断的。
+    sudo chmod 750 "$BACKUP_ROOT"
+    sudo chown root:postgres "$BACKUP_ROOT"
     local dump_file
     dump_file="$(create_database_snapshot)"
     record_pre_migration_revision "$dump_file"
