@@ -85,9 +85,15 @@ rollback_to_previous() {
     # 审计 API-002：迁移已应用后（DB head 前移，旧代码 head 停留在迁移前 revision），
     # 直接回切会被旧 release 的启动门（alembic 版本一致性）拒绝——服务起不来。
     # 用迁移前 sidecar 判定：不一致则拒绝自动回切，给出人工降库路径。
-    local latest_sidecar before_rev db_rev
-    latest_sidecar="$(ls -1t "${BACKUP_ROOT}"/*.alembic-before.txt 2>/dev/null | head -1 || true)"
-    db_rev="$(sudo -u postgres psql -v ON_ERROR_STOP=1 -d wanyu_db -tAc "SELECT version_num FROM alembic_version LIMIT 1" 2>/dev/null | tr -d '[:space:]' || true)"
+    local latest_sidecar="" before_rev="" db_rev=""
+    # 探测是 best-effort：显式 if! 容错（pipefail 下探测失败→跳过守卫、回退原回滚语义），
+    # 不用 || true 字面吞错，满足无吞错回归锁（审计核验 round-3）
+    if ! latest_sidecar="$(ls -1t "${BACKUP_ROOT}"/*.alembic-before.txt 2>/dev/null | head -1)"; then
+        latest_sidecar=""
+    fi
+    if ! db_rev="$(sudo -u postgres psql -v ON_ERROR_STOP=1 -d wanyu_db -tAc "SELECT version_num FROM alembic_version LIMIT 1" 2>/dev/null | tr -d '[:space:]')"; then
+        db_rev=""
+    fi
     if [ -n "$latest_sidecar" ] && [ -n "$db_rev" ]; then
         before_rev="$(sudo cat "$latest_sidecar" 2>/dev/null | tr -d '[:space:]')"
         if [ -n "$before_rev" ] && [ "$before_rev" != "base" ] && [ "$db_rev" != "$before_rev" ]; then
