@@ -111,17 +111,17 @@ _SLIDING_LUA = """
 -- 时钟统一取 Redis 侧 TIME（Round-3 RA-6：应用实例时钟漂移会整体绕过窗口）
 local t = redis.call('TIME')
 local now = t[1] * 1000 + math.floor(t[2] / 1000)
-local cut = now - tonumber(ARGV[2])
+local cut = now - tonumber(ARGV[1])
 redis.call('ZREMRANGEBYSCORE', KEYS[1], 0, cut)
 if redis.call('EXISTS', KEYS[2]) == 1 then return 0 end
 local n = redis.call('ZCARD', KEYS[1])
-if n >= tonumber(ARGV[3]) then
-  redis.call('SET', KEYS[2], '1', 'PX', tonumber(ARGV[2]))
+if n >= tonumber(ARGV[2]) then
+  redis.call('SET', KEYS[2], '1', 'PX', tonumber(ARGV[1]))
   return 0
 end
 redis.call('ZADD', KEYS[1], now, now .. ':' .. redis.call('INCR', KEYS[1] .. ':seq'))
-redis.call('PEXPIRE', KEYS[1], tonumber(ARGV[2]))
-redis.call('PEXPIRE', KEYS[1] .. ':seq', tonumber(ARGV[2]))
+redis.call('PEXPIRE', KEYS[1], tonumber(ARGV[1]))
+redis.call('PEXPIRE', KEYS[1] .. ':seq', tonumber(ARGV[1]))
 return 1
 """
 
@@ -173,8 +173,8 @@ class RedisRateLimiter:
             redis = self._connect()
             result = await self._script(
                 keys=[rkey, lock_key],
-                args=[int(time.time() * 1000),
-                      int(self.window_seconds * 1000),
+                # 审计 F-009：不再传应用时钟（死参数）——窗口一律取 Redis 侧 TIME
+                args=[int(self.window_seconds * 1000),
                       int(self.max_events)],
             )
             return int(result) == 1

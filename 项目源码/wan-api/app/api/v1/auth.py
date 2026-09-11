@@ -111,8 +111,9 @@ async def register(user_data: UserCreate, request: Request, db: AsyncSession = D
     try:
         await db.flush()
     except IntegrityError:
-        # 并发同邮箱竞态兜底（RA-11：UNIQUE 已保证不脏，缺的只是 400 化）
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="该邮箱已被注册")
+        # 并发同邮箱/同用户名竞态兜底（RA-11：UNIQUE 已保证不脏，缺的只是 400 化）。
+        # 审计 F-018：唯一约束可能来自邮箱也可能来自用户名，文案不再单指邮箱。
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="该邮箱或用户名已被使用")
     logger.info("register ok ip=%s", _client_ip(request))
     return _issue_session(db, user)
 

@@ -259,9 +259,12 @@ async def add_to_compare(
     # v17.10.2 P2-09：并发挑中同一空闲槽位会撞 UNIQUE(user_id,position)。此前一律
     # 报「该岗位已在对比列表中」——语义错误。现在：撞槽 → 回滚 → 重读槽位 → 重试，
     # 重试前先分辨「重复岗位」（record 已存在）与「槽位已满」（4/4），最多重试 3 次。
+    # 审计 F-003：rollback 会 expire 会话内全部实例，之后访问 current_user.id 会触发
+    # 同步 lazy refresh（MissingGreenlet → 500）。事务路径上一律用提前落好的本地值。
+    user_id = str(current_user.id)
     for attempt in range(4):
         occupied_result = await db.execute(
-            select(CompareList.position).where(CompareList.user_id == current_user.id)
+            select(CompareList.position).where(CompareList.user_id == user_id)
         )
         occupied = {row for row in occupied_result.scalars().all()}
         free_slots = [s for s in range(4) if s not in occupied]
@@ -272,7 +275,7 @@ async def add_to_compare(
             )
 
         item = CompareList(
-            user_id=current_user.id,
+            user_id=user_id,
             record_id=data.record_id,
             cycle=data.cycle,
             position=free_slots[0]
@@ -285,7 +288,7 @@ async def add_to_compare(
             await db.rollback()
             duplicate = (await db.execute(
                 select(CompareList.id).where(
-                    CompareList.user_id == current_user.id,
+                    CompareList.user_id == user_id,
                     CompareList.record_id == data.record_id,
                 )
             )).scalar_one_or_none()
