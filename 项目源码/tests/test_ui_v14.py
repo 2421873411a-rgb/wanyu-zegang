@@ -54,10 +54,12 @@ class UiV14ContractTests(unittest.TestCase):
             "data-maint-active-filter",
             "data-maint-clear-search",
             "data-maint-position-compare",
-            "major_options_mode",
             "source.observed_at || '未提供'",
         ):
             self.assertIn(marker, js)
+        # F-014 校验合一：catalog 可读目录规则的唯一真源在 maintainable-data.js（站点端委托）
+        data_js = (ROOT / "tools" / "anhui_web" / "templates" / "maintainable-data.js").read_text(encoding="utf-8")
+        self.assertIn("major_options_mode", data_js)
         self.assertIn("overflow-wrap:anywhere", css)
         self.assertNotIn("2000-01-01", js)
 

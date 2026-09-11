@@ -12,7 +12,7 @@
     if (module === 'jobs' && (!payload.allMajors?.meta || !Array.isArray(payload.allMajors.rows))) throw new Error(`${cycle} jobs.json 缺少 allMajors.rows`);
     if (module === 'jobs_lite' && (!payload.allMajors?.meta || !Array.isArray(payload.allMajors.rows))) throw new Error(`${cycle} jobs_lite.json 缺少 allMajors.rows`);
     if (module === 'overview' && !payload.allMajors?.meta) throw new Error(`${cycle} overview.json 缺少摘要`);
-    if (module === 'catalog' && (!Array.isArray(payload.majors) || !payload.facets)) throw new Error(`${cycle} catalog.json 缺少专业目录或筛选面`);
+    if (module === 'catalog' && (!Array.isArray(payload.majors) || !payload.facets || payload.major_options_mode !== 'readable_keywords')) throw new Error(`${cycle} catalog.json 缺少可读专业目录或筛选面`);
     if (module === 'positions' && (!Array.isArray(payload.rows) || payload.source_module !== 'jobs.json')) throw new Error(`${cycle} positions.json 缺少岗位索引`);
     if (module === 'changes' && (!Array.isArray(payload.changes) || !payload.summary || !payload.target_cycle)) throw new Error(`${cycle} changes.json 缺少跨周期变化摘要`);
     if (module === 'scores' && (!payload.summary || !payload.keyed)) throw new Error(`${cycle} scores.json 缺少成绩索引摘要`);
