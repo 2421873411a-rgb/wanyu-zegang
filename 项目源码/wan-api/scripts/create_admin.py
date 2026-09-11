@@ -32,8 +32,15 @@ async def count_active_admins(db) -> int:
 async def create_admin(email: str, username: str, password: str) -> None:
     async with async_session_factory() as db:
         existing = await db.execute(select(User).where(User.email == email))
-        if existing.scalar_one_or_none():
-            print(f"拒绝：邮箱 {email} 已存在（如需升权请用 --promote）")
+        current = existing.scalar_one_or_none()
+        if current is not None:
+            # 审计 API-001：部署管道每次升级都会带着 ADMIN_BOOTSTRAP_PASSWORD 调用本脚本。
+            # 对“已是启用管理员”的同一账号幂等放行（exit 0），否则 ERR 陷阱会把已通过
+            # smoke 的健康新版自动回滚到 N-1。其余形态（普通用户占名/停用管理员）仍拒绝。
+            if current.is_admin and current.is_active:
+                print(f"管理员已存在且启用：{email}（幂等放行，不改动）")
+                return
+            print(f"拒绝：邮箱 {email} 已存在（普通用户或停用管理员；如需升权请用 --promote）")
             sys.exit(1)
         user = User(
             email=email,

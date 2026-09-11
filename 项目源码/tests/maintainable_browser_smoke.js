@@ -273,6 +273,8 @@ async function waitForServer(url) {
     }
     const expandedDetailText = await page.locator('[data-maint-detail-drawer]').innerText();
     assert(!expandedDetailText.includes('2000-01-01'), 'source date must not use a fake placeholder');
+    // 审计 FE-003：deriveSource 的行号定位必须真实呈现（键名漂移曾让 lite 主路径恒显示“未提供”）
+    assert(expandedDetailText.includes('jobs.json#allMajors.rows['), 'detail drawer must surface the source locator');
     assert(expandedDetailText.includes('未提供') || /\d{4}-\d{2}-\d{2}/.test(expandedDetailText), 'source date must be explicit or a valid date');
     await page.screenshot({ path: path.join(artifacts, 'detail-desktop.png'), fullPage: true });
     await page.waitForLoadState('networkidle', { timeout: 30000 }).catch(() => {});

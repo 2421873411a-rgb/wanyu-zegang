@@ -53,12 +53,17 @@ def check_redis(settings) -> dict:
         return {"required": required, "reachable": False, "error": str(exc)[:200]}
 
 
+def static_data_dir(settings):
+    """与 deploy.sh 预检、import_all_data 共用的真实布局：<STATIC_DATA_PATH>/cycles/<cycle>/jobs.json"""
+    return Path(settings.STATIC_DATA_PATH) / "cycles"
+
+
 def check_static_data(settings) -> dict:
-    base = Path(settings.STATIC_DATA_PATH)
+    # 审计 API-004：旧实现查 <base>/<cycle>，生产上永远 false
+    base = static_data_dir(settings)
     out = {}
     for cycle in ("2024", "2025", "2026"):
-        marker = base / cycle
-        out[cycle] = marker.exists() and any(marker.glob("*"))
+        out[cycle] = (base / cycle / "jobs.json").is_file()
     return out
 
 
@@ -87,6 +92,45 @@ def dr_ready(evidence: dict) -> dict:
     }
 
 
+def migration_ok(current, heads) -> dict:
+    """alembic_version 单行且等于唯一 head 才算一致；表缺失视为非迁移管理库（不判失败）。"""
+    if current is None:
+        return {"ok": True, "note": "alembic_version 缺失（非迁移管理的库）"}
+    if len(heads) != 1:
+        return {"ok": False, "error": f"alembic heads 异常：{heads}"}
+    ok = str(current) == str(heads[0])
+    return {"ok": ok, "current": str(current), "head": str(heads[0])}
+
+
+def compute_ready(db_ok: bool, redis_required: bool, redis_reachable: bool, static_all_ok: bool) -> bool:
+    """审计 API-005：旧表达式的 and/or 优先级会在 redis 非必需时短路掉 db_ok。"""
+    return bool(db_ok and (redis_reachable or not redis_required) and static_all_ok)
+
+
+async def check_migration_head() -> dict:
+    from sqlalchemy import text
+
+    from app.database import async_session_factory
+
+    try:
+        cfg = _alembic_config()
+        from alembic.script import ScriptDirectory
+
+        heads = [str(h) for h in ScriptDirectory.from_config(cfg).get_heads()]
+        async with async_session_factory() as session:
+            row = (await session.execute(text("SELECT version_num FROM alembic_version"))).first()
+        current = row[0] if row else None
+        return migration_ok(current, heads)
+    except Exception as exc:  # noqa: BLE001 — readiness 报告不挑异常类型
+        return {"ok": False, "error": str(exc)[:200]}
+
+
+def _alembic_config():
+    from alembic.config import Config
+
+    return Config(str(PROJECT / "alembic.ini"))
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--production", action="store_true")
@@ -94,20 +138,25 @@ def main() -> int:
 
     from app.config import settings
 
+    database = asyncio.run(check_database(settings))
+    migration = asyncio.run(check_migration_head()) if database["ok"] else {"ok": False, "error": "database unreachable"}
     report = {
         "release": settings.APP_VERSION,
         "environment": settings.ENV,
         "workers": settings.WEB_CONCURRENCY,
         "rate_limit_backend": settings.RATE_LIMIT_BACKEND,
-        "database": asyncio.run(check_database(settings)),
+        "database": database,
+        "migration": migration,
         "redis": check_redis(settings),
         "static_data": check_static_data(settings),
         "dr": dr_ready(load_dr_evidence()),
     }
-    ok = (
-        report["database"]["ok"]
-        and report["redis"]["reachable"] or not report["redis"]["required"]
-    ) and all(report["static_data"].values())
+    ok = compute_ready(
+        database["ok"] and migration["ok"],
+        report["redis"]["required"],
+        report["redis"]["reachable"],
+        all(report["static_data"].values()),
+    )
     if args.production:
         ok = ok and settings.ENV == "production"
     report["ready"] = bool(ok)

@@ -817,3 +817,29 @@ printf 'postgres-custom-format-fixture\\n'
         assert mode.stdout.strip() in {"640", "644"}, mode.stdout + mode.stderr
         dir_mode = run_bash('stat -c "%a" "' + backup_rel + '"')
         assert dir_mode.stdout.strip() in {"750", "755"}, dir_mode.stdout + dir_mode.stderr
+
+
+def test_create_admin_is_idempotent_for_active_admin(tmp_path):
+    """审计 API-001 回归锁：重跑部署带着 ADMIN_BOOTSTRAP_PASSWORD 时，
+    create_admin 对已存在的启用管理员必须幂等退出 0，不得触发部署 ERR 回滚。"""
+    import os
+    import subprocess
+    import sys
+
+    db_file = tmp_path / "admin-idempotent.db"
+    env = os.environ.copy()
+    env.update({
+        "ENV": "test",
+        "DATABASE_URL": f"sqlite+aiosqlite:///{db_file.as_posix()}",
+    })
+    script = "scripts/create_admin.py"
+    cmd = [sys.executable, script, "--email", "boss@example.test",
+           "--username", "boss", "--password", "abc1234567"]
+
+    first = subprocess.run(cmd, env=env, capture_output=True, text=True, timeout=120)
+    assert first.returncode == 0, first.stdout + first.stderr
+    assert "管理员已创建" in first.stdout
+
+    second = subprocess.run(cmd, env=env, capture_output=True, text=True, timeout=120)
+    assert second.returncode == 0, f"二次引导退出码 {second.returncode}：{second.stdout}{second.stderr}"
+    assert "幂等放行" in second.stdout

@@ -25,6 +25,10 @@ tools/anhui_web/.deploy_wan.local
 # 构建中间数据/收割产物（R1：大数据版本化交给 COS 快照，不入 git；backup_wanyu.sh 月备覆盖）
 项目源码/tools/anhui_web/data/*
 !项目源码/tools/anhui_web/data/record_status_overrides.json
+# 审计 FE-002：干净重建的构建输入必须可复现——以下两份小体积输入（228K）显式入库；
+# supplement 原始源仍在 source_data/（仅发布机持有，比对器对 supplement 键做归一）
+!项目源码/tools/anhui_web/data/major_catalog.json
+!项目源码/tools/anhui_web/data/anhui_340000_full.json
 *.db
 网站.previous/
 项目源码/tests/artifacts/

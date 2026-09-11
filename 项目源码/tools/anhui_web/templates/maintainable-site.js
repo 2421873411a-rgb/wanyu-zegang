@@ -1052,7 +1052,7 @@
       status,
       method,
       source_ref: meta?.source_ref || 'jobs.json',
-      locator: Number.isInteger(row?.ji) ? `jobs.json#allMajors.rows[${row.ji}]` : (meta?.source_ref || 'jobs.json'),
+      source_locator: Number.isInteger(row?.ji) ? `jobs.json#allMajors.rows[${row.ji}]` : (meta?.source_ref || 'jobs.json'),
       observed_at: meta?.observed_at || null,
       note: meta?.evidence_note || '详情展示源字段；目录清洗不覆盖原始岗位文本',
     };

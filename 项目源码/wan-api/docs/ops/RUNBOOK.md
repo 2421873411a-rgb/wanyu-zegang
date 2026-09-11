@@ -90,7 +90,9 @@ deploy.sh 在迁移前生成 `/opt/wanyu/backup/wanyu_db-<时间>.dump`、配对
 
 ## 管理员引导
 
-部署链只在设置了 `ADMIN_BOOTSTRAP_PASSWORD` 时自动创建管理员；否则完成横幅会提示手动执行：
+部署链只在设置了 `ADMIN_BOOTSTRAP_PASSWORD` 时自动创建管理员；否则完成横幅会提示手动执行。
+该变量只在首次部署产生效果；后续升级重跑时对已启用管理员幂等放行（v17.10.2 审计 API-001：
+旧行为会以退出码 1 触发 ERR 陷阱，把已通过 smoke 的健康新版自动回滚）。
 ```bash
 sudo /bin/bash -c '
   cd /opt/wanyu/current/app
