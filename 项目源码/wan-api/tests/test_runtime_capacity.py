@@ -41,3 +41,26 @@ def test_sqlite_refused_in_production():
     s = _settings(DATABASE_URL="sqlite+aiosqlite:///./wanyu.db")
     with pytest.raises(RuntimeError, match="SQLite"):
         _validate_runtime_capacity(s)
+
+
+def test_fuzzy_test_spelling_keeps_no_exemption():
+    """RA-5 保持：' TEST '/'Test' 归一后虽为 test，但豁免仍走原文精确匹配 → 拒启。"""
+    from app.config import _validate_production_safety
+
+    for env in (" TEST ", "Test", "TEST"):
+        with pytest.raises(RuntimeError):
+            _validate_production_safety(_settings(ENV=env, SECRET_KEY=""))
+
+
+def test_env_is_normalized_before_production_gates():
+    """评审 P2 回归锁：ENV 大小写/空白变体必须归一，不得绕过生产门。"""
+    from app.config import _validate_production_safety
+
+    s = _settings(ENV=" PRODUCTION ", DATABASE_URL="sqlite+aiosqlite:///./wanyu.db")
+    assert s.env_normalized == "production"
+    with pytest.raises(RuntimeError, match="SQLite"):
+        _validate_runtime_capacity(s)
+    # CORS localhost 检查只在 production 段生效——归一前 " PRODUCTION " 会绕过它
+    s2 = _settings(ENV=" production ", CORS_ORIGINS=["http://localhost:8765"])
+    with pytest.raises(RuntimeError, match="开发 origin"):
+        _validate_production_safety(s2)

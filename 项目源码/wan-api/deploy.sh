@@ -235,8 +235,9 @@ setup_database() {
             log_error "新建数据库角色时 DB_PASSWORD 必须为 16-128 位十六进制字符"
             exit 1
         fi
-        sudo -u postgres psql -v ON_ERROR_STOP=1 -c \
-            "CREATE USER wanyu_user WITH PASSWORD '${DB_PASSWORD}';"
+        # 安全审计 P3：口令走 stdin（psql -f -），不再随 argv 暴露给同机 ps/proc
+        printf '%s\n' "CREATE USER wanyu_user WITH PASSWORD '${DB_PASSWORD}';" \
+            | sudo -u postgres psql -v ON_ERROR_STOP=1 -f -
     fi
 
     db_exists="$(sudo -u postgres psql -v ON_ERROR_STOP=1 -tAc \
@@ -357,6 +358,7 @@ build_release() {
         --exclude='__pycache__' --exclude='.pytest_cache' --exclude='.ruff_cache' \
         --exclude='*.pyc' --exclude='./*.db' --exclude='./_ci_migrate.db' \
         --exclude='_audit_probe*' --exclude='./tests' --exclude='./docs' \
+        --exclude='./.env' \
         -cf - . | sudo tar -C "$RELEASE_DIR/app" -xf -
 
     # 权限：root 属主，全局可读不可写（运行用户无持久化写面）
@@ -503,12 +505,23 @@ server {
     listen 80;
     listen [::]:80;
     server_name wan.kaogong.art;
+    # 安全审计 P3：安全响应头（certbot 接管 443 时保留本块 add_header）。
+    # nginx 规则：location 内出现 add_header 即不再继承 server 级——两个 /api/ location
+    # 内已显式复制同款；静态资源 location 无 add_header、正常继承。
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "DENY" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
     location /.well-known/acme-challenge/ { root /var/www/certbot; }
     # 普通匿名 API 收紧到 512k（v17.10.2 P1-04）；64MB 只给 admin JSON 导入。
     # 两段 proxy 指令完全一致：改 proxy 行为时两处必须同步改。
     location /api/ {
         limit_req zone=wanapi burst=60 nodelay;
         client_max_body_size 512k;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header X-Frame-Options "DENY" always;
+        add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
         proxy_pass http://wanyu_api;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
@@ -524,6 +537,10 @@ server {
     location ~ ^/api/v1/admin/import/ {
         limit_req zone=wanapi burst=60 nodelay;
         client_max_body_size 64m;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header X-Frame-Options "DENY" always;
+        add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
         proxy_pass http://wanyu_api;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
@@ -780,7 +797,10 @@ main() {
     bootstrap_admin
     prune_old_releases
     log_info "部署完成：current -> ${RELEASE_DIR}"
-    log_info "API https://wan.kaogong.art/api/docs · health https://wan.kaogong.art/health"
+    if [ "${WANYU_ENV:-production}" != "production" ]; then
+        log_info "API docs https://wan.kaogong.art/api/docs"
+    fi
+    log_info "health https://wan.kaogong.art/health"
 }
 
 # --build-only：仅构建 release 目录（Upgrade Drift 演练复用真实构建逻辑；

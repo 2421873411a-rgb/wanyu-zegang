@@ -40,3 +40,33 @@
 | FE-007 | P3 | verifier 漏 calendar/supplement 磁盘校验；parity 漏 icon/webmanifest | 补覆盖清单已写明，小改 |
 | FE-009/010 | P3 | IntegrityError 静默降级 / a11y 与硬编码批次 | UI 批次处理 |
 | FE-011/012 | P3 | major_city 溯源弱耦合 / 烟测 WANYU_SITE_DIR 静默回退 | 小改，随下个工程窗 |
+
+
+## 第三轮：三代理核验（code-reviewer / security-auditor / test-engineer）与本批处置
+
+验收门曾判 NOT READY：API-002 守卫的 `|| true` 违反 deploy.sh 自身无吞错回归锁
+（直接删除又触发 pipefail ERR 陷阱）→ 已改为显式 if! 容错（72b8b48）。
+
+### 本批已修（round-3 commit）
+
+| 来源 | 级别 | 修复 |
+| --- | --- | --- |
+| 评审 | P1 | 筛选 chip × 覆盖全部 11 类 key（曾漏学历/捡漏雷达/榜单四维/排序） |
+| 评审 | P2 | ENV strip+lower 归一 validator——"PRODUCTION " 变体不再绕过生产门（回归锁：CORS localhost 用例） |
+| 评审 | P2 | openDetail finally 守卫：仅当自己仍是在途请求才清互斥，多连点不错位 |
+| 评审 | P3 | 详情徽章未知态改中性"来源已登记"（原默认 fail-open） |
+| 评审 | P3 | readiness 迁移核对改 fetchall 恰一行（与 init_db 同谓词，版本表污染可检出） |
+| 评审 | P3 | compare 重试不可达 else 删除；限流注释如实化（尝试桶）；死代码清理（debounce/sort-unit/page-size/density） |
+| 安全 | P3 | nginx 安全响应头（nosniff/DENY/Referrer-Policy/HSTS；server 级 + 两个 /api/ location 显式复制） |
+| 安全 | P3 | /api/docs 与 /api/redoc 生产置 None；部署横幅 docs 链接仅非生产打印 |
+| 安全 | P3 | 建库口令改 psql -f - stdin（不再经 argv）；release tar 排除 ./.env |
+
+### 仍挂账（需要数据契约/产品决策/独立工程窗）
+
+| 来源 | 级别 | 事项 |
+| --- | --- | --- |
+| 评审 | P2 | "官方报名人数"三套判定口径统一——需先确认 canonical 对 competition_observations/bm 的写入契约 |
+| 安全 | P2 | git 历史曾入 .venv（已清除）——建议 check_secrets 前移 pre-commit |
+| 安全 | P3 | 注册文案邮箱/用户名枚举（需邮箱验证流程配合，限流已在位） |
+| 评审 | P3 | restore_drill 基线硬编码（随 API-015 一并从 canonical metrics 派生） |
+| 评审 | P3 | match 页 major_index 失败提示无自愈；SW 非 sha JSON 孤儿条目；p8_secrets 旧机器路径 |

@@ -302,11 +302,6 @@ async def add_to_compare(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="对比操作并发冲突，请重试"
                 )
-    else:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="对比列表写入异常，请重试"
-        )
 
     return CompareListResponse.model_validate(item)
 

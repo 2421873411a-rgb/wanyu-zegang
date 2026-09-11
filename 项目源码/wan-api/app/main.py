@@ -50,8 +50,9 @@ app = FastAPI(
     version=settings.APP_VERSION,
     description="皖域择岗 API - 安徽公务员/事业编岗位信息服务平台",
     lifespan=lifespan,
-    docs_url="/api/docs",
-    redoc_url="/api/redoc"
+    # 安全审计 P3：交互式文档不再对生产公网暴露 API 面测绘
+    docs_url=None if settings.env_normalized == "production" else "/api/docs",
+    redoc_url=None if settings.env_normalized == "production" else "/api/redoc"
 )
 
 # 配置CORS

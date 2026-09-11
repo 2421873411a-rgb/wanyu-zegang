@@ -43,7 +43,10 @@ def test_compute_ready_does_not_short_circuit_db_on_optional_redis():
 
 
 def test_migration_ok_semantics():
-    assert migration_ok("0004", ["0004"])["ok"] is True
-    assert migration_ok("0003", ["0004"])["ok"] is False
-    assert migration_ok(None, ["0004"])["ok"] is True  # 非迁移管理库
-    assert migration_ok("0004", ["0004", "0005"])["ok"] is False  # 多 head 异常
+    # 评审 P3：恰一行判定，与 init_db 同谓词
+    assert migration_ok(["0004"], ["0004"])["ok"] is True
+    assert migration_ok(["0003"], ["0004"])["ok"] is False
+    assert migration_ok([], ["0004"])["ok"] is True  # 非迁移管理库
+    assert migration_ok(None, ["0004"])["ok"] is True  # 查询失败按缺失处理
+    assert migration_ok(["0004", "0003"], ["0004"])["ok"] is False  # 版本表污染（多行）
+    assert migration_ok(["0004"], ["0004", "0005"])["ok"] is False  # 多 head 异常

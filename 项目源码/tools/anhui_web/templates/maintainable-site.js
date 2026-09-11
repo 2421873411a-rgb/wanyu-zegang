@@ -1010,7 +1010,6 @@
       }
       if (state.searchSort === 'recruits') return Number(b?.num ?? b?.recruits ?? 0) - Number(a?.num ?? a?.recruits ?? 0);
       if (state.searchSort === 'city') return String(a?.city || '').localeCompare(String(b?.city || ''), 'zh') || String(a?.code || '').localeCompare(String(b?.code || ''));
-      if (state.searchSort === 'unit') return String(a?.unit || '').localeCompare(String(b?.unit || ''), 'zh') || String(a?.code || '').localeCompare(String(b?.code || ''));
       return 0;
     });
     const pageSize = [30, 60, 120].includes(Number(state.searchPageSize)) ? Number(state.searchPageSize) : 60;
@@ -1098,7 +1097,7 @@
       ['专业要求（源文）', row.zy, ''], ['学历', row.xl, ''], ['学位', row.xw, ''], ['政治面貌', row.xz, ''],
       ['年龄要求', row.age, ''], ['备注', row.bz, ''], ['成绩/入围线', score.value, score.status],
     ];
-    return `<div class="maint-detail-backdrop" data-maint-detail-drawer role="presentation"><aside class="maint-detail-drawer" role="dialog" aria-modal="true" aria-labelledby="maint-detail-title"><header class="maint-detail-head"><div><p class="maint-eyebrow">${escapeHtml(state.cycle)} · 岗位详情</p><h2 id="maint-detail-title">${escapeHtml(row.zw || row.display_title || '岗位详情')}</h2><p>${escapeHtml(row.unit || '未提供单位')} · ${escapeHtml(row.code || '')} · ${escapeHtml(row.city || row.reg || '')} · ${escapeHtml(row.exam || '')}</p><p class="maint-evidence-chip">${(() => { const st = window.WanyuDataStore ? state.dataStore?.integrityStatus?.(state.cycle, state.detail?.integrityModule || 'jobs_lite') : null; if (st === 'verified') return '✔ 来源可核对'; if (st === 'unverified-compatible') return '⚠ 完整性校验降级（当前环境无法校验内容哈希）'; if (st === 'unhashed') return '来源已登记 · 该模块未启用内容校验'; return '✔ 来源可核对'; })()}${source.observed_at ? ` · 材料取得 ${escapeHtml(source.observed_at)}` : ''}</p></div><button type="button" class="maint-detail-close" data-maint-detail-close aria-label="关闭岗位详情">×</button></header><div class="maint-detail-actions"><div class="maint-detail-action-group"><button type="button" data-maint-save-position data-record-id="${escapeHtml(recordId)}">${saved ? '已收藏' : '收藏岗位'}</button><button type="button" data-maint-position-compare data-record-id="${escapeHtml(recordId)}">${compared ? '移出对比' : '加入对比'}</button><button type="button" data-maint-share-job data-record-id="${escapeHtml(recordId)}">复制分享文本</button></div><details class="maint-detail-id"><summary>岗位编号</summary><code>${escapeHtml(recordId)}</code></details></div><section class="maint-decision-bar" aria-label="报考决策要点">${(() => {
+    return `<div class="maint-detail-backdrop" data-maint-detail-drawer role="presentation"><aside class="maint-detail-drawer" role="dialog" aria-modal="true" aria-labelledby="maint-detail-title"><header class="maint-detail-head"><div><p class="maint-eyebrow">${escapeHtml(state.cycle)} · 岗位详情</p><h2 id="maint-detail-title">${escapeHtml(row.zw || row.display_title || '岗位详情')}</h2><p>${escapeHtml(row.unit || '未提供单位')} · ${escapeHtml(row.code || '')} · ${escapeHtml(row.city || row.reg || '')} · ${escapeHtml(row.exam || '')}</p><p class="maint-evidence-chip">${(() => { const st = window.WanyuDataStore ? state.dataStore?.integrityStatus?.(state.cycle, state.detail?.integrityModule || 'jobs_lite') : null; if (st === 'verified') return '✔ 来源可核对'; if (st === 'unverified-compatible') return '⚠ 完整性校验降级（当前环境无法校验内容哈希）'; if (st === 'unhashed') return '来源已登记 · 该模块未启用内容校验'; return '来源已登记'; })()}${source.observed_at ? ` · 材料取得 ${escapeHtml(source.observed_at)}` : ''}</p></div><button type="button" class="maint-detail-close" data-maint-detail-close aria-label="关闭岗位详情">×</button></header><div class="maint-detail-actions"><div class="maint-detail-action-group"><button type="button" data-maint-save-position data-record-id="${escapeHtml(recordId)}">${saved ? '已收藏' : '收藏岗位'}</button><button type="button" data-maint-position-compare data-record-id="${escapeHtml(recordId)}">${compared ? '移出对比' : '加入对比'}</button><button type="button" data-maint-share-job data-record-id="${escapeHtml(recordId)}">复制分享文本</button></div><details class="maint-detail-id"><summary>岗位编号</summary><code>${escapeHtml(recordId)}</code></details></div><section class="maint-decision-bar" aria-label="报考决策要点">${(() => {
       const num = Number(row.num ?? row.recruits ?? 0);
       const examinees = Number(row.competition_observations?.examinees?.value ?? row.bm ?? 0);
       const ratio = examinees > 0 && num > 0 ? `${(examinees / num).toFixed(1)}:1` : null;
@@ -1138,7 +1137,7 @@
     }
     detailInflightId = String(recordId);
     let detailSourceModule = 'jobs_lite';
-    detailInflight = (async () => {
+    const myLoad = detailInflight = (async () => {
     const lite = state.modules.get(`${state.cycle}:jobs_lite`) || await loadModule(state.cycle, 'jobs_lite');
     let row = rowsFor(lite).find((item) => String(item.job_id || item.row_id || item.code) === String(recordId));
     let indexRow = null;
@@ -1166,7 +1165,10 @@
     setStatus(`${state.cycle} · 岗位详情已打开`, 'ready');
     document.querySelector('[data-maint-detail-close]')?.focus();
     })();
-    try { await detailInflight; } finally { detailInflight = null; detailInflightId = null; }
+    try { await myLoad; } finally {
+      // 评审 P2：仅当自己仍是在途请求时才清守卫，三连点/四连点不会误清后一跳的互斥
+      if (detailInflight === myLoad) { detailInflight = null; detailInflightId = null; }
+    }
   };
   const closeDetail = () => {
     const recordId = state.detail?.recordId;
@@ -1559,12 +1561,6 @@
     update(); await render({ instant: true }); const next = document.querySelector(`#${id}`);
     if (next && wasFocused) { next.focus(); const length = next.value.length; next.setSelectionRange(Math.min(start ?? length, length), Math.min(end ?? length, length)); }
   };
-  let inputRenderTimer = null;
-  const debouncedInputRender = (id, update) => {
-    update();
-    clearTimeout(inputRenderTimer);
-    inputRenderTimer = setTimeout(() => { renderPreservingInput(id, () => {}); }, 180);
-  };
   const onAppClick = async (event) => {
     const mobileMoreToggle = event.target.closest('[data-maint-mobile-more-toggle]');
     if (mobileMoreToggle) {
@@ -1719,11 +1715,19 @@
     const clearFilter = event.target.closest('[data-maint-clear-filter]');
     if (clearFilter) {
       const key = clearFilter.dataset.maintClearFilter || '';
+      // chip key 与 activeFilterMarkup 的登记必须一一对应（评审 P1：曾漏 6 类导致 × 失效）
       if (key === 'search.keyword') state.keyword = '';
-      if (key === 'search.major') state.searchMajor = '';
-      if (key === 'search.city') state.city = '';
-      if (key === 'search.cityGroup') state.searchCityGroup = '';
-      if (key === 'search.exam') state.exam = '';
+      else if (key === 'search.major') state.searchMajor = '';
+      else if (key === 'search.city') state.city = '';
+      else if (key === 'search.cityGroup') state.searchCityGroup = '';
+      else if (key === 'search.exam') state.exam = '';
+      else if (key === 'search.education') state.education = '';
+      else if (key === 'search.steal') state.searchSteal = false;
+      else if (key === 'ranking.major') state.ranking.major = '';
+      else if (key === 'ranking.city') state.ranking.city = '';
+      else if (key === 'ranking.exam') state.ranking.exam = '';
+      else if (key === 'ranking.category') state.ranking.category = '';
+      else if (key === 'ranking.metric') state.ranking.metric = 'jobs';
       state.searchPage = 0;
       await render();
       return;
@@ -1948,8 +1952,6 @@
     if (event.target.id === 'maint-search-city') { state.city = event.target.value; state.searchCityGroup = ''; state.searchPage = 0; void render({ instant: true }); }
     if (event.target.id === 'maint-search-exam') { state.exam = event.target.value; state.searchPage = 0; void render({ instant: true }); }
     if (event.target.id === 'maint-search-sort') { state.searchSort = event.target.value || 'source'; state.searchPage = 0; void render({ instant: true }); }
-    if (event.target.id === 'maint-search-page-size') { state.searchPageSize = Number(event.target.value) || 60; state.searchPage = 0; void render({ instant: true }); }
-    if (event.target.id === 'maint-search-density') { state.searchDensity = event.target.value === 'compact' ? 'compact' : 'comfortable'; void render({ instant: true }); }
     if (event.target.id === 'maint-search-education') { state.education = event.target.value; state.searchPage = 0; void render({ instant: true }); }
   });
   addEventListener('hashchange', () => {

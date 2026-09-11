@@ -122,7 +122,7 @@ async def register(user_data: UserCreate, request: Request, db: AsyncSession = D
 async def login(login_data: UserLogin, request: Request, db: AsyncSession = Depends(get_db)):
     email = login_data.email.strip().lower()
     ip = _client_ip(request)
-    # per-IP 失败总量桶：单 IP 换邮箱撞库的绕过面（Round-7 终审加固）
+    # per-IP 尝试总量桶：单 IP 换邮箱撞库的绕过面（含成功登录，成功不清 IP 桶——宁可错杀的既定取舍；评审 P3 注释如实化）
     if not await login_ip_limiter.check(ip):
         logger.warning("login rate-limited ip=%s scope=ip", ip)
         raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail="尝试过于频繁，请稍后再试")

@@ -92,14 +92,17 @@ def dr_ready(evidence: dict) -> dict:
     }
 
 
-def migration_ok(current, heads) -> dict:
-    """alembic_version 单行且等于唯一 head 才算一致；表缺失视为非迁移管理库（不判失败）。"""
-    if current is None:
+def migration_ok(rows, heads) -> dict:
+    """alembic_version 恰一行且等于唯一 head 才算一致（与 init_db 同谓词，评审 P3）；
+    表缺失/为空视为非迁移管理库（不判失败）。"""
+    if not rows:
         return {"ok": True, "note": "alembic_version 缺失（非迁移管理的库）"}
+    if len(rows) != 1:
+        return {"ok": False, "error": f"alembic_version 行数异常：{[str(r) for r in rows]}"}
     if len(heads) != 1:
         return {"ok": False, "error": f"alembic heads 异常：{heads}"}
-    ok = str(current) == str(heads[0])
-    return {"ok": ok, "current": str(current), "head": str(heads[0])}
+    ok = str(rows[0]) == str(heads[0])
+    return {"ok": ok, "current": str(rows[0]), "head": str(heads[0])}
 
 
 def compute_ready(db_ok: bool, redis_required: bool, redis_reachable: bool, static_all_ok: bool) -> bool:
@@ -118,9 +121,8 @@ async def check_migration_head() -> dict:
 
         heads = [str(h) for h in ScriptDirectory.from_config(cfg).get_heads()]
         async with async_session_factory() as session:
-            row = (await session.execute(text("SELECT version_num FROM alembic_version"))).first()
-        current = row[0] if row else None
-        return migration_ok(current, heads)
+            rows = (await session.execute(text("SELECT version_num FROM alembic_version"))).fetchall()
+        return migration_ok([row[0] for row in rows], heads)
     except Exception as exc:  # noqa: BLE001 — readiness 报告不挑异常类型
         return {"ok": False, "error": str(exc)[:200]}
 
@@ -142,7 +144,7 @@ def main() -> int:
     migration = asyncio.run(check_migration_head()) if database["ok"] else {"ok": False, "error": "database unreachable"}
     report = {
         "release": settings.APP_VERSION,
-        "environment": settings.ENV,
+        "environment": settings.env_normalized,
         "workers": settings.WEB_CONCURRENCY,
         "rate_limit_backend": settings.RATE_LIMIT_BACKEND,
         "database": database,
@@ -158,7 +160,7 @@ def main() -> int:
         all(report["static_data"].values()),
     )
     if args.production:
-        ok = ok and settings.ENV == "production"
+        ok = ok and settings.env_normalized == "production"
     report["ready"] = bool(ok)
 
     print(json.dumps(report, ensure_ascii=False, indent=2))
