@@ -81,6 +81,8 @@
       if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) throw new Error('shape');
       return { state: normalizeState(parsed), status: 'ok' };
     } catch {
+      // 审计 F-012：损坏原文先留档，避免下一次保存把可能可人工修复的数据直接覆盖
+      storageSet(`${STORAGE_KEY}.corrupt-backup`, value, storage);
       lastStorageStatus = 'corrupt';
       return { state: emptyState(), status: 'corrupt' };
     }

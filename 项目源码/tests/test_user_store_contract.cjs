@@ -134,12 +134,14 @@ test('quota exhaustion on setItem is reported, never thrown from save helpers', 
   assert.equal(store.storageStatus(), 'ok');
 });
 
-test('corrupt stored JSON reads as empty state with status=corrupt', () => {
+test('corrupt stored JSON reads as empty state with status=corrupt and keeps the raw bytes', () => {
   const storage = memStorage();
   storage.setItem('wanyu-maintainable-user-store-v1', '{"snapshots":[');
   const detailed = store.readStateDetailed(storage);
   assert.deepEqual(detailed.state, { version: 1, snapshots: [], positions: [], compare: [] });
   assert.equal(detailed.status, 'corrupt');
+  // 审计 F-012：损坏原文必须留档，后续保存不得静默销毁现场
+  assert.equal(storage.getItem('wanyu-maintainable-user-store-v1.corrupt-backup'), '{"snapshots":[');
 });
 
 test('storageAvailable probes write+remove and reports true for a working store', () => {

@@ -899,7 +899,10 @@
     if (status === 'corrupt') return '本地保存的数据已损坏，已按空工作台处理；如有备份可通过「导入工作台」恢复。';
     return '当前浏览器禁止本地保存（隐私模式或站点设置），收藏与条件仅在本次页面有效。';
   };
-  const renderSearch = (payload, catalog = {}, majorIndex = null, reqFields = null) => {
+  // 检索行集唯一口径（审计 F-002）：页面渲染与「导出结果」必须共用同一套过滤——
+  // 三级专业匹配（tier/rowTier）、「我的条件」一票否决（profileFail）、捡漏雷达（steal）
+  // 与关键词/城市/地图汇总/考试/学历全部只在这里算一次，禁止调用方各自再实现一份。
+  const computeSearchRows = (payload, catalog = {}, majorIndex = null, reqFields = null) => {
     const profile = readProfile();
     const profileOn = profileActive(profile) && Boolean(reqFields);
     const profileMiss = profileActive(profile) && !reqFields;
@@ -977,6 +980,11 @@
         && (!state.searchSteal || stealEligible(row))
         && !profileFail(row);
     });
+    return { rows: filtered, all, query, majorQuery, tier, rowTier, profile, profileOn, profileMiss, profilePending, majorUnmatched, cityGroup, stealEligible, stealRatio };
+  };
+  const renderSearch = (payload, catalog = {}, majorIndex = null, reqFields = null) => {
+    // 行集与「导出结果」共用 computeSearchRows 的唯一口径（审计 F-002）；本函数只负责呈现。
+    const { rows: filtered, all, query, majorQuery, tier, rowTier, profile, profileOn, profileMiss, profilePending, majorUnmatched, cityGroup, stealEligible, stealRatio } = computeSearchRows(payload, catalog, majorIndex, reqFields);
     // 计算竞争比统计
     const competitionStats = { fierce: 0, medium: 0, easy: 0, unknown: 0 };
     filtered.forEach(row => {
@@ -1125,8 +1133,14 @@
     }
   };
   let detailInflight = null;
+  let detailInflightId = null;
   const openDetail = async (recordId, options = {}) => {
-    if (detailInflight) return detailInflight;
+    if (detailInflight) {
+      // 审计 F-013：同岗位复用在途请求；换了岗位则等上一份收尾再开新的，绝不吞掉点击
+      if (detailInflightId === String(recordId)) return detailInflight;
+      try { await detailInflight; } catch { /* 上一次失败不阻塞本次 */ }
+    }
+    detailInflightId = String(recordId);
     detailInflight = (async () => {
     const lite = state.modules.get(`${state.cycle}:jobs_lite`) || await loadModule(state.cycle, 'jobs_lite');
     let row = rowsFor(lite).find((item) => String(item.job_id || item.row_id || item.code) === String(recordId));
@@ -1153,7 +1167,7 @@
     setStatus(`${state.cycle} · 岗位详情已打开`, 'ready');
     document.querySelector('[data-maint-detail-close]')?.focus();
     })();
-    try { await detailInflight; } finally { detailInflight = null; }
+    try { await detailInflight; } finally { detailInflight = null; detailInflightId = null; }
   };
   const closeDetail = () => {
     const recordId = state.detail?.recordId;
@@ -1222,7 +1236,7 @@
     };
     const top = [...matched].sort((a, b) => (tierOf(a) - tierOf(b)) || (ratioOf(a) - ratioOf(b))).slice(0, 30);
     const majorOptions = curateMajorOptions(catalog, all);
-    const input = `<div class="maint-match-input"><input id="maint-match-major" list="maint-match-major-options" value="${escapeHtml(state.matchMajor)}" placeholder="输入你的专业，如：知识产权、软件工程、会计学"><datalist id="maint-match-major-options">${majorOptions.slice(0, 500).map(([value]) => `<option value="${escapeHtml(value)}"></option>`).join('')}</datalist><button type="button" class="maint-action" data-maint-match-go>生成我的可报榜</button>${profileOn ? '<span class="tier-badge tb1">👤 条件已启用</span>' : `<a class="maint-filter-hint" href="#jobs_search" data-maintain-view="jobs_search">先去「我的条件」填应届/性别/党员/法考，结果更准 →</a>`}</div>`;
+    const input = `<div class="maint-match-input"><input id="maint-match-major" list="maint-match-major-options" value="${escapeHtml(state.matchMajor)}" placeholder="输入你的专业，如：知识产权、软件工程、会计学"><datalist id="maint-match-major-options">${majorOptions.slice(0, 500).map((value) => `<option value="${escapeHtml(value)}"></option>`).join('')}</datalist><button type="button" class="maint-action" data-maint-match-go>生成我的可报榜</button>${profileOn ? '<span class="tier-badge tb1">👤 条件已启用</span>' : `<a class="maint-filter-hint" href="#jobs_search" data-maintain-view="jobs_search">先去「我的条件」填应届/性别/党员/法考，结果更准 →</a>`}</div>`;
     if (!majorQuery) {
       return `<section class="maint-hero maint-hero--compact"><div>${viewEyebrow('match', '为我匹配')}<h1>一步得到你的可报榜。</h1><p>输入专业 + 可选的个人条件，本页把「明确含你的专业」「专业类可报（推导）」「不限专业」三类岗位一次性排好，每条亮明依据。</p></div></section><section class="maint-panel">${input}<p class="maint-filter-hint">数据：${escapeHtml(String(state.cycle))} 周期 · 匹配口径与「找岗位」一致，依据均可展开原文核对。</p></section>`;
     }
@@ -1328,9 +1342,11 @@
     const store = window.WanyuUserStore;
     const jobs = currentRowsPayload();
     if (!store || !jobs) return;
-    const all = rowsFor(jobs); const query = normalize(state.keyword); const majorQuery = normalize(state.searchMajor); const cityGroup = state.searchCityGroup;
-    const filtered = all.filter((row) => { const rawMajor = normalize(row?.zy); const readableMajor = normalize(cleanMajorOption(row?.zy)); return (!query || normalize(sourceText(row)).includes(query)) && (!majorQuery || rawMajor.includes(majorQuery) || readableMajor.includes(majorQuery)) && (!state.city || String(row.city || row.reg || '') === state.city) && (!cityGroup || mapCityFor(row.city || row.reg) === cityGroup) && (!state.exam || examRowMatches(row, state.exam))
-      && (!state.education || educationAllows(state.education, row.xl)); });
+    // 与页面渲染同一口径：三级匹配/我的条件/捡漏雷达全部生效（审计 F-002）
+    const catalog = state.modules.get(`${state.cycle}:catalog`) || {};
+    const majorIndex = state.modules.get(`${state.cycle}:major_index`) || null;
+    const reqFields = state.modules.get(`${state.cycle}:req_fields`) || null;
+    const filtered = computeSearchRows(jobs, catalog, majorIndex, reqFields).rows;
     const blob = new Blob([store.serializeExport(filtered, 'csv')], { type: 'text/csv;charset=utf-8' });
     const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = `wanyu-${state.cycle}-positions.csv`; link.click();
     setTimeout(() => URL.revokeObjectURL(link.href), 0);
