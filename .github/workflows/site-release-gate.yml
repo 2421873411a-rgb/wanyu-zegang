@@ -63,9 +63,9 @@ jobs:
         run: |
           node --test tests/test_wanyu_core.cjs tests/test_major_city_index.cjs tests/test_user_store_contract.cjs
           node tests/test_datastore_contract.cjs
-      - name: npm audit（high+ 才失败，moderate 以下只报告）
+      - name: npm audit（high 及以上使本作业失败；moderate 以下不阻断）
         working-directory: 项目源码
-        run: npm audit --audit-level=high || true
+        run: npm audit --audit-level=high
 
   build-and-integrity:
     name: build / clean rebuild + integrity
@@ -83,12 +83,14 @@ jobs:
         run: |
           mkdir -p /tmp/staging-clean
           python -m tools.anhui_web.build_maintainable_site --output-dir /tmp/staging-clean
+      - name: 与提交的 网站/ 做等价核对（审计 F-017：构建必须可复现已发布产物；.gz 为部署期伴生故排除）
+        run: diff -r --exclude='*.gz' /tmp/staging-clean 网站
       - name: 归档重建清单
         if: always()
         run: |
           mkdir -p release-evidence
           find /tmp/staging-clean -type f | sort > release-evidence/rebuilt-files.txt
-          sha256sum $(find /tmp/staging-clean -type f | sort) > release-evidence/asset-hashes.txt || true
+          find /tmp/staging-clean -type f -print0 | sort -z | xargs -0 sha256sum > release-evidence/asset-hashes.txt
 
   browser-smoke:
     name: smoke / ${{ matrix.browser }}
