@@ -99,7 +99,7 @@ async def root():
     return {
         "name": settings.APP_NAME,
         "version": settings.APP_VERSION,
-        "docs": "/api/docs"
+        "docs": None if settings.env_normalized == "production" else "/api/docs"
     }
 
 

@@ -1727,7 +1727,6 @@
       else if (key === 'ranking.city') state.ranking.city = '';
       else if (key === 'ranking.exam') state.ranking.exam = '';
       else if (key === 'ranking.category') state.ranking.category = '';
-      else if (key === 'ranking.metric') state.ranking.metric = 'jobs';
       state.searchPage = 0;
       await render();
       return;

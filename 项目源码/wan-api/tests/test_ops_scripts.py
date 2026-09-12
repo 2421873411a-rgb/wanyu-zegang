@@ -312,6 +312,7 @@ def test_shared_build_release_excludes_development_payload():
         (payload / "docs" / "leak.md").write_text("leak\n", encoding="utf-8")
         (payload / "local.db").write_bytes(b"db")
         (payload / "_audit_probe_secret").write_text("probe\n", encoding="utf-8")
+        (payload / ".env").write_text("SECRET_KEY=dev-only\n", encoding="utf-8")
         (payload / "requirements.lock.txt").write_text("", encoding="utf-8")
 
         payload_rel = payload.relative_to(WAN_API).as_posix()
@@ -348,6 +349,8 @@ build_release
         assert not (app_dir / "docs").exists()
         assert not (app_dir / "local.db").exists()
         assert not (app_dir / "_audit_probe_secret").exists()
+        # 安全审计 P3：开发 .env（含本地 SECRET_KEY）不得进入 release 载荷
+        assert not (app_dir / ".env").exists()
 
 
 def test_public_root_smoke_accepts_template_redirect_and_requires_final_200():
@@ -844,3 +847,51 @@ def test_create_admin_is_idempotent_for_active_admin(tmp_path):
     second = subprocess.run(cmd, env=env, capture_output=True, text=True, timeout=120)
     assert second.returncode == 0, f"二次引导退出码 {second.returncode}：{second.stdout}{second.stderr}"
     assert "幂等放行" in second.stdout
+
+
+def test_rollback_guard_blocks_when_migration_already_applied():
+    """评审 P2：sidecar 记录旧 revision 而库已到新 head 时，自动回滚必须中止——
+    旧代码面对新 schema 起不来，切回等于把停机变成更混乱的状态。"""
+    result = run_bash(
+        r'''
+source ./deploy.sh
+fixture="$(mktemp -d)"
+mkdir -p "$fixture/releases/v17.9.20-aaaaaaaa/app" "$fixture/releases/v17.9.19-bbbbbbbb/app"
+printf 'v17.9.20' > "$fixture/releases/v17.9.20-aaaaaaaa/app/VERSION_MARKER"
+printf '{"release":"v17.9.20"}' > "$fixture/releases/v17.9.20-aaaaaaaa/app/release.json"
+ln -sfn "$fixture/releases/v17.9.20-aaaaaaaa" "$fixture/current"
+mkdir -p "$fixture/backup"
+printf 'f3a91c2d7e04\n' > "$fixture/backup/wanyu_db-20260908-040000.dump.alembic-before.txt"
+RELEASES_DIR="$fixture/releases"
+CURRENT_LINK="$fixture/current"
+SECRET_ENV="$fixture/wanyu.env"
+BACKUP_ROOT="$fixture/backup"
+SERVICE_NAME="wanyu-test"
+PREVIOUS_RELEASE="v17.9.19-bbbbbbbb"
+SWITCHED=1
+MIGRATION_DONE=1
+trap - ERR
+sudo() {
+    case "${1:-}" in
+        -u)
+            shift 2
+            case "${1:-}" in
+                psql) printf '0000000000000000000000000000fffe\n' ;;
+                *) "$@" ;;
+            esac
+            ;;
+        *) "$@" ;;
+    esac
+}
+systemctl() { printf 'systemctl %s\n' "$*" >> "$fixture/calls.log"; }
+curl() { return 0; }
+mv() { local dst="$3"; rm -rf "$dst"; command mv "$2" "$dst"; }
+rollback_to_previous
+printf 'current-VERSION=%s\n' "$(cat "$fixture/current/app/VERSION_MARKER" 2>/dev/null)"
+'''
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    combined = result.stdout + result.stderr
+    assert "迁移已应用" in combined, "守卫未按 sidecar/db 分歧阻断"
+    assert "current-VERSION=v17.9.20" in combined, "阻断路径不得切换 current"
+    assert "systemctl restart" not in combined, "阻断路径不得重启服务"

@@ -46,7 +46,8 @@ def test_migration_ok_semantics():
     # 评审 P3：恰一行判定，与 init_db 同谓词
     assert migration_ok(["0004"], ["0004"])["ok"] is True
     assert migration_ok(["0003"], ["0004"])["ok"] is False
-    assert migration_ok([], ["0004"])["ok"] is True  # 非迁移管理库
-    assert migration_ok(None, ["0004"])["ok"] is True  # 查询失败按缺失处理
+    # 评审 P2：空表 → False（init_db 生产路径对空表拒启，就绪信号不得相反）
+    assert migration_ok([], ["0004"])["ok"] is False
+    assert migration_ok(None, ["0004"])["ok"] is False  # 查询失败按不可判处理
     assert migration_ok(["0004", "0003"], ["0004"])["ok"] is False  # 版本表污染（多行）
     assert migration_ok(["0004"], ["0004", "0005"])["ok"] is False  # 多 head 异常

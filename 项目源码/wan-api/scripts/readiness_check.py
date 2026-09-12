@@ -93,10 +93,11 @@ def dr_ready(evidence: dict) -> dict:
 
 
 def migration_ok(rows, heads) -> dict:
-    """alembic_version 恰一行且等于唯一 head 才算一致（与 init_db 同谓词，评审 P3）；
-    表缺失/为空视为非迁移管理库（不判失败）。"""
+    """与 init_db 同谓词：alembic_version 恰一行且等于唯一 head。
+    空/缺失 → ok False（init_db 生产路径对空表直接拒启——评审 P2：就绪信号不得与可启动性相反；
+    表缺失的异常由 check_migration_head 的 except 捕获为 ok False）。"""
     if not rows:
-        return {"ok": True, "note": "alembic_version 缺失（非迁移管理的库）"}
+        return {"ok": False, "error": "alembic_version 为空（迁移未完成或非迁移管理库）"}
     if len(rows) != 1:
         return {"ok": False, "error": f"alembic_version 行数异常：{[str(r) for r in rows]}"}
     if len(heads) != 1:

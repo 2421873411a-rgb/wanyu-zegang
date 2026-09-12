@@ -90,15 +90,17 @@ rollback_to_previous() {
     # 不用 || true 字面吞错，满足无吞错回归锁（审计核验 round-3）
     if ! latest_sidecar="$(ls -1t "${BACKUP_ROOT}"/*.alembic-before.txt 2>/dev/null | head -1)"; then
         latest_sidecar=""
+        log_warn "回滚守卫：sidecar 探测失败，本次自动回滚未做迁移一致性检查"
     fi
     if ! db_rev="$(sudo -u postgres psql -v ON_ERROR_STOP=1 -d wanyu_db -tAc "SELECT version_num FROM alembic_version LIMIT 1" 2>/dev/null | tr -d '[:space:]')"; then
         db_rev=""
+        log_warn "回滚守卫：DB revision 探测失败，本次自动回滚未做迁移一致性检查"
     fi
     if [ -n "$latest_sidecar" ] && [ -n "$db_rev" ]; then
         before_rev="$(sudo cat "$latest_sidecar" 2>/dev/null | tr -d '[:space:]')"
         if [ -n "$before_rev" ] && [ "$before_rev" != "base" ] && [ "$db_rev" != "$before_rev" ]; then
             log_error "自动回滚中止：迁移已应用（DB=${db_rev}，迁移前=${before_rev}），旧代码无法运行新 schema。"
-            log_error "人工路径A：${prev_dir}/venv/bin/alembic downgrade ${before_rev} 后重试回切；"
+            log_error "人工路径A（RUNBOOK「回滚」节）：用当前新 release venv 执行 alembic downgrade ${before_rev} 后重试回切；"
             log_error "人工路径B：直接修复新版问题后重新部署。恢复点 dump：${latest_sidecar%.alembic-before.txt}"
             return 0
         fi
@@ -531,7 +533,7 @@ server {
         proxy_http_version 1.1;
         proxy_read_timeout 120s;
         proxy_send_timeout 120s;
-        add_header Cache-Control "no-store, no-cache, must-revalidate";
+        add_header Cache-Control "no-store, no-cache, must-revalidate" always;
     }
     # admin 单周期 JSON 导入独享 64MB（应用层另有流式 413 兜底）
     location ~ ^/api/v1/admin/import/ {
@@ -550,7 +552,7 @@ server {
         proxy_http_version 1.1;
         proxy_read_timeout 120s;
         proxy_send_timeout 120s;
-        add_header Cache-Control "no-store, no-cache, must-revalidate";
+        add_header Cache-Control "no-store, no-cache, must-revalidate" always;
     }
     location = /health {
         limit_req zone=wanapi burst=10 nodelay;
@@ -797,7 +799,13 @@ main() {
     bootstrap_admin
     prune_old_releases
     log_info "部署完成：current -> ${RELEASE_DIR}"
-    if [ "${WANYU_ENV:-production}" != "production" ]; then
+    deploy_env="production"
+    if [ -f "${SECRET_ENV}" ]; then
+        if ! deploy_env="$(grep -m1 '^ENV=' "${SECRET_ENV}" | cut -d= -f2)"; then
+            deploy_env="production"
+        fi
+    fi
+    if [ "${deploy_env}" != "production" ]; then
         log_info "API docs https://wan.kaogong.art/api/docs"
     fi
     log_info "health https://wan.kaogong.art/health"
