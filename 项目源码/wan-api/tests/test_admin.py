@@ -354,11 +354,74 @@ async def test_meta_convention_mixing_rejected(client: AsyncClient):
     assert "口径不自洽" in r.json()["detail"]
 
 
+async def test_stats_cache_invalidated_only_after_commit(client: AsyncClient, monkeypatch):
+    """v17.10.2 P1-03：invalidate 必须发生在真实 commit 之后。
+
+    记录器在 invalidate 被调用的瞬间，用「独立线程 + 全新引擎连接」数库里的行：
+    - 旧实现（invalidate 先于 commit）：新连接看到 0 行——这正是竞态窗口；
+    - 新实现（先 commit 再 invalidate）：新连接必须看到 1 行。
+    """
+    import asyncio
+    import threading
+
+    from sqlalchemy.ext.asyncio import create_async_engine
+
+    import tests.conftest as conftest_module
+    from app.api.v1 import jobs as jobs_mod
+
+    seen_at_invalidate = {}
+    real_invalidate = jobs_mod.invalidate_stats_cache
+
+    def recording_invalidate():
+        def work():
+            async def count_rows():
+                engine = create_async_engine(str(conftest_module._test_engine.url))
+                try:
+                    async with engine.connect() as conn:
+                        return (await conn.execute(select(func.count()).select_from(Job))).scalar_one()
+                finally:
+                    await engine.dispose()
+
+            loop = asyncio.new_event_loop()
+            try:
+                seen_at_invalidate["rows"] = loop.run_until_complete(count_rows())
+            finally:
+                loop.close()
+
+        reader = threading.Thread(target=work)
+        reader.start()
+        reader.join(timeout=15)
+        real_invalidate()
+
+    monkeypatch.setattr(jobs_mod, "invalidate_stats_cache", recording_invalidate)
+
+    headers = await _admin_headers(client)
+    payload = _payload(1)
+    payload["allMajors"]["meta"] = {"total": 1, "raw_total": 1, "excluded": 0, "recruits": 2}
+    r = await _import(client, headers, payload)
+    assert r.status_code == 200, r.text
+    assert seen_at_invalidate.get("rows") == 1, (
+        "invalidate 触发时新连接未看到已提交数据——缓存失效仍早于 commit（P1-03 回归）"
+    )
+
+
 async def test_float_num_rejected(client: AsyncClient):
     """B6：3.7 这类浮点人数不得被 int() 静默截断。"""
     headers = await _admin_headers(client)
     payload = _payload(1)
     payload["allMajors"]["rows"][0]["num"] = 3.7
+    payload["allMajors"]["meta"] = {"total": 1, "raw_total": 1, "excluded": 0, "recruits": 4}
+    r = await _import(client, headers, payload)
+    assert r.status_code == 400
+    assert "num" in r.json()["detail"]
+
+
+@pytest.mark.parametrize("bad_num", [3.0, "3", True])
+async def test_non_integer_num_rejected_contract_strict(client: AsyncClient, bad_num):
+    """v17.10.2 P1-07：CONTRACT「必须整数」按 fail-closed 执行——3.0/"3"/bool 全拒。"""
+    headers = await _admin_headers(client)
+    payload = _payload(1)
+    payload["allMajors"]["rows"][0]["num"] = bad_num
     payload["allMajors"]["meta"] = {"total": 1, "raw_total": 1, "excluded": 0, "recruits": 4}
     r = await _import(client, headers, payload)
     assert r.status_code == 400

@@ -1,4 +1,4 @@
-# 皖域择岗 v17.9.1 · 项目入口
+# 皖域择岗 v17.9.2 · 项目入口
 
 > 版本/口径数字一律以自动生成的 [`docs/current-status.md`](docs/current-status.md) 为准（真源：release.json + site-manifest.json + review-queue.json），本 README 不手抄关键数字。
 

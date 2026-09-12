@@ -1,29 +1,33 @@
 /* 皖域择岗维护站 Service Worker
-   策略：页面导航与无 sha 的 JSON 走 network-first（在线立即拿新，离线回退缓存）；
-   带 ?sha= 的内容寻址 JSON 走 cache-first（manifest 变更 → URL 变更 → 自动失效）；
-   其余静态资产 cache-first 并后台刷新（URL 带 ?v= 版本号，改版即失效）。 */
-const VERSION = "wanyu-shell-v51";
+   策略（v17.9.2 审计 FE-005/006 起双缓存分层）：
+   - wanyu-shell-<VERSION>：页面导航、静态资产、无 sha 的 JSON——network-first/stale-while-revalidate，
+     activate 时随版本整体换代；
+   - wanyu-data：带 ?sha= 的 JSON——cache-first，跨 shell 版本保留（URL 即版本，内容不变就永远命中），
+     同路径旧 sha 条目按需清理；数据完整性由 DataStore 的 SHA-256 digest 校验保证，
+     URL 里的 sha 只是缓存键/版本号，不证明内容正确。 */
+const VERSION = "wanyu-shell-v52";
+const SHELL_CACHE = `wanyu-shell-${VERSION}`;
+const DATA_CACHE = "wanyu-data-v1";
 const PRECACHE = [
   "index.html",
   "manifest.webmanifest",
-  "assets/maintainable-tokens.css?v=17.9.1",
-  "assets/maintainable-site.css?v=17.9.1",
-  "assets/v17-ui-upgrade.css?v=17.9.1",
-  "assets/v17-search.css?v=17.9.1",
-  "assets/v17-tools.css?v=17.9.1",
-  "assets/v17-exam-picker.css?v=17.9.1",
-  "assets/maintainable-data.js?v=17.9.1",
-  "assets/maintainable-major-city.js?v=17.9.1",
-  "assets/maintainable-user-store.js?v=17.9.1",
-  "assets/v17-tools.js?v=17.9.1",
-  "assets/maintainable-site.js?v=17.9.1",
-  "data/audit/supplement-20260904.json",
-  "assets/wanyu-icon.svg?v=17.9.1",
+  "assets/maintainable-tokens.css?v=17.9.2",
+  "assets/maintainable-site.css?v=17.9.2",
+  "assets/v17-ui-upgrade.css?v=17.9.2",
+  "assets/v17-search.css?v=17.9.2",
+  "assets/v17-tools.css?v=17.9.2",
+  "assets/v17-exam-picker.css?v=17.9.2",
+  "assets/maintainable-data.js?v=17.9.2",
+  "assets/maintainable-major-city.js?v=17.9.2",
+  "assets/maintainable-user-store.js?v=17.9.2",
+  "assets/v17-tools.js?v=17.9.2",
+  "assets/maintainable-site.js?v=17.9.2",
+  "assets/wanyu-icon.svg?v=17.9.2",
 ];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(VERSION)
+    caches.open(SHELL_CACHE)
       .then((cache) => cache.addAll(PRECACHE))
       .then(() => self.skipWaiting())
   );
@@ -32,7 +36,8 @@ self.addEventListener("install", (event) => {
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((key) => key !== VERSION).map((key) => caches.delete(key))))
+      // 审计 FE-006：只换代 shell 缓存；wanyu-data 跨版本保留，未变化的 ?sha= 数据不再重复下载
+      .then((keys) => Promise.all(keys.filter((key) => key.startsWith("wanyu-shell-") && key !== SHELL_CACHE).map((key) => caches.delete(key))))
       .then(() => self.clients.claim())
   );
 });
@@ -48,7 +53,7 @@ self.addEventListener("fetch", (event) => {
         .then((response) => {
           if (!response || !response.ok) throw new Error("bad response");
           const copy = response.clone();
-          caches.open(VERSION).then((cache) => cache.put(request, copy)).catch(() => {});
+          caches.open(SHELL_CACHE).then((cache) => cache.put(request, copy)).catch(() => {});
           return response;
         })
         .catch(() => caches.match("index.html").then((hit) => hit || Response.error()))
@@ -59,12 +64,12 @@ self.addEventListener("fetch", (event) => {
     // 内容寻址（?sha=）：URL 即版本，命中即回，miss 才回源；同路径旧 sha 条目顺手清理
     if (url.searchParams.has("sha")) {
       event.respondWith(
-        caches.match(request).then((hit) => {
+        caches.open(DATA_CACHE).then((cache) => cache.match(request)).then((hit) => {
           if (hit) return hit;
           return fetch(request).then((response) => {
             if (!response || !response.ok) throw new Error("bad response");
             const copy = response.clone();
-            caches.open(VERSION).then((cache) => {
+            caches.open(DATA_CACHE).then((cache) => {
               cache.put(request, copy).catch(() => {});
               cache.keys().then((keys) => {
                 for (const key of keys) {
@@ -86,7 +91,7 @@ self.addEventListener("fetch", (event) => {
         .then((response) => {
           if (!response || !response.ok) throw new Error("bad response");
           const copy = response.clone();
-          caches.open(VERSION).then((cache) => cache.put(request, copy)).catch(() => {});
+          caches.open(DATA_CACHE).then((cache) => cache.put(request, copy)).catch(() => {});
           return response;
         })
         .catch(() => caches.match(request).then((hit) => hit || Response.error()))
@@ -99,7 +104,7 @@ self.addEventListener("fetch", (event) => {
         .then((response) => {
           if (!response || !response.ok) throw new Error("bad response");
           const copy = response.clone();
-          caches.open(VERSION).then((cache) => cache.put(request, copy)).catch(() => {});
+          caches.open(SHELL_CACHE).then((cache) => cache.put(request, copy)).catch(() => {});
           return response;
         })
         .catch(() => hit);

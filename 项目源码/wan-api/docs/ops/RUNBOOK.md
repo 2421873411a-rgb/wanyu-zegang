@@ -60,8 +60,9 @@ deploy.sh 在迁移前生成 `/opt/wanyu/backup/wanyu_db-<时间>.dump`、配对
    sudo systemctl stop wanyu-api
    sudo -u postgres pg_dump -Fc wanyu_db > /opt/wanyu/backup/incident-before-restore.dump
    (cd /opt/wanyu/backup && sha256sum -c <快照名>.dump.sha256)
-   sudo -u postgres pg_restore --exit-on-error --clean --if-exists --no-owner \
-     -d wanyu_db /opt/wanyu/backup/<快照名>.dump
+   # 恢复读取走 stdin：部署期快照为 640 root:postgres，postgres 经管道读取（审计 API-003）
+   sudo cat /opt/wanyu/backup/<快照名>.dump | \
+     sudo -u postgres pg_restore --exit-on-error --clean --if-exists --no-owner -d wanyu_db
    sudo systemctl start wanyu-api
    ```
 
@@ -90,7 +91,9 @@ deploy.sh 在迁移前生成 `/opt/wanyu/backup/wanyu_db-<时间>.dump`、配对
 
 ## 管理员引导
 
-部署链只在设置了 `ADMIN_BOOTSTRAP_PASSWORD` 时自动创建管理员；否则完成横幅会提示手动执行：
+部署链只在设置了 `ADMIN_BOOTSTRAP_PASSWORD` 时自动创建管理员；否则完成横幅会提示手动执行。
+该变量只在首次部署产生效果；后续升级重跑时对已启用管理员幂等放行（v17.10.2 审计 API-001：
+旧行为会以退出码 1 触发 ERR 陷阱，把已通过 smoke 的健康新版自动回滚）。
 ```bash
 sudo /bin/bash -c '
   cd /opt/wanyu/current/app

@@ -45,8 +45,10 @@
 - refresh token：JSON body 提交（**永不进 query/URL**），服务器端 `refresh_tokens` 表存 sha256，
   轮换即撤销旧 token，检测到已撤销 token 重用 → 撤销整个 family；
 - 生产环境 `ENV=production` + 默认 SECRET_KEY = 拒绝启动（fail-closed）；
-- 限流（v17.9.12 双后端）：login 5 失败/5 分钟、register 5 次/5 分钟（IP+账号）、
-  refresh 30 次/分、logout 10 次/分（IP）；`RATE_LIMIT_BACKEND=memory|redis`，
+- 限流（v17.9.12 双后端；v17.10.2 补录 per-IP 总量桶）：login 5 失败/5 分钟、register 5 次/5 分钟（IP+账号）、
+  refresh 30 次/分、logout 10 次/分（IP）；另有 per-IP 总量桶防"单 IP 换邮箱绕过"：
+  login_ip 30 次/小时、register_ip 10 次/小时（先于 IP+账号桶判定）；
+  `RATE_LIMIT_BACKEND=memory|redis`，
   memory 为原子单步判定，redis 为 Lua 原子滑动窗（多 worker 安全，生产默认），
   Redis 不可达时 fail-open 降级到按 worker 数收紧的进程内兜底。
 

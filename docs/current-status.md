@@ -1,7 +1,7 @@
 # 皖域择岗 · 当前状态（由真源自动生成，勿手改）
 
 > 生成器：`项目源码/tools/anhui_web/generate_status_doc.py`；真源：release.json + site-manifest.json + review-queue.json。
-> 真源快照：release **v17.9.1** · asset **17.9.1** · SW **wanyu-shell-v51** · 数据快照 2026-08-31。
+> 真源快照：release **v17.9.2** · asset **17.9.2** · SW **wanyu-shell-v52** · 数据快照 2026-08-31。
 
 ## 口径（wanyu-metrics/v1）
 

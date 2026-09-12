@@ -3,7 +3,7 @@ from datetime import timedelta
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy import select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -27,9 +27,11 @@ from app.utils.security import (
     create_refresh_token,
     decode_token,
     get_password_hash,
+    get_password_hash_async,
     pwd_context,
     sha256_hex,
     verify_password,
+    verify_password_async,
 )
 from app.utils.time import utcnow_naive
 
@@ -46,12 +48,16 @@ def _client_ip(request: Request) -> str:
     return request.client.host if request.client else "unknown"
 
 
+# 匿名可达字段一律有资源上限：合法 refresh JWT 远小于 4KB，超长直接 422，不进 decode/DB
+_MAX_TOKEN_LEN = 4096
+
+
 class RefreshRequest(BaseModel):
-    refresh_token: str
+    refresh_token: str = Field(min_length=1, max_length=_MAX_TOKEN_LEN)
 
 
 class LogoutRequest(BaseModel):
-    refresh_token: str
+    refresh_token: str = Field(min_length=1, max_length=_MAX_TOKEN_LEN)
 
 
 def _issue_session(db: AsyncSession, user: User) -> TokenResponse:
@@ -97,7 +103,7 @@ async def register(user_data: UserCreate, request: Request, db: AsyncSession = D
     user = User(
         email=email,
         username=user_data.username,
-        password_hash=get_password_hash(user_data.password),
+        password_hash=await get_password_hash_async(user_data.password),
         display_name=user_data.display_name or user_data.username,
         is_admin=False,
     )
@@ -105,8 +111,9 @@ async def register(user_data: UserCreate, request: Request, db: AsyncSession = D
     try:
         await db.flush()
     except IntegrityError:
-        # 并发同邮箱竞态兜底（RA-11：UNIQUE 已保证不脏，缺的只是 400 化）
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="该邮箱已被注册")
+        # 并发同邮箱/同用户名竞态兜底（RA-11：UNIQUE 已保证不脏，缺的只是 400 化）。
+        # 审计 F-018：唯一约束可能来自邮箱也可能来自用户名，文案不再单指邮箱。
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="该邮箱或用户名已被使用")
     logger.info("register ok ip=%s", _client_ip(request))
     return _issue_session(db, user)
 
@@ -115,7 +122,7 @@ async def register(user_data: UserCreate, request: Request, db: AsyncSession = D
 async def login(login_data: UserLogin, request: Request, db: AsyncSession = Depends(get_db)):
     email = login_data.email.strip().lower()
     ip = _client_ip(request)
-    # per-IP 失败总量桶：单 IP 换邮箱撞库的绕过面（Round-7 终审加固）
+    # per-IP 尝试总量桶：单 IP 换邮箱撞库的绕过面（含成功登录，成功不清 IP 桶——宁可错杀的既定取舍；评审 P3 注释如实化）
     if not await login_ip_limiter.check(ip):
         logger.warning("login rate-limited ip=%s scope=ip", ip)
         raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail="尝试过于频繁，请稍后再试")
@@ -127,10 +134,10 @@ async def login(login_data: UserLogin, request: Request, db: AsyncSession = Depe
     user = (await db.execute(select(User).where(User.email == email))).scalar_one_or_none()
     if not user:
         # 未知邮箱也执行完整 bcrypt：消除邮箱枚举时序侧信道
-        verify_password(login_data.password, _DUMMY_HASH)
+        await verify_password_async(login_data.password, _DUMMY_HASH)
         logger.warning("login failed ip=%s reason=unknown_user", _client_ip(request))
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="邮箱或密码错误")
-    if not verify_password(login_data.password, user.password_hash):
+    if not await verify_password_async(login_data.password, user.password_hash):
         logger.warning("login failed ip=%s reason=bad_password", _client_ip(request))
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="邮箱或密码错误")
     if not user.is_active:
@@ -140,7 +147,7 @@ async def login(login_data: UserLogin, request: Request, db: AsyncSession = Depe
     await login_limiter.clear(rl_key)
     user.last_login_at = utcnow_naive()
     if pwd_context.needs_update(user.password_hash):
-        user.password_hash = get_password_hash(login_data.password)
+        user.password_hash = await get_password_hash_async(login_data.password)
     return _issue_session(db, user)
 
 

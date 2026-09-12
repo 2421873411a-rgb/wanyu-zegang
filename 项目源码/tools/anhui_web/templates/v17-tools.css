@@ -64,6 +64,7 @@
   font-size: 13px;
   font-weight: 500;
 }
+.heatmap-coverage{margin-left:6px;font-size:11px;color:var(--text-muted, #8a93a6);font-variant-numeric:tabular-nums;}
 
 .heatmap-jobs {
   width: 60px;

@@ -82,6 +82,29 @@ rollback_to_previous() {
         log_error "自动回滚中止：上一 release 目录不存在：${prev_dir}"
         return 0
     fi
+    # 审计 API-002：迁移已应用后（DB head 前移，旧代码 head 停留在迁移前 revision），
+    # 直接回切会被旧 release 的启动门（alembic 版本一致性）拒绝——服务起不来。
+    # 用迁移前 sidecar 判定：不一致则拒绝自动回切，给出人工降库路径。
+    local latest_sidecar="" before_rev="" db_rev=""
+    # 探测是 best-effort：显式 if! 容错（pipefail 下探测失败→跳过守卫、回退原回滚语义），
+    # 不用 || true 字面吞错，满足无吞错回归锁（审计核验 round-3）
+    if ! latest_sidecar="$(ls -1t "${BACKUP_ROOT}"/*.alembic-before.txt 2>/dev/null | head -1)"; then
+        latest_sidecar=""
+        log_warn "回滚守卫：sidecar 探测失败，本次自动回滚未做迁移一致性检查"
+    fi
+    if ! db_rev="$(sudo -u postgres psql -v ON_ERROR_STOP=1 -d wanyu_db -tAc "SELECT version_num FROM alembic_version LIMIT 1" 2>/dev/null | tr -d '[:space:]')"; then
+        db_rev=""
+        log_warn "回滚守卫：DB revision 探测失败，本次自动回滚未做迁移一致性检查"
+    fi
+    if [ -n "$latest_sidecar" ] && [ -n "$db_rev" ]; then
+        before_rev="$(sudo cat "$latest_sidecar" 2>/dev/null | tr -d '[:space:]')"
+        if [ -n "$before_rev" ] && [ "$before_rev" != "base" ] && [ "$db_rev" != "$before_rev" ]; then
+            log_error "自动回滚中止：迁移已应用（DB=${db_rev}，迁移前=${before_rev}），旧代码无法运行新 schema。"
+            log_error "人工路径A（RUNBOOK「回滚」节）：用当前新 release venv 执行 alembic downgrade ${before_rev} 后重试回切；"
+            log_error "人工路径B：直接修复新版问题后重新部署。恢复点 dump：${latest_sidecar%.alembic-before.txt}"
+            return 0
+        fi
+    fi
     log_error "自动回滚：current -> ${PREVIOUS_RELEASE}"
     sudo ln -sfn "$prev_dir" "${CURRENT_LINK}.tmp"
     sudo mv -T "${CURRENT_LINK}.tmp" "${CURRENT_LINK}"
@@ -214,8 +237,9 @@ setup_database() {
             log_error "新建数据库角色时 DB_PASSWORD 必须为 16-128 位十六进制字符"
             exit 1
         fi
-        sudo -u postgres psql -v ON_ERROR_STOP=1 -c \
-            "CREATE USER wanyu_user WITH PASSWORD '${DB_PASSWORD}';"
+        # 安全审计 P3：口令走 stdin（psql -f -），不再随 argv 暴露给同机 ps/proc
+        printf '%s\n' "CREATE USER wanyu_user WITH PASSWORD '${DB_PASSWORD}';" \
+            | sudo -u postgres psql -v ON_ERROR_STOP=1 -f -
     fi
 
     db_exists="$(sudo -u postgres psql -v ON_ERROR_STOP=1 -tAc \
@@ -336,6 +360,7 @@ build_release() {
         --exclude='__pycache__' --exclude='.pytest_cache' --exclude='.ruff_cache' \
         --exclude='*.pyc' --exclude='./*.db' --exclude='./_ci_migrate.db' \
         --exclude='_audit_probe*' --exclude='./tests' --exclude='./docs' \
+        --exclude='./.env' \
         -cf - . | sudo tar -C "$RELEASE_DIR/app" -xf -
 
     # 权限：root 属主，全局可读不可写（运行用户无持久化写面）
@@ -482,10 +507,23 @@ server {
     listen 80;
     listen [::]:80;
     server_name wan.kaogong.art;
+    # 安全审计 P3：安全响应头（certbot 接管 443 时保留本块 add_header）。
+    # nginx 规则：location 内出现 add_header 即不再继承 server 级——两个 /api/ location
+    # 内已显式复制同款；静态资源 location 无 add_header、正常继承。
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "DENY" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
     location /.well-known/acme-challenge/ { root /var/www/certbot; }
+    # 普通匿名 API 收紧到 512k（v17.10.2 P1-04）；64MB 只给 admin JSON 导入。
+    # 两段 proxy 指令完全一致：改 proxy 行为时两处必须同步改。
     location /api/ {
         limit_req zone=wanapi burst=60 nodelay;
-        client_max_body_size 64m;
+        client_max_body_size 512k;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header X-Frame-Options "DENY" always;
+        add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
         proxy_pass http://wanyu_api;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
@@ -495,7 +533,26 @@ server {
         proxy_http_version 1.1;
         proxy_read_timeout 120s;
         proxy_send_timeout 120s;
-        add_header Cache-Control "no-store, no-cache, must-revalidate";
+        add_header Cache-Control "no-store, no-cache, must-revalidate" always;
+    }
+    # admin 单周期 JSON 导入独享 64MB（应用层另有流式 413 兜底）
+    location ~ ^/api/v1/admin/import/ {
+        limit_req zone=wanapi burst=60 nodelay;
+        client_max_body_size 64m;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header X-Frame-Options "DENY" always;
+        add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+        proxy_pass http://wanyu_api;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Connection "";
+        proxy_http_version 1.1;
+        proxy_read_timeout 120s;
+        proxy_send_timeout 120s;
+        add_header Cache-Control "no-store, no-cache, must-revalidate" always;
     }
     location = /health {
         limit_req zone=wanapi burst=10 nodelay;
@@ -571,13 +628,15 @@ create_database_snapshot() {
         log_error "pg_dump 产物为空，拒绝继续：${stem}"
         return 1
     fi
-    chmod 600 "$temp_file"
+    chmod 640 "$temp_file"
+    sudo chown root:postgres "$temp_file"
     mv "$temp_file" "$dump_file"
     (
         cd "$BACKUP_ROOT"
         sha256sum "$(basename "$dump_file")" > "$(basename "$dump_file").sha256"
     )
-    chmod 600 "${dump_file}.sha256"
+    chmod 640 "${dump_file}.sha256"
+    sudo chown root:postgres "${dump_file}.sha256"
     printf '%s\n' "$dump_file"
 }
 
@@ -598,7 +657,10 @@ import_data() {
     log_info "导入数据（使用新 release venv）..."
     # 迁移前数据库快照（数据级还原点）
     sudo mkdir -p "$BACKUP_ROOT"
-    sudo chmod 700 "$BACKUP_ROOT"
+    # 审计 API-003：与 backup_database.sh 统一为 750 root:postgres——700 会让
+    # postgres 无法遍历读取部署期快照，部署后到下一次定时备份之间恢复链是断的。
+    sudo chmod 750 "$BACKUP_ROOT"
+    sudo chown root:postgres "$BACKUP_ROOT"
     local dump_file
     dump_file="$(create_database_snapshot)"
     record_pre_migration_revision "$dump_file"
@@ -737,7 +799,16 @@ main() {
     bootstrap_admin
     prune_old_releases
     log_info "部署完成：current -> ${RELEASE_DIR}"
-    log_info "API https://wan.kaogong.art/api/docs · health https://wan.kaogong.art/health"
+    deploy_env="production"
+    if [ -f "${SECRET_ENV}" ]; then
+        if ! deploy_env="$(grep -m1 '^ENV=' "${SECRET_ENV}" | cut -d= -f2)"; then
+            deploy_env="production"
+        fi
+    fi
+    if [ "${deploy_env}" != "production" ]; then
+        log_info "API docs https://wan.kaogong.art/api/docs"
+    fi
+    log_info "health https://wan.kaogong.art/health"
 }
 
 # --build-only：仅构建 release 目录（Upgrade Drift 演练复用真实构建逻辑；

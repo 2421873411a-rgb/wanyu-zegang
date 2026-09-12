@@ -1,0 +1,53 @@
+{
+  "site_release": "v17.9.2",
+  "cycles": {
+    "2024": {
+      "raw_posts": 10017,
+      "posts": 10017,
+      "active_posts": 10017,
+      "excluded_posts": 0,
+      "raw_recruits": 15331,
+      "recruits": 15331,
+      "score_unresolved": 0,
+      "sha256": "ac1fa1de1d3bf07ae41e2be719b0a31e4b17120896d05c80f88f3bc77a591ed1",
+      "bytes": 12055607
+    },
+    "2025": {
+      "raw_posts": 10150,
+      "posts": 10150,
+      "active_posts": 10150,
+      "excluded_posts": 0,
+      "raw_recruits": 14721,
+      "recruits": 14721,
+      "score_unresolved": 0,
+      "sha256": "6cf9478739bb982d3c662bec1dfd3656920e2af61e40c8c59bc35740190cb732",
+      "bytes": 12983040
+    },
+    "2026": {
+      "raw_posts": 8511,
+      "posts": 8401,
+      "active_posts": 8401,
+      "excluded_posts": 110,
+      "raw_recruits": 12006,
+      "recruits": 11883,
+      "score_unresolved": 0,
+      "sha256": "1e70edb024f18e236bbd766059b8071be6ca46539182a55874ad7d4b9d41bc9e",
+      "bytes": 11053894
+    }
+  },
+  "review_queue": {
+    "summary": {
+      "event_count": 7,
+      "high_risk_count": 1,
+      "needs_review_count": 0,
+      "open_event_count": 7,
+      "open_high_risk_count": 1,
+      "public_boundary_count": 7,
+      "resolved_event_count": 1,
+      "resolved_score_count": 116,
+      "unresolved_score_count": 0
+    },
+    "events": 7
+  },
+  "canonical_tree_sha256": "fe2303a3c77e710d536cb8188d0d9c432591f917759aa47325b1bc417b6a0331"
+}

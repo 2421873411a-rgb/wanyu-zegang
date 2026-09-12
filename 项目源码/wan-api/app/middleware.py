@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 import time
 import uuid
 
@@ -20,13 +21,18 @@ from app.observability import metrics
 
 access_logger = logging.getLogger("wanyu.access")
 
+# 审计 F-010：透传的调用方 request-id 必须是 1~64 位安全字符，否则改用自生成 ID
+_REQUEST_ID_PATTERN = re.compile(r"^[A-Za-z0-9._-]{1,64}$")
+
 # /health 被探活高频轮询，访问日志不记（指标照常累计）
 _ACCESS_LOG_EXCLUDED = {"/health"}
 
 
 class RequestContextMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next) -> Response:
-        request_id = request.headers.get("x-request-id") or uuid.uuid4().hex[:16]
+        incoming_id = request.headers.get("x-request-id") or ""
+        # 审计 F-010：客户端提供的 request-id 限长限字符集，防止响应头/日志被注入膨胀内容
+        request_id = incoming_id if _REQUEST_ID_PATTERN.fullmatch(incoming_id) else uuid.uuid4().hex[:16]
         start = time.perf_counter()
         try:
             response = await call_next(request)

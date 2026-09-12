@@ -106,3 +106,33 @@ async def test_delete_missing_items_404(client: AsyncClient):
     assert r1.status_code == 404
     r2 = await client.delete("/api/v1/user/compare/ghost", headers=headers)
     assert r2.status_code == 404
+
+
+async def test_compare_slot_collision_retries_deterministically(client: AsyncClient, monkeypatch):
+    """审计 F-003/F-008：撞 UNIQUE(user_id,position) 后必须走 rollback→重读→重试并 201，
+    不得 500（rollback 后访问已 expire 的 current_user.id 会 MissingGreenlet）。"""
+    from sqlalchemy.exc import IntegrityError as SAIntegrityError
+    from sqlalchemy.ext.asyncio import AsyncSession
+
+    from tests.conftest import _seed_jobs
+
+    job_ids = await _seed_jobs(2)
+    data = await _register(client)
+    headers = _auth(data["access_token"])
+
+    real_flush = AsyncSession.flush
+    state = {"raised": False}
+
+    async def flaky_flush(self, *args, **kwargs):
+        if not state["raised"]:
+            state["raised"] = True
+            raise SAIntegrityError("INSERT", None, Exception("uq_compare_user_slot"))
+        return await real_flush(self, *args, **kwargs)
+
+    monkeypatch.setattr(AsyncSession, "flush", flaky_flush)
+    r = await client.post("/api/v1/user/compare", headers=headers,
+                          json={"record_id": job_ids[0], "cycle": "2026"})
+    assert r.status_code == 201, f"重试路径未生效：{r.status_code} {r.text}"
+    final = await client.get("/api/v1/user/compare", headers=headers)
+    assert final.status_code == 200
+    assert [row["record_id"] for row in final.json()] == [job_ids[0]]

@@ -3,7 +3,7 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
+from sqlalchemy import select, func, text
 from app.database import get_db
 from app.models.user import User
 from app.models.saved_position import SavedPosition
@@ -166,6 +166,14 @@ async def create_snapshot(
     filters_json = json.dumps(data.filters, ensure_ascii=False)
     if len(filters_json.encode("utf-8")) > 32 * 1024:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="筛选快照过大（>32KB）")
+    # v17.10.2 P2-08：配额从应用约定升级为事务约定。count→insert 的并发窗口
+    # 在 49+并发 时可突破 50；PostgreSQL 用事务级咨询锁把同用户的配额检查串行化
+    # （锁随 get_db 的事务提交/回滚自动释放）。SQLite 单写者天然串行，无需加锁。
+    if db.bind is not None and db.bind.dialect.name == "postgresql":
+        await db.execute(
+            text("SELECT pg_advisory_xact_lock(hashtext(:uid))"),
+            {"uid": str(current_user.id)},
+        )
     count_result = await db.execute(
         select(func.count(FilterSnapshot.id)).where(FilterSnapshot.user_id == current_user.id)
     )
@@ -248,34 +256,52 @@ async def add_to_compare(
         )
     
     # P1-8：四槽模型——数据库 CHECK(0..3) + UNIQUE(user_id,position) 保证并发 ≤4
-    # 不再靠应用层 count（并发窗口可突破），改找最小空闲槽位
-    occupied_result = await db.execute(
-        select(CompareList.position).where(CompareList.user_id == current_user.id)
-    )
-    occupied = {row for row in occupied_result.scalars().all()}
-    free_slots = [s for s in range(4) if s not in occupied]
-    if not free_slots:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="对比列表最多4个岗位"
+    # v17.10.2 P2-09：并发挑中同一空闲槽位会撞 UNIQUE(user_id,position)。此前一律
+    # 报「该岗位已在对比列表中」——语义错误。现在：撞槽 → 回滚 → 重读槽位 → 重试，
+    # 重试前先分辨「重复岗位」（record 已存在）与「槽位已满」（4/4），最多重试 3 次。
+    # 审计 F-003：rollback 会 expire 会话内全部实例，之后访问 current_user.id 会触发
+    # 同步 lazy refresh（MissingGreenlet → 500）。事务路径上一律用提前落好的本地值。
+    user_id = str(current_user.id)
+    for attempt in range(4):
+        occupied_result = await db.execute(
+            select(CompareList.position).where(CompareList.user_id == user_id)
         )
+        occupied = {row for row in occupied_result.scalars().all()}
+        free_slots = [s for s in range(4) if s not in occupied]
+        if not free_slots:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="对比列表最多4个岗位"
+            )
 
-    item = CompareList(
-        user_id=current_user.id,
-        record_id=data.record_id,
-        cycle=data.cycle,
-        position=free_slots[0]
-    )
-    db.add(item)
-    try:
-        await db.flush()
-    except IntegrityError:
-        # v17.9.1 S1：并发竞态由 UNIQUE(user_id, record_id) 兜底；上限 4 由应用层在
-        # 同一事务内 count 校验（固定槽位设计可彻底消除竞态，见 S6 契约文档备注）
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="该岗位已在对比列表中"
+        item = CompareList(
+            user_id=user_id,
+            record_id=data.record_id,
+            cycle=data.cycle,
+            position=free_slots[0]
         )
+        db.add(item)
+        try:
+            await db.flush()
+            break
+        except IntegrityError:
+            await db.rollback()
+            duplicate = (await db.execute(
+                select(CompareList.id).where(
+                    CompareList.user_id == user_id,
+                    CompareList.record_id == data.record_id,
+                )
+            )).scalar_one_or_none()
+            if duplicate is not None:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="该岗位已在对比列表中"
+                )
+            if attempt == 3:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="对比操作并发冲突，请重试"
+                )
 
     return CompareListResponse.model_validate(item)
 

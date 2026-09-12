@@ -1,3 +1,4 @@
+from pydantic import AliasChoices, Field, field_validator
 from pydantic_settings import BaseSettings
 from typing import List, Optional
 import json
@@ -42,6 +43,12 @@ class Settings(BaseSettings):
     APP_VERSION: str = _version_from_release_json() or "unknown"
     # ENV: dev / test / production。production 下强制安全门（SECRET_KEY 不得为已知默认值）
     ENV: str = "dev"
+
+    @property
+    def env_normalized(self) -> str:
+        # 评审 P2：生产门统一消费归一化 ENV——"PRODUCTION"/" production " 不得绕过。
+        # 注意 test 豁免仍用原文精确匹配（RA-5：' TEST '/'Test' 不享受豁免）。
+        return str(self.ENV).strip().lower()
     DEBUG: bool = False
 
     # 数据库配置（本地开发使用SQLite，生产环境使用PostgreSQL）
@@ -92,7 +99,14 @@ class Settings(BaseSettings):
     LOGOUT_MAX_EVENTS: int = 10
     LOGOUT_WINDOW_SECONDS: int = 60
     # Redis 不可达时进程内兜底按 worker 数收紧的分母上限
-    RATE_LIMIT_FALLBACK_WORKERS: int = 4
+    # v17.10.2 P2-10：worker 数单一真源——Gunicorn、Redis 降级限流稀释、容量推算
+    # 全部引用 WANYU_WEB_CONCURRENCY；不再保留“默认 4”的第二套 worker 概念
+    #（旧行为：生产 1 worker 时降级限流按 4 稀释 → login 5次/窗 变 1次/窗）。
+    WEB_CONCURRENCY: int = Field(
+        default=1,
+        validation_alias=AliasChoices("WANYU_WEB_CONCURRENCY", "WEB_CONCURRENCY"),
+    )
+    RATE_LIMIT_FALLBACK_WORKERS: Optional[int] = None
 
     model_config = {
         "env_file": ".env",
@@ -129,7 +143,7 @@ def _validate_production_safety(settings: "Settings") -> None:
     if len(settings.SECRET_KEY) < 32:
         raise RuntimeError("拒绝启动：SECRET_KEY 强度不足（至少 32 字符，建议 openssl rand -hex 32）。")
     # 生产信任边界：CORS 不允许 localhost/127.0.0.1 开发 origin（Round-7 终审 P2）
-    if settings.ENV == "production":
+    if settings.env_normalized == "production":
         for origin in settings.CORS_ORIGINS:
             if "localhost" in origin or "127.0.0.1" in origin:
                 raise RuntimeError(
@@ -138,4 +152,23 @@ def _validate_production_safety(settings: "Settings") -> None:
 
 
 settings = Settings()
+
+
+def _validate_runtime_capacity(s: "Settings") -> None:
+    """容量不变量（v17.10.2 P2-10）：把文档硬规则升级为拒绝启动。"""
+    # 未显式配置时，降级限流稀释倍数 = 真实 worker 数（任何环境都派生）
+    if s.RATE_LIMIT_FALLBACK_WORKERS is None:
+        s.RATE_LIMIT_FALLBACK_WORKERS = max(1, s.WEB_CONCURRENCY)
+    if s.env_normalized != "production":
+        return
+    if s.WEB_CONCURRENCY > 1 and s.RATE_LIMIT_BACKEND != "redis":
+        raise RuntimeError(
+            "拒绝启动：WANYU_WEB_CONCURRENCY>1 需要 RATE_LIMIT_BACKEND=redis"
+            "（memory 限流按进程独立计数，多 worker 会成倍放大爆破面）。"
+        )
+    if s.DATABASE_URL.startswith("sqlite"):
+        raise RuntimeError("拒绝启动：生产环境禁止 SQLite（无并发写入与灾备语义）。")
+
+
+_validate_runtime_capacity(settings)
 _validate_production_safety(settings)

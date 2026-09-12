@@ -1,0 +1,181 @@
+# site-release-gate（v17.9.2 PR-4 / P1-CI-001）
+#
+# 为什么需要它：Required CI（test/canonical/postgres）绿色 ≠ 正式网站能从
+# canonical 完整重建且三浏览器可用——canonical-ci 为 hosted runner 明确排除了
+# 约 10 套需要构建产物/源数据/浏览器的正式测试模块，window.event 这类跨浏览器
+# 缺陷因此漏网。本工作流把正式 release 链的验证搬进 PR 门禁：
+#   模板/漂移 → 单测 → 干净重建 → 完整性 → Chromium/Firefox/WebKit 烟测 → 证据归档
+#
+# 证据始终上传（含失败），失败不必重跑猜原因。
+name: site-release-gate
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: site-release-gate-${{ github.ref }}
+  # 审计 FE-008：main 的 run 永不取消（与 canonical-ci 策略一致），PR 之间互相取消
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+env:
+  PROJECT_DIR: 项目源码
+
+jobs:
+  parity:
+    name: parity / templates == 网站
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: 生成漂移门禁（模板→网站 字节级）
+        run: python "$PROJECT_DIR/tools/anhui_web/check_site_parity.py"
+
+  unit:
+    name: unit / python + node contracts
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: 项目源码/package-lock.json
+      - name: Install Python deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r "$PROJECT_DIR/requirements.txt"
+          pip check
+      - name: Install Node deps
+        working-directory: 项目源码
+        run: npm ci
+      - name: Python 测试门禁（unittest discovery 全量；EXCLUDED 与 canonical-ci 同一清单）
+        working-directory: 项目源码
+        run: |
+          # 审计 FE-001：此前用 pytest 全量跑——requirements 无 pytest 且 10 个模块依赖
+          # git 外产物，hosted 必红。现与 canonical-ci 完全对齐：discovery 全量 + 显式豁免。
+          EXCLUDED="test_anhui_web test_single_file_legacy test_maintainable_site test_ui_upgrade test_release_integrity test_v14_upgrade_baseline test_three_year_audit test_supplement_integrity test_map_restore test_catalog_and_changes"
+          FAILED=0
+          for f in tests/test_*.py; do
+            m="$(basename "$f" .py)"
+            if echo " $EXCLUDED " | grep -q " $m "; then
+              echo "--- skip $m (EXCLUDED，与 canonical-ci 同源) ---"
+              continue
+            fi
+            echo "=== gating $m ==="
+            python -m unittest "tests.$m" || FAILED=1
+          done
+          [ "$FAILED" -eq 0 ] || { echo "Python 测试门禁：FAIL" >&2; exit 1; }
+          echo "Python 测试门禁：PASS"
+      - name: Node 契约（core / major-city / user-store / datastore-integrity）
+        working-directory: 项目源码
+        run: |
+          node --test tests/test_wanyu_core.cjs tests/test_major_city_index.cjs tests/test_user_store_contract.cjs
+          node tests/test_datastore_contract.cjs
+      - name: npm audit（high 及以上使本作业失败；moderate 以下不阻断）
+        working-directory: 项目源码
+        run: npm audit --audit-level=high
+
+  build-and-integrity:
+    name: build / clean rebuild + integrity
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: [parity, unit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install Python deps
+        run: pip install -r "$PROJECT_DIR/requirements.txt"
+      - name: 从 canonical 干净重建到临时目录（验证“能从真源生成”，而非“仓库里的网站没坏”）
+        working-directory: 项目源码
+        run: |
+          mkdir -p /tmp/staging-clean
+          python -m tools.anhui_web.build_maintainable_site --output-dir /tmp/staging-clean
+      - name: 与提交的 网站/ 做等价核对（审计 F-017/FE-002；.gz 与 supplement 链归一）
+        run: python "$PROJECT_DIR/tools/anhui_web/compare_rebuilt_site.py" /tmp/staging-clean 网站
+      - name: 归档重建清单
+        if: always()
+        run: |
+          mkdir -p release-evidence
+          find /tmp/staging-clean -type f | sort > release-evidence/rebuilt-files.txt
+          find /tmp/staging-clean -type f -print0 | sort -z | xargs -0 sha256sum > release-evidence/asset-hashes.txt
+      - name: 上传重建证据（审计 FE-008：头部承诺“证据始终上传”）
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rebuild-evidence
+          path: release-evidence/
+          retention-days: 14
+
+  browser-smoke:
+    name: smoke / ${{ matrix.browser }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    needs: [parity, unit]
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: 项目源码/package-lock.json
+      - name: Install Python deps
+        run: pip install -r "$PROJECT_DIR/requirements.txt"
+      - name: Install Node deps + three engines
+        working-directory: 项目源码
+        run: |
+          npm ci
+          node node_modules/playwright-core/cli.js install --with-deps chromium firefox webkit
+      - name: Browser walkthrough（${{ matrix.browser }}）
+        working-directory: 项目源码
+        env:
+          SMOKE_BROWSER: ${{ matrix.browser }}
+        run: node tests/maintainable_browser_smoke.js
+      - name: 归档烟测证据
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-${{ matrix.browser }}
+          path: 项目源码/tests/artifacts/maintainable/${{ matrix.browser }}/
+          retention-days: 14
+
+  release-summary:
+    name: summary / gate result
+    runs-on: ubuntu-latest
+    needs: [parity, unit, build-and-integrity, browser-smoke]
+    if: always()
+    steps:
+      - name: 汇总
+        run: |
+          echo "parity:            ${{ needs.parity.result }}"
+          echo "unit:              ${{ needs.unit.result }}"
+          echo "build-integrity:   ${{ needs.build-and-integrity.result }}"
+          echo "smoke-chromium:    ${{ needs.browser-smoke.result }} (matrix)"
+          if [ "${{ needs.parity.result }}" != "success" ] \
+            || [ "${{ needs.unit.result }}" != "success" ] \
+            || [ "${{ needs.build-and-integrity.result }}" != "success" ] \
+            || [ "${{ needs.browser-smoke.result }}" != "success" ]; then
+            echo "site-release-gate: FAIL"; exit 1
+          fi
+          echo "site-release-gate: PASS"

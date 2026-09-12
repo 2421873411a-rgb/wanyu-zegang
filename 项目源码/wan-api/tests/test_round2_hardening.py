@@ -52,13 +52,13 @@ async def test_unknown_user_login_still_costs_bcrypt(monkeypatch):
     """时序侧信道：未知邮箱也必须执行一次 bcrypt（调用计数断言）。"""
     from app.api.v1 import auth as auth_mod
     calls = {"n": 0}
-    real_verify = auth_mod.verify_password
+    real_verify = auth_mod.verify_password_async
 
-    def counting_verify(plain, hashed):
+    async def counting_verify(plain, hashed):
         calls["n"] += 1
-        return real_verify(plain, hashed)
+        return await real_verify(plain, hashed)
 
-    monkeypatch.setattr(auth_mod, "verify_password", counting_verify)
+    monkeypatch.setattr(auth_mod, "verify_password_async", counting_verify)
     from app.main import app
 
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
@@ -302,6 +302,17 @@ async def test_float_bm_rejected(client: AsyncClient):
     r = await _import(client, headers, payload)
     assert r.status_code == 400
     assert "bm" in r.json()["detail"]
+
+
+async def test_float_valued_and_string_bm_rejected(client: AsyncClient):
+    """v17.10.2 P1-07：3.0 与 "3" 同罪——只认 JSON 整数。"""
+    headers = await _admin_headers(client)
+    for bad in (3.0, "3"):
+        payload = _payload(1)
+        payload["allMajors"]["rows"][0]["bm"] = bad
+        r = await _import(client, headers, payload)
+        assert r.status_code == 400, f"bm={bad!r} 应拒绝"
+        assert "bm" in r.json()["detail"]
 
 
 # ============ Round-4 盲区终扫回归 ============

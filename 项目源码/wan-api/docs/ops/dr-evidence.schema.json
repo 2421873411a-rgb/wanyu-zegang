@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "wanyu-dr-evidence/v1",
+  "description": "灾备就绪证据。规则：下列条件不全为真之前，readiness 的 dr_ready 永远 false，文档不得宣称“已具备灾备”。",
+  "type": "object",
+  "properties": {
+    "schema": { "const": "wanyu-dr-evidence/v1" },
+    "backup_created_at": { "type": "string", "format": "date-time" },
+    "backup_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "offsite_provider": { "const": "cos" },
+    "offsite_object": { "type": "string", "minLength": 1, "description": "cos://bucket/key，异地副本实际对象地址" },
+    "offsite_versioning_enabled": { "type": "boolean" },
+    "retention_days": { "type": "integer", "minimum": 1 },
+    "download_verified": { "type": "boolean", "description": "从异机下载并核对 backup_sha256 通过" },
+    "restore_host": { "type": "string", "description": "执行恢复的目标机标识（不得与备份源机相同）" },
+    "restore_completed_at": { "type": "string", "format": "date-time" },
+    "restored_revision": { "type": "string", "description": "恢复出的 alembic revision" },
+    "application_smoke": { "type": "boolean", "description": "恢复后 /health 与核心 API 冒烟通过" },
+    "secret_rotated_at": { "type": "string", "format": "date-time", "description": "最近一次 SECRET_KEY 轮换演练时间" },
+    "operator": { "type": "string" }
+  },
+  "required": ["schema", "backup_created_at", "backup_sha256", "offsite_provider", "offsite_object", "download_verified", "restore_host", "restore_completed_at", "restored_revision", "application_smoke"]
+}

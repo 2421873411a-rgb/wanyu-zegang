@@ -90,7 +90,7 @@ async def init_db():
     """
     from sqlalchemy import inspect as sa_inspect, text as sa_text
 
-    env = settings.ENV.strip().lower()
+    env = settings.env_normalized
     async with engine.begin() as conn:
         if env == "production":
             def _check_tables(sync_conn):

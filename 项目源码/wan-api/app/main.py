@@ -29,18 +29,30 @@ async def lifespan(app: FastAPI):
     """应用生命周期管理"""
     # 启动时初始化数据库
     await init_db()
+    # v17.10.2 P2-10：非敏感运行容量摘要——排障不再靠猜（绝不打印密钥/URL 凭证）
+    logger.info(
+        "runtime: env=%s workers=%s rate_limit=%s db=%s release=%s",
+        settings.ENV,
+        settings.WEB_CONCURRENCY,
+        settings.RATE_LIMIT_BACKEND,
+        (settings.DATABASE_URL.split("://", 1)[0] if "://" in settings.DATABASE_URL else "unknown"),
+        settings.APP_VERSION,
+    )
     yield
     # 关闭时清理资源
     await close_db()
 
+
+logger = logging.getLogger("wanyu.main")
 
 app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION,
     description="皖域择岗 API - 安徽公务员/事业编岗位信息服务平台",
     lifespan=lifespan,
-    docs_url="/api/docs",
-    redoc_url="/api/redoc"
+    # 安全审计 P3：交互式文档不再对生产公网暴露 API 面测绘
+    docs_url=None if settings.env_normalized == "production" else "/api/docs",
+    redoc_url=None if settings.env_normalized == "production" else "/api/redoc"
 )
 
 # 配置CORS
@@ -87,7 +99,7 @@ async def root():
     return {
         "name": settings.APP_NAME,
         "version": settings.APP_VERSION,
-        "docs": "/api/docs"
+        "docs": None if settings.env_normalized == "production" else "/api/docs"
     }
 
 

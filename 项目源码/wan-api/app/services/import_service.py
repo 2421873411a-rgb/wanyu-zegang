@@ -73,18 +73,16 @@ def _extract_group(data: Dict[str, Any]) -> Tuple[Optional[Dict[str, Any]], list
 
 
 def _to_int(value: Any) -> Optional[int]:
-    """整数（或整数值的 float）→ int；其余一律 None（调用方判为非法）。
+    """严格 int 契约（v17.10.2 P1-07）：只接受 JSON 整数，其余一律 None。
 
-    v17.9.11：3.7 这类浮点招聘人数曾被 int() 静默截断成 3 且守恒按截断值自洽。
+    CONTRACT 明确「num/bm 提供时必须整数（浮点拒绝，不静默截断）」——
+    3.0 这类整数值 float 与 "3" 这类数字字符串同样拒绝，canonical 是唯一
+    事实源，API 导入器不替上游偷偷修类型。bool 是 int 的子类，先排除。
+    v17.9.11 历史：3.7 曾被 int() 静默截断成 3 且守恒按截断值自洽。
     """
-    if isinstance(value, bool) or value is None:
+    if isinstance(value, bool) or not isinstance(value, int):
         return None
-    if isinstance(value, float) and not value.is_integer():
-        return None
-    try:
-        return int(value)
-    except (TypeError, ValueError):
-        return None
+    return value
 
 
 def _row_active(row: Dict[str, Any]) -> bool:
